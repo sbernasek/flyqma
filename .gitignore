@@ -1,0 +1,5 @@
+/modules/cmodules/*
+*.png
+*.pdf
+*.pyc
+notebooks/.ipynb_checkpoints/*
