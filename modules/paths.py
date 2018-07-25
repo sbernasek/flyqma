@@ -15,6 +15,23 @@ class Experiment:
         disc_names, discs = self.compile_discs()
         self.disc_names = disc_names
         self.discs = discs
+        self.num_discs = len(self.disc_names)
+        self.count = 0
+
+    def __getitem__(self, ind):
+        return self.discs[self.disc_names[ind]].load_stack()
+
+    def __iter__(self):
+        self.count = 0
+        return self
+
+    def __next__(self):
+        if self.count < self.num_discs:
+            stack = self.__getitem__(self.count)
+            self.count += 1
+            return stack
+        else:
+            raise StopIteration
 
     def get_segmentation_paths(self):
         paths = glob.glob(os.path.join(self.path, '*[0-9]'))
@@ -86,7 +103,7 @@ class Disc:
     def load_measurements(self):
         """ Load measurement dataframe. """
         df = self._load_measurements(self.path)
-        df['genotype'] = self.genotype
+        df['disc_genotype'] = self.genotype
         df['disc_id'] = self.disc_id
         return df
 

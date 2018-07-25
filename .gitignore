@@ -3,3 +3,7 @@
 *.pdf
 *.pyc
 notebooks/.ipynb_checkpoints/*
+*.xlsx
+*.log
+*.csv
+*.json

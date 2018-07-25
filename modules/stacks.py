@@ -21,6 +21,7 @@ from modules.annotation import Annotation
 
 
 class Stack:
+
     def __init__(self, tif_path, bits=2**12, params={}):
         disc_name = tif_path.split('/')[-1].split('.')[0]
         self.disc_name = disc_name
@@ -32,7 +33,23 @@ class Stack:
         self.depth = self.shape[0]
         self.params = params
         self.df = None
-        self.path = None
+        self.path = os.path.join(self.genotype_path, disc_name)
+        self.count = 0
+
+    def __getitem__(self, ind):
+        return self.load_layer(ind)
+
+    def __iter__(self):
+        self.count = 0
+        return self
+
+    def __next__(self):
+        if self.count < self.depth:
+            layer = self.__getitem__(self.count)
+            self.count += 1
+            return layer
+        else:
+            raise StopIteration
 
     @staticmethod
     def read_tif(path):
@@ -48,7 +65,7 @@ class Stack:
     def get_layer(self, layer_id=0):
         """ Instantiate MultiChannel image of single layer. """
         im = self.stack[layer_id, :, :, :]
-        layer = Layer(im, layer_id=layer_id)
+        layer = Layer(im, layer_id=layer_id, stack_path=self.path)
         return layer
 
     def load_layer(self, layer_id=0):
@@ -56,6 +73,12 @@ class Stack:
         layer_path = os.path.join(self.path, '{:d}'.format(layer_id))
         im = self.stack[layer_id, :, :, :]
         return Layer.load(im, layer_path)
+
+    def load_metadata(self):
+        """ Load metadata from segmentation file. """
+        metadata_path = os.path.join(self.path, 'metadata.json')
+        io = IO()
+        return io.read_json(metadata_path)
 
     def segment(self, bg='b',
                     segmentation_kw={},
@@ -67,13 +90,14 @@ class Stack:
 
         # create directory and save parameters
         self.params = dict(segmentation_kw=segmentation_kw, fg_kw=fg_kw, annotation_kw=annotation_kw)
+
         if save:
-            dirpath = self.create_directory()
+            self.create_directory()
 
         # segment and annotate each layer
         dfs = []
         for layer_id, im in enumerate(self.stack):
-            layer = Layer(im, layer_id=layer_id)
+            layer = Layer(im, layer_id=layer_id, stack_path=self.path)
             layer.segment(bg=bg, **segmentation_kw)
             layer.compile_dataframe()
             layer.set_foreground(**fg_kw)
@@ -81,28 +105,20 @@ class Stack:
 
             # save layer segmentation
             if save:
-                layer_dirpath = layer.save(dirpath, **save_kw)
+                _ = layer.save(**save_kw)
             dfs.append(layer.df)
 
         # compile dataframe
         self.df = pd.concat(dfs).reset_index(drop=True)
         if save:
-            self.save(dirpath)
+            _ = self.save(self.path)
 
     def create_directory(self):
         """ Create directory for segmentation results. """
-
-        # instantiate IO
         io = IO()
+        io.make_dir(self.path, force=True)
 
-        # create directory
-        dirname = self.disc_name
-        dirpath = os.path.join(self.genotype_path, dirname)
-        dirpath = io.make_dir(dirpath, force=True)
-
-        return dirpath
-
-    def save(self, dirpath):
+    def save(self, stack_path):
         """ Save segmentation parameters and results. """
 
         # instantiate IO
@@ -112,13 +128,13 @@ class Stack:
         metadata = dict(path=self.tif_path,
                         bits=self.bits,
                         params=self.params)
-        io.write_json(os.path.join(dirpath, 'metadata.json'), metadata)
+        io.write_json(os.path.join(stack_path, 'metadata.json'), metadata)
 
         # save contours to json
         contours = self.df.to_json()
-        io.write_json(os.path.join(dirpath, 'contours.json'), contours)
+        io.write_json(os.path.join(stack_path, 'contours.json'), contours)
 
-        return dirpath
+        return stack_path
 
     @staticmethod
     def from_segmentation(path):
@@ -148,10 +164,11 @@ class Stack:
 
 class Layer(MultichannelImage):
 
-    def __init__(self, im, labels=None, layer_id=0):
+    def __init__(self, im, labels=None, layer_id=0, stack_path='.'):
         MultichannelImage.__init__(self, im, labels=labels)
         self.channels = dict(r=0, g=1, b=2)
         self.layer_id = int(layer_id)
+        self.path = os.path.join(stack_path, '{:d}'.format(self.layer_id))
 
     @staticmethod
     def load(im, path):
@@ -164,7 +181,8 @@ class Layer(MultichannelImage):
 
         # instantiate layer
         layer_id = metadata['layer_id']
-        layer = Layer(im, labels=labels, layer_id=layer_id)
+        stack_path = path.rsplit('/', maxsplit=1)[0]
+        layer = Layer(im, labels=labels, layer_id=layer_id, stack_path=stack_path)
 
         # assign background
         bg = metadata['bg']
@@ -250,9 +268,10 @@ class Layer(MultichannelImage):
                  channel='r_normalized',
                  weighted=True,
                  fg_only=True,
-                 upper_bound=90):
+                 upper_bound=100,
+                 log=True):
         """ Annotate layer. """
-        kw = dict(q=q, channel=channel, weighted=weighted, fg_only=fg_only, upper_bound=upper_bound)
+        kw = dict(q=q, channel=channel, weighted=weighted, fg_only=fg_only, upper_bound=upper_bound, log=log)
         self.annotation = Annotation(self.df, **kw)
         self.df['genotype'] = self.annotation(self.df.index)
 
@@ -282,7 +301,6 @@ class Layer(MultichannelImage):
         return fig
 
     def save(self,
-             segmentation_path,
              segmentation=True,
              image=True,
              foreground=True,
@@ -294,8 +312,7 @@ class Layer(MultichannelImage):
         io = IO()
 
         # create directory
-        dirpath = os.path.join(segmentation_path, '{:d}'.format(self.layer_id))
-        dirpath = io.make_dir(dirpath, force=True)
+        dirpath = io.make_dir(self.path, force=True)
 
         # save contours
         contours = self.df.to_json()

@@ -27,9 +27,13 @@ class MonochromeImage:
                    cmap=None,
                    vmin=0, vmax=1,
                    figsize=(10, 10),
+                   ax=None,
                    **kwargs):
 
-        fig, ax = plt.subplots(figsize=figsize)
+        if ax is None:
+            fig, ax = plt.subplots(figsize=figsize)
+        fig = plt.gcf()
+
         if cmap is None:
             cmap = plt.cm.viridis
 

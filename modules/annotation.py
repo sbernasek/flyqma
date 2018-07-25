@@ -5,6 +5,7 @@ TO DO:
 
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 from matplotlib.colors import ListedColormap
 from matplotlib.colors import Normalize
 
@@ -17,18 +18,23 @@ from modules.infomap import InfoMap
 
 class Clustering:
 
-    def __init__(self, graph, weighted=True, channel='r', upper_bound=90):
+    def __init__(self, graph, weighted=True, channel='r', upper_bound=100, log=True):
         self.levels = graph.df[channel].loc[graph.nodes].values
         self.im = InfoMap(graph, weighted=weighted, channel=channel)
         self.im_labels = self.im(graph.nodes)
-        self.define_genotypes(graph, n_clusters=3, upper_bound=upper_bound)
+        self.mean_cluster_levels = self.evaluate_mean_cluster_levels()
+        self.define_genotypes(graph, n_clusters=3, upper_bound=upper_bound, log=log)
         self.genotypes = self.assign_genotype_to_clusters()
+
+    def evaluate_mean_cluster_levels(self):
+        adict = dict(labels=self.im_labels, values=self.levels)
+        return pd.DataFrame(adict).groupby('labels').mean()['values'].values
 
     def infomap_label_distribution(self):
         fig, ax = plt.subplots(figsize=(2, 1))
         _ = ax.hist(self.im_labels, bins=np.arange(0, self.im_labels.max()+1))
 
-    def define_genotypes(self, graph, n_clusters=3, upper_bound=90):
+    def define_genotypes(self, graph, n_clusters=3, upper_bound=100, log=True):
         """ Cluster nodes by level. """
 
         params = dict(init='k-means++', n_init=10) #random_state=0
@@ -38,7 +44,10 @@ class Clustering:
         levels = self.levels[included].reshape(-1, 1)
 
         # perform clustering
-        km = KMeans(n_clusters=n_clusters, **params).fit(levels)
+        if log:
+            km = KMeans(n_clusters=n_clusters, **params).fit(np.log10(levels))
+        else:
+            km = KMeans(n_clusters=n_clusters, **params).fit(levels)
 
         # assemble labels
         self.kmeans_labels = np.zeros_like(included, dtype=int)
@@ -99,7 +108,8 @@ class Annotation:
                  weighted=True,
                  channel='r',
                  fg_only=False,
-                 upper_bound=90):
+                 upper_bound=100,
+                 log=True):
 
         self.channel = channel
 
@@ -115,7 +125,7 @@ class Annotation:
         self.graph = WeightedGraph(df, q=q)
 
         # cluster graph and assign clone mask
-        self.clustering = Clustering(self.graph, weighted=weighted, channel=channel, upper_bound=upper_bound)
+        self.clustering = Clustering(self.graph, weighted=weighted, channel=channel, upper_bound=upper_bound, log=log)
         self.clone_mask = CloneMask(self.graph, self.clustering.genotypes)
         self.set_colormap()
 

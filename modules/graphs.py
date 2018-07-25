@@ -131,6 +131,11 @@ class WeightFunction:
     def difference(self, i, j):
         return np.abs(self.values.loc[i] - self.values.loc[j])
 
+    def scaled_difference(self, i, j):
+        x = self.values.loc[i]
+        y = self.values.loc[j]
+        return np.abs(x-y) / ((x+y)/2)
+
     def assess_weights(self, edges):
         energy = np.array([self.difference(*e) for e in edges])
         weights = np.exp(-energy/np.mean(energy))
