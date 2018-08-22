@@ -17,11 +17,12 @@ warnings.filterwarnings("ignore")
 
 class MonochromeImage:
 
-    def __init__(self, im, labels=None):
+    def __init__(self, im, labels=None, channel=None):
         self.im = im
         self.shape = im.shape[:2]
         self.mask = np.ones_like(self.im, dtype=bool)
         self.labels = labels
+        self.channel = channel
 
     def show(self, segments=True,
                    cmap=None,
@@ -35,9 +36,17 @@ class MonochromeImage:
         fig = plt.gcf()
 
         if cmap is None:
-            cmap = plt.cm.viridis
+            if len(self.im.shape) == 2:
+                im = self.im.reshape(*self.shape, 1)
+                cpad = dict(r=(0, 2), g=(1, 1), b=(2, 0))
+                pad = ((0,0), (0,0), cpad[self.channel])
+                im = np.pad(im, pad, mode='constant', constant_values=0)
+            else:
+                im = self.im
+            ax.imshow(im)
 
-        ax.imshow(self.im, cmap=cmap, vmin=vmin, vmax=vmax)
+        else:
+            ax.imshow(self.im, cmap=cmap, vmin=vmin, vmax=vmax)
 
         if segments and self.labels is not None:
             self.add_contours(ax, **kwargs)
@@ -131,4 +140,4 @@ class MultichannelImage(MonochromeImage):
         else:
             monochrome = self.im[:, :, self.channels[channel]]
 
-        return MonochromeImage(monochrome, labels=self.labels)
+        return MonochromeImage(monochrome, labels=self.labels, channel=channel)

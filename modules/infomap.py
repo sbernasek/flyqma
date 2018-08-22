@@ -4,18 +4,18 @@ import infomap
 
 class InfoMap:
 
-    def __init__(self, graph, weighted=True, channel='r', **kw):
-        self.weighted = weighted
-        self.channel = channel
-        self.infomap = self.build_network(graph, weighted, channel, **kw)
+    def __init__(self, graph, **kw):
+        self.infomap = self.build_network(graph, **kw)
         self.run()
-        self.classifier = self.build_classifier()
+        node_to_module, classifier = self.build_classifier()
+        self.node_to_module = node_to_module
+        self.classifier = classifier
 
     def __call__(self, x):
         return self.classifier(x)
 
     @staticmethod
-    def build_network(graph, weighted=True, channel='r', infomap_args=''):
+    def build_network(graph, infomap_args=''):
         """ Compile InfoMap object from graph. """
 
         # instantiate infomap
@@ -23,8 +23,7 @@ class InfoMap:
         network = infomap_obj.network()
 
         # add edges
-        links = graph.build_links(weighted=weighted, channel=channel)
-        _ = [network.addLink(*e) for e in links]
+        _ = [network.addLink(*e) for e in graph.build_links()]
 
         return infomap_obj
 
@@ -34,8 +33,8 @@ class InfoMap:
             print("Identified {:d} modules.".format(self.infomap.numTopModules()))
 
     def build_classifier(self):
-        classes = {}
+        node_to_module = {}
         for node in self.infomap.iterTree():
             if node.isLeaf():
-                classes[node.physicalId] = node.moduleIndex()
-        return np.vectorize(classes.get)
+                node_to_module[node.physicalId] = node.moduleIndex()
+        return node_to_module, np.vectorize(node_to_module.get)

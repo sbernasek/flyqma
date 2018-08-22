@@ -26,7 +26,8 @@ class KDE:
         return self.__call__(self.xy)
 
     def cluster_density(self, n=2):
-        centroid, label, inertia = k_means(self.density.reshape(-1, 1), n)
+        values = np.log10(self.density.reshape(-1, 1))
+        centroid, label, inertia = k_means(values, n)
         self.centroid = centroid
         self.label = label
 

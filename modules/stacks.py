@@ -7,7 +7,6 @@ import json
 import numpy as np
 import pandas as pd
 import gc
-import glob
 import matplotlib.pyplot as plt
 from scipy.ndimage.measurements import mean, standard_deviation
 from modules.io import IO
@@ -147,7 +146,10 @@ class Stack:
         metadata = io.read_json(metadata_path)
 
         # parse metadata
-        tif_path = metadata['path']
+        saved_loc, saved_path = metadata['path'].rsplit('clones/', maxsplit=1)
+        current_loc = path.rsplit('clones', maxsplit=1)[0] + 'clones'
+        tif_path = os.path.join(current_loc, saved_path)
+
         bits = metadata['bits']
         params = metadata['params']
 
@@ -169,6 +171,8 @@ class Layer(MultichannelImage):
         self.channels = dict(r=0, g=1, b=2)
         self.layer_id = int(layer_id)
         self.path = os.path.join(stack_path, '{:d}'.format(self.layer_id))
+        get_sel_path = lambda p, d, l: os.path.join(p, 'selections', d, l)
+        self.selection_path = get_sel_path(*self.path.rsplit('/', maxsplit=2))
 
     @staticmethod
     def load(im, path):
@@ -192,10 +196,19 @@ class Layer(MultichannelImage):
         df = pd.read_json(io.read_json(os.path.join(path, 'contours.json')))
         layer.df = df
 
-        # set foreground
+        # load metadata
         md_path = os.path.join(os.path.join(path, os.pardir), 'metadata.json')
         params = io.read_json(md_path)['params']
-        layer.set_foreground(**params['fg_kw'])
+
+        # set foreground
+        #layer.set_foreground(**params['fg_kw'])
+
+        # set selection
+        md = io.read_json(os.path.join(layer.selection_path, 'md.json'))
+        layer.include = bool(md['include'])
+
+        # annotate
+        layer.annotate(**params['annotation_kw'])
 
         return layer
 
@@ -265,28 +278,44 @@ class Layer(MultichannelImage):
         self.fg_mask = ForegroundMask(self.shape, kde)
 
     def annotate(self, q=95,
-                 channel='r_normalized',
-                 weighted=True,
+                 weighted_by='r_normalized',
                  fg_only=True,
-                 upper_bound=100,
                  log=True):
         """ Annotate layer. """
-        kw = dict(q=q, channel=channel, weighted=weighted, fg_only=fg_only, upper_bound=upper_bound, log=log)
+        kw = dict(q=q, weighted_by=weighted_by, fg_only=fg_only, log=log)
         self.annotation = Annotation(self.df, **kw)
-        self.df['genotype'] = self.annotation(self.df.index)
 
-    def plot_annotation(self, cmap=None, fig_kw={}, clone_kw={}):
+        self.df['im_label'] = -1
+        ind = self.annotation.graph.nodes
+        self.df.loc[ind, 'im_label'] = self.annotation.clustering.im_labels
+
+
+    def plot_graph(self, channel='r', figsize=(15, 15), cmap=None, **kw):
+        """ Plot graph on top of relevant channel. """
+
+        # create axis
+        fig, ax = plt.subplots(figsize=figsize)
+
+        # add image
+        _ = self.get_channel(channel).show(ax=ax, segments=False, cmap=cmap)
+
+        # add graph
+        self.annotation.graph.show(ax=ax, **kw)
+
+        return fig
+
+    def plot_annotation(self, cmap='grey', fig_kw={}, clone_kw={}):
         """ Show annotation channel overlayed with clone segments. """
 
-        # define colormap
-        if cmap is None:
+        if cmap == 'grey':
             cmap = plt.cm.Greys
 
         # get layer
-        if 'normalized' in self.annotation.channel:
-            im = self.get_channel(self.annotation.channel.split('_')[0])
+        weighted_by = self.annotation.graph.weighted_by
+        if 'normalized' in self.annotation.graph.weighted_by:
+            im = self.get_channel(weighted_by.split('_')[0])
         else:
-            im = self.get_channel(self.annotation.channel)
+            im = self.get_channel(weighted_by)
 
         # show layer
         fig = im.show(segments=False, cmap=cmap, **fig_kw)
@@ -300,11 +329,16 @@ class Layer(MultichannelImage):
 
         return fig
 
+    def save_contours(self):
+        io = IO()
+        contours = self.df.to_json()
+        io.write_json(os.path.join(self.path, 'contours.json'), contours)
+
     def save(self,
              segmentation=True,
              image=True,
              foreground=True,
-             annotation=True,
+             annotation=False,
              dpi=100):
         """ Save segmentation parameters and results. """
 
@@ -315,8 +349,9 @@ class Layer(MultichannelImage):
         dirpath = io.make_dir(self.path, force=True)
 
         # save contours
-        contours = self.df.to_json()
-        io.write_json(os.path.join(dirpath, 'contours.json'), contours)
+        self.save_contours()
+        #contours = self.df.to_json()
+        #io.write_json(os.path.join(dirpath, 'contours.json'), contours)
 
         # save metadata
         metadata = dict(layer_id=self.layer_id, bg=self.bg)

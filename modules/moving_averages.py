@@ -294,3 +294,27 @@ class Roller:
             fig, ax = plt.subplots()
 
         ax.fill_between(t, low, high, color=color, alpha=alpha)
+
+
+def detrend_signal(x, window_size=99, order=1):
+    """
+    Detrend and scale fluctuations using first-order univariate spline.
+
+    Parameters:
+        x (np array) -ordered samples
+        window_size (int) - size of interpolation window for lowpass filter
+        order (int) - spline order
+
+    Returns:
+        residuals (np array) - detrended residuals
+        trend (np array) - spline fit to signal
+    """
+
+    # use odd window size
+    if window_size % 2 == 0:
+        window_size += 1
+    window_size = int(window_size)
+
+    trend = savgol_smoothing(x, window_size=window_size, polyorder=order)
+    residuals = x - trend
+    return residuals, trend

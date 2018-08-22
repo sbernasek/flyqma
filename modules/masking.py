@@ -2,6 +2,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 from skimage.transform import resize
+#from skimage.filters import threshold_otsu
+
+
+class Mask:
+
+    def __init__(self, mask):
+        self.mask = mask
+
+    def add_contour(self, ax, lw=1, color='r'):
+        ax.contour(self.mask, [0.5], linewidths=[lw], colors=[color])
+
+    def add_contourf(self, ax, alpha=0.5, colors='none', hatches=['//']):
+        ax.contourf(self.mask, [-.5, .5], colors=['w'], hatches=hatches, alpha=alpha)
 
 
 class FunctionMask:
@@ -17,7 +30,7 @@ class FunctionMask:
         yy, xx = np.meshgrid(*(np.arange(0, s, self.res) for s in self.shape))
         grid = np.vstack((xx.ravel(), yy.ravel())).T
         values = resize(func(grid).reshape(yy.shape), self.shape)
-        return np.ma.array(values)
+        return np.ma.array(values).T
 
     def apply_threshold(self, threshold):
         self.values.mask = (self.values < threshold)
@@ -25,8 +38,8 @@ class FunctionMask:
     def add_contour(self, ax, lw=1, color='r'):
         ax.contour(self.values.mask, [0.5], linewidths=[lw], colors=[color])
 
-    def add_contourf(self, ax, alpha=0.5, colors='none'):
-        ax.contourf(~self.values.mask, [-.5, .5], colors=['w'], hatches=['//'], alpha=alpha)
+    def add_contourf(self, ax, alpha=0.5, colors=['w'], hatches=['//']):
+        ax.contourf(~self.values.mask, [-.5, .5], colors=colors, hatches=hatches, alpha=alpha)
 
     def plot_density(self, mask_alpha=0.5, cmap=plt.cm.plasma, figsize=(5, 5)):
         fig, ax = plt.subplots(figsize=figsize)
@@ -53,7 +66,7 @@ class RBFMask:
     def evaluate(self, func):
         yy, xx = np.meshgrid(*(np.arange(0, s, self.res) for s in self.shape))
         zi = func(xx, yy)
-        return resize(zi, self.shape)
+        return resize(zi, self.shape).T
 
     def label(self):
         labels = np.searchsorted(self.rbf.thresholds, self.zi)

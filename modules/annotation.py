@@ -18,13 +18,13 @@ from modules.infomap import InfoMap
 
 class Clustering:
 
-    def __init__(self, graph, weighted=True, channel='r', upper_bound=100, log=True):
-        self.levels = graph.df[channel].loc[graph.nodes].values
-        self.im = InfoMap(graph, weighted=weighted, channel=channel)
+    def __init__(self, graph, log=True):
+        self.levels = graph.df[graph.weighted_by].loc[graph.nodes].values
+        self.im = InfoMap(graph)
         self.im_labels = self.im(graph.nodes)
-        self.mean_cluster_levels = self.evaluate_mean_cluster_levels()
-        self.define_genotypes(graph, n_clusters=3, upper_bound=upper_bound, log=log)
-        self.genotypes = self.assign_genotype_to_clusters()
+        #self.mean_cluster_levels = self.evaluate_mean_cluster_levels()
+        #self.define_genotypes(graph, n_clusters=3, log=log)
+        #self.genotypes = self.assign_genotype_to_clusters()
 
     def evaluate_mean_cluster_levels(self):
         adict = dict(labels=self.im_labels, values=self.levels)
@@ -34,14 +34,11 @@ class Clustering:
         fig, ax = plt.subplots(figsize=(2, 1))
         _ = ax.hist(self.im_labels, bins=np.arange(0, self.im_labels.max()+1))
 
-    def define_genotypes(self, graph, n_clusters=3, upper_bound=100, log=True):
+    def define_genotypes(self, graph, n_clusters=3, log=True):
         """ Cluster nodes by level. """
 
         params = dict(init='k-means++', n_init=10) #random_state=0
-
-        # exclude points above threshold
-        included = self.levels <= np.percentile(self.levels, q=upper_bound)
-        levels = self.levels[included].reshape(-1, 1)
+        levels = self.levels.reshape(-1, 1)
 
         # perform clustering
         if log:
@@ -50,9 +47,10 @@ class Clustering:
             km = KMeans(n_clusters=n_clusters, **params).fit(levels)
 
         # assemble labels
-        self.kmeans_labels = np.zeros_like(included, dtype=int)
-        self.kmeans_labels[included] = km.labels_
-        self.kmeans_labels[~included] = np.argmax(km.cluster_centers_)
+        #self.kmeans_labels = np.zeros_like(included, dtype=int)
+        #self.kmeans_labels[included] = km.labels_
+        #self.kmeans_labels[~included] = np.argmax(km.cluster_centers_)
+        self.kmeans_labels = km.labels_
 
 #        self.kmeans_labels = km.labels_
         centroids = km.cluster_centers_.ravel()
@@ -73,6 +71,10 @@ class Clustering:
         im_to_genotype = {l: dominant_genotype(l) for l in range(self.im_labels.max()+1)}
         genotypes = np.vectorize(im_to_genotype.get)(self.im_labels)
         return genotypes
+
+
+
+
 
 
 class CloneMask:
@@ -97,6 +99,12 @@ class CloneMask:
         self.mask = mask
 
     @staticmethod
+    def from_layer(layer):
+        graph = layer.annotation.graph
+        genotypes = layer.df.loc[graph.nodes].genotype
+        return CloneMask(graph, genotypes)
+
+    @staticmethod
     def get_borders(x):
         return (x.max(axis=1) != x.min(axis=1))
 
@@ -105,13 +113,9 @@ class Annotation:
 
     def __init__(self, df,
                  q=95,
-                 weighted=True,
-                 channel='r',
+                 weighted_by='r_normalized',
                  fg_only=False,
-                 upper_bound=100,
                  log=True):
-
-        self.channel = channel
 
         # extract foreground (optional)
         self.fg_only = fg_only
@@ -122,11 +126,15 @@ class Annotation:
             self.bg = None
 
         # compile graph and get dataframe of distance-filtered nodes
-        self.graph = WeightedGraph(df, q=q)
+        self.graph = WeightedGraph(df, q=q, weighted_by=weighted_by)
 
         # cluster graph and assign clone mask
-        self.clustering = Clustering(self.graph, weighted=weighted, channel=channel, upper_bound=upper_bound, log=log)
-        self.clone_mask = CloneMask(self.graph, self.clustering.genotypes)
+        self.clustering = Clustering(self.graph, log=log)
+
+        if 'genotype' in df.columns.unique():
+            clone_mask = CloneMask(self.graph, df.loc[self.graph.nodes].genotype)
+            self.clone_mask = clone_mask
+
         self.set_colormap()
 
     def __call__(self, ind):

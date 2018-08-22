@@ -29,7 +29,7 @@ class IO:
         # check if directory exists
         if os.path.exists(dir_name):
             if force == True:
-                shutil.rmtree(dir_name)
+                shutil.rmtree(dir_name, ignore_errors=True)
             else:
                 print('Will not overwrite existing directory.')
                 return dir_name

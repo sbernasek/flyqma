@@ -128,10 +128,15 @@ class Segmentation:
 
     @staticmethod
     def evaluate_centroids(labels):
-        """ Evaluate center of mass of each label. """
+        """
+        Evaluate center of mass of each label.
+
+        * Note: scipy returns centroids as (y, x) which are flipped to (x, y)
+        """
+
         seg_ids = np.unique(labels[labels!=0])
         coms = center_of_mass(labels, labels, seg_ids)
-        return {seg_id: com for seg_id, com in zip(seg_ids, coms)}
+        return {seg_id: com[::-1] for seg_id, com in zip(seg_ids, coms)}
 
     def show(self, figsize=(15, 15)):
         """ Visualize segmentation. """

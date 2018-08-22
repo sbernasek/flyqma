@@ -73,6 +73,11 @@ class Disc:
         # load metadata
         self.metadata = self.load_metadata(path)
 
+    def get_layer_paths(self):
+        """ Return paths for all layer directories. """
+        paths = glob.glob(os.path.join(self.path, '*[0-9]'))
+        return [p for p in paths if os.path.isdir(p)]
+
     @staticmethod
     def load_metadata(path):
         """
@@ -92,17 +97,20 @@ class Disc:
         self.bits = self.metadata['bits']
         self.params = self.metadata['params']
 
-    @staticmethod
-    def _load_measurements(path):
-        """ Load contour data as dataframe. """
-        contours_path = os.path.join(path, 'contours.json')
-        with open(contours_path, 'r') as f:
-            df = pd.read_json(json.load(f))
-        return df
+    # @staticmethod
+    # def _load_measurements(path):
+    #     """ Load contour data as dataframe. """
+    #     contours_path = os.path.join(path, 'contours.json')
+    #     with open(contours_path, 'r') as f:
+    #         df = pd.read_json(json.load(f))
+    #     return df
 
     def load_measurements(self):
         """ Load measurement dataframe. """
-        df = self._load_measurements(self.path)
+        dfs = []
+        for path in self.get_layer_paths():
+            dfs.append(Layer(path).load_measurements())
+        df = pd.concat(dfs)
         df['disc_genotype'] = self.genotype
         df['disc_id'] = self.disc_id
         return df
@@ -115,5 +123,16 @@ class Disc:
     def _load_stack(path):
         """ Load Stack instance from segmentation directory. """
         return Stack.from_segmentation(path)
+
+
+class Layer:
+
+    def __init__(self, path):
+        self.path = path
+
+    def load_measurements(self):
+        with open(os.path.join(self.path, 'contours.json'), 'r') as f:
+            df = pd.read_json(json.load(f))
+        return df
 
 
