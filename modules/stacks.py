@@ -16,6 +16,7 @@ from modules.kde import KDE
 from modules.rbf import RBF
 from modules.masking import ForegroundMask, RBFMask
 from modules.segmentation import Segmentation
+from modules.graphs import WeightedGraph
 from modules.annotation import Annotation
 
 
@@ -173,6 +174,7 @@ class Layer(MultichannelImage):
         self.path = os.path.join(stack_path, '{:d}'.format(self.layer_id))
         get_sel_path = lambda p, d, l: os.path.join(p, 'selections', d, l)
         self.selection_path = get_sel_path(*self.path.rsplit('/', maxsplit=2))
+        self.graph = None
 
     @staticmethod
     def load(im, path):
@@ -207,8 +209,12 @@ class Layer(MultichannelImage):
         md = io.read_json(os.path.join(layer.selection_path, 'md.json'))
         layer.include = bool(md['include'])
 
+        # build graph
+        layer.build_graph(**params['graph_kw'])
+
         # annotate
-        layer.annotate(**params['annotation_kw'])
+        #layer.cell_classifier = CellClassifier.load(stack_path)
+        #layer.annotate(**params['annotation_kw'])
 
         return layer
 
@@ -277,17 +283,25 @@ class Layer(MultichannelImage):
         self.df['foreground'] = kde.mask
         self.fg_mask = ForegroundMask(self.shape, kde)
 
-    def annotate(self, q=95,
-                 weighted_by='r_normalized',
-                 fg_only=True,
-                 log=True):
-        """ Annotate layer. """
-        kw = dict(q=q, weighted_by=weighted_by, fg_only=fg_only, log=log)
-        self.annotation = Annotation(self.df, **kw)
+    def build_graph(self, q=95, weighted_by='r_normalized'):
+        """
+        Compile weighted graph connecting adjacent cells.
 
-        self.df['im_label'] = -1
-        ind = self.annotation.graph.nodes
-        self.df.loc[ind, 'im_label'] = self.annotation.clustering.im_labels
+        Args:
+        q (float) - edge length quantile above which edges are pruned
+        weighted_by (str) - quantity used to weight edges
+        """
+        self.graph = WeightedGraph(self.df, q=q, weighted_by=weighted_by)
+
+    def annotate(self):
+        """ Annotate layer. """
+
+        # assign single-cell classifier label
+        self.df['genotype'] = self.cell_classifier(self.df)
+
+        # assign cluster labels
+        annotation = Annotation(self.graph, self.cell_classifier)
+        self.df['community_genotype'] = annotation(self.df)
 
 
     def plot_graph(self, channel='r', figsize=(15, 15), cmap=None, **kw):
@@ -337,7 +351,7 @@ class Layer(MultichannelImage):
     def save(self,
              segmentation=True,
              image=True,
-             foreground=True,
+             foreground=False,
              annotation=False,
              dpi=100):
         """ Save segmentation parameters and results. """

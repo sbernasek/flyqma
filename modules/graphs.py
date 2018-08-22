@@ -109,6 +109,7 @@ class WeightedGraph(Graph):
         self.update_graph()
         self.excluded = self.get_excluded_nodes()
         self.weighted_by = weighted_by
+        self.community_labels = None
 
     def get_excluded_nodes(self):
         before = self.df.index.values
@@ -129,6 +130,12 @@ class WeightedGraph(Graph):
             links = [(int(e[0]), int(e[1])) for e in self.edges]
         return links
 
+    def find_communities(self, **kw):
+        """ Find communities. """
+        edges = self.build_links()
+        community_detector = InfoMap(edges, **kw)
+        self.community_labels = community_detector(self.nodes)
+
 
 class WeightFunction:
 
@@ -148,7 +155,6 @@ class WeightFunction:
         energy = np.array([self.difference(*e) for e in edges])
         weights = np.exp(-energy/np.mean(energy))
         return weights
-
 
 
 class GraphVisualization:

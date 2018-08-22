@@ -4,8 +4,8 @@ import infomap
 
 class InfoMap:
 
-    def __init__(self, graph, **kw):
-        self.infomap = self.build_network(graph, **kw)
+    def __init__(self, edges, **kw):
+        self.infomap = self.build_network(edges, **kw)
         self.run()
         node_to_module, classifier = self.build_classifier()
         self.node_to_module = node_to_module
@@ -15,15 +15,15 @@ class InfoMap:
         return self.classifier(x)
 
     @staticmethod
-    def build_network(graph, infomap_args=''):
-        """ Compile InfoMap object from graph. """
+    def build_network(edges, infomap_args=''):
+        """ Compile InfoMap object from graph edges. """
 
         # instantiate infomap
         infomap_obj = infomap.Infomap("--two-level --undirected")
         network = infomap_obj.network()
 
         # add edges
-        _ = [network.addLink(*e) for e in graph.build_links()]
+        _ = [network.addLink(*e) for e in edges]
 
         return infomap_obj
 

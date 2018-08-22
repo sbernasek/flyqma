@@ -14,179 +14,134 @@ from collections import Counter
 
 from modules.graphs import WeightedGraph
 from modules.infomap import InfoMap
-
-
-class Clustering:
-
-    def __init__(self, graph, log=True):
-        self.levels = graph.df[graph.weighted_by].loc[graph.nodes].values
-        self.im = InfoMap(graph)
-        self.im_labels = self.im(graph.nodes)
-        #self.mean_cluster_levels = self.evaluate_mean_cluster_levels()
-        #self.define_genotypes(graph, n_clusters=3, log=log)
-        #self.genotypes = self.assign_genotype_to_clusters()
-
-    def evaluate_mean_cluster_levels(self):
-        adict = dict(labels=self.im_labels, values=self.levels)
-        return pd.DataFrame(adict).groupby('labels').mean()['values'].values
-
-    def infomap_label_distribution(self):
-        fig, ax = plt.subplots(figsize=(2, 1))
-        _ = ax.hist(self.im_labels, bins=np.arange(0, self.im_labels.max()+1))
-
-    def define_genotypes(self, graph, n_clusters=3, log=True):
-        """ Cluster nodes by level. """
-
-        params = dict(init='k-means++', n_init=10) #random_state=0
-        levels = self.levels.reshape(-1, 1)
-
-        # perform clustering
-        if log:
-            km = KMeans(n_clusters=n_clusters, **params).fit(np.log10(levels))
-        else:
-            km = KMeans(n_clusters=n_clusters, **params).fit(levels)
-
-        # assemble labels
-        #self.kmeans_labels = np.zeros_like(included, dtype=int)
-        #self.kmeans_labels[included] = km.labels_
-        #self.kmeans_labels[~included] = np.argmax(km.cluster_centers_)
-        self.kmeans_labels = km.labels_
-
-#        self.kmeans_labels = km.labels_
-        centroids = km.cluster_centers_.ravel()
-
-        # create vectorized function for mapping 0/1/2 genotypes to k_means labels
-        flip = lambda f: f.__class__(map(reversed, f.items()))
-        kmeans_to_genotype = flip(dict(enumerate(np.argsort(centroids))))
-        self.kmeans_to_genotype = np.vectorize(kmeans_to_genotype.get)
-
-    @staticmethod
-    def get_mode(x):
-        mode, count = Counter(x).most_common(1)[0]
-        return mode
-
-    def assign_genotype_to_clusters(self):
-        get_genotypes = lambda x: self.kmeans_to_genotype(self.kmeans_labels[np.where(self.im_labels==x)])
-        dominant_genotype = lambda x: self.get_mode(get_genotypes(x))
-        im_to_genotype = {l: dominant_genotype(l) for l in range(self.im_labels.max()+1)}
-        genotypes = np.vectorize(im_to_genotype.get)(self.im_labels)
-        return genotypes
+from modules.classification import CommunityClassifier
 
 
 
+# class CloneMask:
 
+#     def __init__(self, graph, genotypes):
 
+#         # label unmasked triangles with genotype
+#         exclusion = graph.tri.mask
+#         genotype_labeler = np.vectorize({n:g for n, g in zip(graph.nodes, genotypes)}.get)
+#         nodes = graph.node_map(graph.tri.triangles[~exclusion])
+#         node_genotypes = genotype_labeler(nodes)
 
-class CloneMask:
+#         # define triangle genotypes
+#         borders = self.get_borders(node_genotypes)
+#         genotypes = node_genotypes[:, 0]
+#         genotypes[borders] = -1
+#         self.genotypes = genotypes # np.ma.masked_array(genotypes, borders)
 
-    def __init__(self, graph, genotypes):
+#         N = graph.tri.mask.size
+#         mask = np.ma.masked_where(exclusion, np.ones(N, dtype=int))
+#         mask[~exclusion] = self.genotypes
+#         self.mask = mask
 
-        # label unmasked triangles with genotype
-        exclusion = graph.tri.mask
-        genotype_labeler = np.vectorize({n:g for n, g in zip(graph.nodes, genotypes)}.get)
-        nodes = graph.node_map(graph.tri.triangles[~exclusion])
-        node_genotypes = genotype_labeler(nodes)
+#     @staticmethod
+#     def from_layer(layer):
+#         graph = layer.annotation.graph
+#         genotypes = layer.df.loc[graph.nodes].genotype
+#         return CloneMask(graph, genotypes)
 
-        # define triangle genotypes
-        borders = self.get_borders(node_genotypes)
-        genotypes = node_genotypes[:, 0]
-        genotypes[borders] = -1
-        self.genotypes = genotypes # np.ma.masked_array(genotypes, borders)
+#     @staticmethod
+#     def get_borders(x):
+#         return (x.max(axis=1) != x.min(axis=1))
 
-        N = graph.tri.mask.size
-        mask = np.ma.masked_where(exclusion, np.ones(N, dtype=int))
-        mask[~exclusion] = self.genotypes
-        self.mask = mask
-
-    @staticmethod
-    def from_layer(layer):
-        graph = layer.annotation.graph
-        genotypes = layer.df.loc[graph.nodes].genotype
-        return CloneMask(graph, genotypes)
-
-    @staticmethod
-    def get_borders(x):
-        return (x.max(axis=1) != x.min(axis=1))
 
 
 class Annotation:
 
-    def __init__(self, df,
-                 q=95,
-                 weighted_by='r_normalized',
-                 fg_only=False,
-                 log=True):
+    def __init__(self, graph, cell_classifier):
 
-        # extract foreground (optional)
-        self.fg_only = fg_only
-        if fg_only:
-            self.bg = df[~df.foreground].index
-            df = df[df.foreground]
-        else:
-            self.bg = None
+        # run community detection and store graph
+        graph.find_communities()
+        self.graph = graph
 
-        # compile graph and get dataframe of distance-filtered nodes
-        self.graph = WeightedGraph(df, q=q, weighted_by=weighted_by)
+        # store cell classifier
+        self.cell_classifier = cell_classifier
+        self.community_classifier = self.build_classifier()
 
-        # cluster graph and assign clone mask
-        self.clustering = Clustering(self.graph, log=log)
 
-        if 'genotype' in df.columns.unique():
-            clone_mask = CloneMask(self.graph, df.loc[self.graph.nodes].genotype)
-            self.clone_mask = clone_mask
+        # if 'genotype' in df.columns.unique():
+        #     clone_mask = CloneMask(self.graph, df.loc[self.graph.nodes].genotype)
+        #     self.clone_mask = clone_mask
 
-        self.set_colormap()
+        # self.set_colormap()
 
-    def __call__(self, ind):
-        nodes = self.graph.nodes
-        genotypes = self.clustering.genotypes
-        node_to_genotype = dict(zip(nodes, genotypes))
+    def __call__(self, cells):
+        """
+        Annotate cells using cell classifier.
 
-        # add nodes excluded by the triangulation distance filter
-        excluded = self.graph.excluded
-        node_to_genotype.update(dict(zip(excluded, -1*np.ones_like(excluded))))
+        Args:
+        cells (pd.DataFrame) - cells to be classified
 
-        # add nodes excluded from the foreground
-        if self.bg is not None:
-            bg = self.bg.values
-            node_to_genotype.update(dict(zip(bg, -np.ones_like(bg))))
+        Returns:
+        labels (pd.Series) - classifier output
+        """
+        return self.annotate(cells)
 
-        return np.vectorize(node_to_genotype.get)(ind)
+    def build_classifier(self):
+        """
+        Build community classifier.
 
-    def set_colormap(self, colors=None, border_color='y'):
-        """ Set colormap for clones. """
+        Returns:
+        classifier (func) - maps communities to labels
+        """
 
-        if colors is None:
-            colors = 'rgb'
-        cmap = ListedColormap(colors)
-        cmap.set_under(border_color)
-        self.cmap = cmap
-        self.norm = Normalize(vmin=0, vmax=2)
+        # assign community labels
+        self.graph.df['community'] = -1
+        ind = self.graph.nodes
+        self.graph.df.loc[ind, 'community'] = self.graph.community_labels
 
-    def plot_clones(self, ax, alpha=0.2, **kw):
-        """ Add triangulation colored by genotype. """
-        self.graph.plot_triangles(ax=ax,
-                                  colors=self.clone_mask.mask,
-                                  cmap=self.cmap,
-                                  norm=self.norm,
-                                  alpha=alpha, **kw)
+        # build community classifier
+        classifier = CommunityClassifier(self.graph.df, self.cell_classifier)
 
-    def slice_nodes_by_genotype(self, genotype):
-        """ Returns array of nodes labeled with the specified genotype. """
-        nodes = self.graph.node_map((self.clustering.genotypes==genotype).nonzero()[0])
-        return nodes
+        return classifier
 
-    def slice_graph_by_genotype(self, genotype):
-        """ Returns subgraph of nodes labeled with the specified genotype. """
-        nodes = self.slice_nodes_by_genotype(genotype)
-        return self.graph.get_subgraph(nodes)
+    def annotate(self, cells):
+        """
+        Annotate cells using cell classifier.
+
+        Args:
+        cells (pd.DataFrame) - cells to be classified
+
+        Returns:
+        labels (pd.Series) - classifier output
+        """
+        return self.community_classifier(cells)
 
 
 
 
 
+    # def __call__(self, ind):
+    #     """ Assign genotype t """
+    #     nodes = self.graph.nodes
+    #     genotypes = self.clustering.genotypes
+    #     node_to_genotype = dict(zip(nodes, genotypes))
 
+    #     # add nodes excluded by the triangulation distance filter
+    #     excluded = self.graph.excluded
+    #     node_to_genotype.update(dict(zip(excluded, -1*np.ones_like(excluded))))
 
+    #     return np.vectorize(node_to_genotype.get)(ind)
 
+    # def set_colormap(self, colors=None, border_color='y'):
+    #     """ Set colormap for clones. """
+    #     if colors is None:
+    #         colors = 'rgb'
+    #     cmap = ListedColormap(colors)
+    #     cmap.set_under(border_color)
+    #     self.cmap = cmap
+    #     self.norm = Normalize(vmin=0, vmax=2)
 
+    # def plot_clones(self, ax, alpha=0.2, **kw):
+    #     """ Add triangulation colored by genotype. """
+    #     self.graph.plot_triangles(ax=ax,
+    #                               colors=self.clone_mask.mask,
+    #                               cmap=self.cmap,
+    #                               norm=self.norm,
+    #                               alpha=alpha, **kw)
 
