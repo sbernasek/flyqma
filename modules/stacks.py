@@ -9,6 +9,7 @@ import pandas as pd
 import gc
 import matplotlib.pyplot as plt
 from scipy.ndimage.measurements import mean, standard_deviation
+from collections import Counter
 from modules.io import IO
 from modules.image import MultichannelImage
 from modules.contours import Contours
@@ -17,6 +18,7 @@ from modules.rbf import RBF
 from modules.masking import ForegroundMask, RBFMask
 from modules.segmentation import Segmentation
 from modules.graphs import WeightedGraph
+from modules.classification import CellClassifier
 from modules.annotation import Annotation
 
 
@@ -202,9 +204,6 @@ class Layer(MultichannelImage):
         md_path = os.path.join(os.path.join(path, os.pardir), 'metadata.json')
         params = io.read_json(md_path)['params']
 
-        # set foreground
-        #layer.set_foreground(**params['fg_kw'])
-
         # set selection
         md = io.read_json(os.path.join(layer.selection_path, 'md.json'))
         layer.include = bool(md['include'])
@@ -213,8 +212,8 @@ class Layer(MultichannelImage):
         layer.build_graph(**params['graph_kw'])
 
         # annotate
-        #layer.cell_classifier = CellClassifier.load(stack_path)
-        #layer.annotate(**params['annotation_kw'])
+        layer.cell_classifier = CellClassifier.load(stack_path)
+        #layer.annotate(community_genotype=False)
 
         return layer
 
@@ -293,16 +292,35 @@ class Layer(MultichannelImage):
         """
         self.graph = WeightedGraph(self.df, q=q, weighted_by=weighted_by)
 
-    def annotate(self):
+    def annotate(self, community_genotype=False):
         """ Annotate layer. """
 
         # assign single-cell classifier label
         self.df['genotype'] = self.cell_classifier(self.df)
 
         # assign cluster labels
-        annotation = Annotation(self.graph, self.cell_classifier)
-        self.df['community_genotype'] = annotation(self.df)
+        if community_genotype:
+            annotation = Annotation(self.graph, self.cell_classifier)
+            self.df['community_genotype'] = annotation(self.df)
 
+    def mark_boundaries(self, basis='genotype', max_edges=0):
+        """ Assign boundary label to cells with an edge to another clone. """
+
+        # assign genotype to edges
+        assign_genotype = np.vectorize(dict(self.df[basis]).get)
+        edge_genotypes = assign_genotype(self.graph.edges)
+
+        # find edges traversing clones
+        boundaries = (edge_genotypes[:, 0] != edge_genotypes[:, 1])
+
+        # get number of clone-traversing edges per node
+        boundary_edges = self.graph.edges[boundaries]
+        edge_counts = Counter(boundary_edges.ravel())
+
+        # assign boundary label to nodes with too many clone-traversing edges
+        boundary_nodes = [n for n, c in edge_counts.items() if c>max_edges]
+        self.df['boundary'] = False
+        self.df.loc[boundary_nodes, 'boundary'] = True
 
     def plot_graph(self, channel='r', figsize=(15, 15), cmap=None, **kw):
         """ Plot graph on top of relevant channel. """

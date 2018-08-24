@@ -366,6 +366,7 @@ class LinearCorrection:
 
         # save corrections for layer
         self.layer.df[self.yvar+'p'] = self.yp
+        self.layer.df[self.yvar+'_corrected'] = self.y - self.yp
         self.layer.save_contours()
 
         # save figures

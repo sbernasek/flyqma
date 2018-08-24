@@ -175,8 +175,8 @@ class CommunityClassifier:
     def __init__(self, cells, cell_classifier):
         self.classifier = self.build_classifier(cells, cell_classifier)
 
-    def __call__(self, community_labels):
-        return self.classifier(community_labels)
+    def __call__(self, communities):
+        return self.classifier(communities)
 
     @staticmethod
     def from_layer(layer, cell_classifier):
@@ -199,4 +199,4 @@ class CommunityClassifier:
         majority_vote = lambda x: cls.get_mode(cell_classifier(x))
         community_to_genotype = cells.groupby('community').apply(majority_vote).to_dict()
         community_to_genotype[-1] = -1
-        return np.vectorize(im_to_genotype_dict.get)
+        return np.vectorize(community_to_genotype.get)
