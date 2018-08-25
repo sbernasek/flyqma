@@ -5,46 +5,8 @@ import seaborn as sns
 from scipy.stats import ks_2samp, ttest_ind, mannwhitneyu
 
 
-class BoxPlot:
-
-    def __init__(self, df, y='red', hue='cell_type', **kw):
-        order = ('control', 'perturbation')
-        hue_order = ('m', 'h', 'w')
-        self.fig = plt.figure()
-        self._plot(df, y, order, hue, hue_order, **kw)
-        ax = plt.gca()
-        ax.legend(loc=1)
-        ax.grid(axis='y')
-
-    @staticmethod
-    def _plot(df, y, order, hue, hue_order, **kw):
-        sns.boxplot(x='experiment', y=y, data=df,
-                    order=order, hue='cell_type', hue_order=hue_order,
-                    notch=True, width=0.8, **kw)
-
-class ViolinPlot(BoxPlot):
-
-    @staticmethod
-    def _plot(df, y, order, hue, hue_order, **kw):
-        sns.violinplot(x='experiment', y=y, data=df,
-                    order=order, hue='cell_type', hue_order=hue_order,
-                    scale='width', **kw)
-
-class StripPlot(BoxPlot):
-
-    @staticmethod
-    def _plot(df, y, order, hue, hue_order, **kw):
-        sns.stripplot(x='experiment', y=y, data=df,
-                    order=order, hue='cell_type', hue_order=hue_order,
-                    dodge=True, **kw)
-
-
-
-
-
-
-
 class PairwiseComparison:
+    """ Pairwise statistical comparison between two populations. """
 
     def __init__(self, x, y, basis='green_corrected'):
         self.x = x
@@ -66,6 +28,8 @@ class PairwiseComparison:
 
 
 class CloneComparison(PairwiseComparison):
+    """ Pairwise statistical comparison between two clones. """
+
     def __init__(self, df, experiment, a, b, basis='green_corrected'):
         # select concurrent cells from specified experiment
         self.a = a
@@ -89,8 +53,9 @@ class CloneComparison(PairwiseComparison):
         return fig
 
 
+class SummaryStatistics:
+    """ Summary of statistical comparisons between clone genotypes. """
 
-class Summary:
     def __init__(self, df, basis='green_corrected', test='MW'):
         self.df = df
         self.basis = basis
