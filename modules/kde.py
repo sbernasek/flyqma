@@ -4,6 +4,7 @@ from sklearn.cluster import k_means
 
 
 class KDE:
+
     def __init__(self, df, bandwidth=100, n=2):
         self.xy = df[['centroid_x', 'centroid_y']].values
         self.bandwidth = bandwidth

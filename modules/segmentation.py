@@ -13,6 +13,7 @@ from scipy.ndimage.measurements import center_of_mass
 
 
 class Segmentation:
+
     def __init__(self, image, seed_kws={}, seg_kws={}):
         image.set_otsu_mask()
         self.labels = None
