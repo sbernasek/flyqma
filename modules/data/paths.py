@@ -3,7 +3,7 @@ import glob
 import json
 import pandas as pd
 from modules.io import IO
-from modules.stacks import Stack
+from .stacks import Stack
 
 
 class Experiment:

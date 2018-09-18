@@ -3,11 +3,10 @@ import shutil
 import json
 import tifffile as tf
 import numpy as np
-import pandas as pd
-import time
 
 
 def safeload(loader):
+    """ Decorator for checking files exist before attempting to load them. """
     def wrapper(self, path):
         out = None
         if os.path.exists(path):
@@ -17,6 +16,9 @@ def safeload(loader):
 
 
 class IO:
+    """
+    Class provides assorted methods for reading/writing different filetypes.
+    """
 
     @staticmethod
     def make_dir(dir_name, path=None, force=False):
@@ -66,6 +68,7 @@ class IO:
 
     @safeload
     def read_csv(path):
+        import pandas as pd
         return pd.read_csv(path, index_col=0)
 
     @staticmethod

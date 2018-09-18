@@ -1,20 +1,29 @@
-"""
-TO DO:
-
-"""
-
 import numpy as np
 import matplotlib.pyplot as plt
 from skimage.feature import peak_local_max
 from skimage.segmentation import watershed
 from matplotlib.colors import ListedColormap
-from scipy import ndimage
+from scipy.ndimage import distance_transform_edt, gaussian_filter
+from scipy.ndimage import generate_binary_structure, iterate_structure
 from scipy.ndimage.measurements import center_of_mass
 
 
 class Segmentation:
+    """
+    Object for identifying nuclear contours within an image.
+
+    Seed detection is performed by finding local maxima in a euclidean distance transform of the image foreground mask. Segmentation is achieved via the watershed method.
+    """
 
     def __init__(self, image, seed_kws={}, seg_kws={}):
+        """
+        Instantiate and run segmentation.
+
+        Args:
+        image (MonochromeImage) - image to be segmented
+        seed_kws (dict) - keyword arguments for seed detection
+        seg_kws (dict) - keyword arguments for segmentation
+        """
         image.set_otsu_mask()
         self.labels = None
         self.seeds = self.get_seeds_from_distance(image.mask, **seed_kws)
@@ -47,18 +56,24 @@ class Segmentation:
         """ Seed detection via euclidean distance transform of binary map. """
 
         # get values
-        values = ndimage.distance_transform_edt(mask).astype(float)
+        values = distance_transform_edt(mask).astype(float)
 
         # apply gaussian filter
         if sigma is not None:
-            values = ndimage.gaussian_filter(values, sigma)
+            values = gaussian_filter(values, sigma)
 
         seeds = cls.find_maxima(values, min_distance=min_distance, num_peaks=num_peaks)
         return cls.array_to_dict(seeds)
 
     @classmethod
     def get_segment_mask(cls, im, seeds):
-        """ Get mask for markers. """
+        """
+        Get mask for markers.
+
+        Args:
+        im (np.ndarray[float]) - image to be segmented
+        seeds (dict) - {segment_id: [x, y]} pairs
+        """
 
         # create marker mask
         seed_mask = np.zeros_like(im, dtype=int)
@@ -71,19 +86,26 @@ class Segmentation:
         return seed_mask
 
     def watershed(self, mask, sigma=0.5, watershed_line=True):
-        """ Run watershed segmentation. """
+        """
+        Run watershed segmentation to generate segment label mask.
+
+        Args:
+        mask (np.ndarray[bool]) - binary foreground mask
+        sigma (float) - parameter for smoothing distance mask
+        watershed_line (bool) - if True, include 1 px line separating contours
+        """
 
         # define distances
-        distances = ndimage.distance_transform_edt(mask)
-        distances = ndimage.gaussian_filter(distances, sigma=sigma)
+        distances = distance_transform_edt(mask)
+        distances = gaussian_filter(distances, sigma=sigma)
 
         # run segmentation
-        connectivity = ndimage.iterate_structure(ndimage.generate_binary_structure(2, 1), 1)
+        connectivity = iterate_structure(generate_binary_structure(2, 1), 1)
         markers = self.get_segment_mask(distances, self.seeds)
         self.labels = watershed(-distances, markers=markers, mask=mask, connectivity=connectivity, watershed_line=watershed_line)
 
     def update_cmap(self):
-        """ Use current seeds to create colormap. """
+        """ Use current seeds to build colormap. """
         bg_color = np.array([[.8,.8,.8]])
         segment_colors = np.random.rand(len(self.seeds), 3)
         self.cmap = ListedColormap(np.vstack((bg_color, segment_colors)))
@@ -108,7 +130,12 @@ class Segmentation:
         list(map(self.seeds.__delitem__, filter(self.seeds.__contains__, excluded_segments)))
 
     def exclude_small_segments(self, min_area=10):
-        """ Exclude small segments. """
+        """
+        Exclude small segments.
+
+        Args:
+        min_area (float) - minimum contour area
+        """
 
         # identify small segments
         bins = np.arange(1, self.labels.max()+2)
@@ -133,6 +160,12 @@ class Segmentation:
         Evaluate center of mass of each label.
 
         * Note: scipy returns centroids as (y, x) which are flipped to (x, y)
+
+        Args:
+        labels (np.ndarray[int]) - segment label mask
+
+        Returns:
+        center_of_mass (dict) - {segment_id: [centroid_x, centroid_y]} pairs
         """
 
         seg_ids = np.unique(labels[labels!=0])
@@ -140,7 +173,7 @@ class Segmentation:
         return {seg_id: com[::-1] for seg_id, com in zip(seg_ids, coms)}
 
     def show(self, figsize=(15, 15)):
-        """ Visualize segmentation. """
+        """ Visualize segment label mask. """
         fig, ax = plt.subplots(figsize=figsize)
         ax.imshow(self.labels, cmap=self.cmap)
 

@@ -1,27 +1,16 @@
-"""
-TO DO:
-
-"""
-
 import numpy as np
 import matplotlib.pyplot as plt
-import pandas as pd
 from matplotlib.colors import ListedColormap
-from matplotlib.colors import Normalize
-
-from sklearn.cluster import KMeans
-from collections import Counter
 from scipy.spatial import Voronoi
 from scipy.spatial.distance import cdist
 
-from modules.graphs import WeightedGraph
-from modules.infomap import InfoMap
 from modules.classification import CommunityClassifier
 
 
-
-
 class Annotation:
+    """
+    Object provides mechanis
+    """
 
     def __init__(self, graph, cell_classifier):
 
@@ -76,24 +65,65 @@ class Annotation:
         return self.community_classifier(cells.community)
 
 
+class Labeler:
+    """
+    Label cells based on a specified attribute.
+    """
+    def __init__(self, label_on='genotype', labels=None):
+        if labels is None:
+            labels = {0:'m', 1:'h', 2:'w', -1:'none'}
+        self.labeler = np.vectorize(labels.get)
+        self.label_on = label_on
+
+    def __call__(self, cells):
+        return self.labeler(cells[self.label_on])
+
+
+class Concurrency:
+    """
+    Label all cells as concurrent with each cell type based on minimum x-distance to that cell type.
+    """
+
+    def __init__(self, cells, basis='cell_type', min_pop=5, tolerance=10):
+        self.cells = cells
+        self.basis = basis
+        self.unique_labels = self.cells[self.basis].unique()
+        self.min_pop = min_pop
+        self.tolerance = tolerance
+
+    def evaluate_distance(self, target):
+        candidates = self.cells[self.cells[self.basis]==target]
+        if len(candidates) > self.min_pop:
+            rs = lambda x: x.centroid_x.values.reshape(-1, 1)
+            distances = cdist(rs(self.cells), rs(candidates)).min(axis=1)
+        else:
+            distances = 1000*np.ones(len(self.cells), dtype=np.float64)
+        return distances
+
+    def assign_concurrency(self):
+        """ Assign concurrency for all unique labels. """
+        for label in self.unique_labels:
+            distances = self.evaluate_distance(label)
+            self.cells['concurrent_'+label] = (distances <= self.tolerance)
+
+
 class Tessellation:
+    """
+    Object for visualizing Voronoi tessellations.
+    """
 
     def __init__(self, xy, labels, q=90, colors=None):
 
         self.vor = Voronoi(xy)
         self.vor.regions = np.array(self.vor.regions)
         self.set_region_mask(q=q)
-
         self.region_labels = self.label_regions(labels)
-
         self.verts = self.vor.regions[self.mask]
-
 
         #self.labels = labels
         self.set_cmap(colors)
 
     def label_regions(self, labels):
-        #region_to_point = np.vectorize({r: p for p, r in enumerate(self.vor.point_region)}.get)
         points = np.argsort(self.vor.point_region)
         point_to_label = np.vectorize(dict(enumerate(labels)).get)
         region_labels = point_to_label(points)
@@ -148,6 +178,9 @@ class Tessellation:
 
 
 class CloneVisualization(Tessellation):
+    """
+    Object for visualizing clones by shading Voronoi cells.
+    """
 
     def __init__(self, df, label='genotype', **kw):
         xy = df[['centroid_x', 'centroid_y']].values
@@ -156,42 +189,7 @@ class CloneVisualization(Tessellation):
 
 
 
-class Labeler:
-    """ Label cells on specified quantity. """
 
-    def __init__(self, label_on='genotype'):
-        labels = {0:'m', 1:'h', 2:'w', -1:'none'}
-        self.labeler = np.vectorize(labels.get)
-        self.label_on = label_on
-
-    def __call__(self, cells):
-        return self.labeler(cells[self.label_on])
-
-
-class Concurrency:
-    """ Determines minimum x-distance to each cell type. """
-
-    def __init__(self, cells, basis='cell_type', min_pop=5, tolerance=10):
-        self.cells = cells
-        self.basis = basis
-        self.unique_labels = self.cells[self.basis].unique()
-        self.min_pop = min_pop
-        self.tolerance = tolerance
-
-    def evaluate_distance(self, target):
-        candidates = self.cells[self.cells[self.basis]==target]
-        if len(candidates) > self.min_pop:
-            rs = lambda x: x.centroid_x.values.reshape(-1, 1)
-            distances = cdist(rs(self.cells), rs(candidates)).min(axis=1)
-        else:
-            distances = 1000*np.ones(len(self.cells), dtype=np.float64)
-        return distances
-
-    def assign_concurrency(self):
-        """ Assign concurrency for all unique labels. """
-        for label in self.unique_labels:
-            distances = self.evaluate_distance(label)
-            self.cells['concurrent_'+label] = (distances <= self.tolerance)
 
 
 

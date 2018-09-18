@@ -2,10 +2,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 from skimage.transform import resize
-#from skimage.filters import threshold_otsu
 
 
 class Mask:
+    """ Image mask.  """
 
     def __init__(self, mask):
         self.mask = mask
@@ -18,6 +18,7 @@ class Mask:
 
 
 class FunctionMask:
+    """ Mask constructed by thresholding the output of a function. """
 
     def __init__(self, shape, func, res=100):
         self.res = res
@@ -52,6 +53,7 @@ class ForegroundMask(FunctionMask):
 
 
 class RBFMask:
+    """ Mask based on thresholding an RBF fit. """
 
     def __init__(self, shape, rbf, mask=None, res=100):
         self.rbf = rbf

@@ -1,21 +1,19 @@
-import warnings
-
+from scipy.ndimage import iterate_structure, generate_binary_structure
+from scipy.ndimage import gaussian_filter, median_filter
 from skimage.filters import threshold_otsu
 from skimage.exposure import equalize_adapthist
-
-from scipy import ndimage
-
 
 import matplotlib.pyplot as plt
 import numpy as np
 from copy import deepcopy
-from modules.segmentation import Segmentation
 
-import warnings
-warnings.filterwarnings("ignore")
+from .segmentation import Segmentation
 
 
 class MonochromeImage:
+    """
+    Object represents a monochrome image.
+    """
 
     def __init__(self, im, labels=None, channel=None):
         self.im = im
@@ -24,12 +22,27 @@ class MonochromeImage:
         self.labels = labels
         self.channel = channel
 
-    def show(self, segments=True,
-                   cmap=None,
-                   vmin=0, vmax=1,
-                   figsize=(10, 10),
-                   ax=None,
-                   **kwargs):
+    def show(self,
+             segments=True,
+             cmap=None,
+             vmin=0, vmax=1,
+             figsize=(10, 10),
+             ax=None,
+             **kwargs):
+        """
+        Render image.
+
+        Args:
+        segments (bool) - if True, include cell segment contours
+        cmap (matplotlib.colors.ColorMap)
+        vmin, vmax (float) - bounds for color scale
+        figsize (tuple) - figure size
+        ax (matplotlib.axes.AxesSubplot) - if None, create axis
+        kwargs: keyword arguments for add_contours
+
+        Returns:
+        fig (matplotlib.figures.Figure)
+        """
 
         if ax is None:
             fig, ax = plt.subplots(figsize=figsize)
@@ -64,12 +77,12 @@ class MonochromeImage:
         ax.contour(mask, [0.5], linewidths=[lw], colors=[color])
 
     def gaussian_filter(self, sigma=(1., 1.)):
-        self.im = ndimage.gaussian_filter(self.im, sigma=sigma)
+        self.im = gaussian_filter(self.im, sigma=sigma)
 
     def median_filter(self, radius=0, structure_dim=1):
         """ Convolves image with median filter. """
-        struct = ndimage.iterate_structure(ndimage.generate_binary_structure(2, structure_dim), radius).astype(int)
-        self.im = ndimage.median_filter(self.im, footprint=struct)
+        struct = iterate_structure(generate_binary_structure(2, structure_dim), radius).astype(int)
+        self.im = median_filter(self.im, footprint=struct)
 
     def set_mean_mask(self):
         """ Mask values below mean. """
@@ -109,8 +122,11 @@ class MonochromeImage:
     def preprocess(self,
                    median_radius=2,
                    gaussian_sigma=(2, 2),
-                   clip_limit=0.03, clip_factor=20):
-        """ Preprocess image. """
+                   clip_limit=0.03,
+                   clip_factor=20):
+        """
+        Preprocess image.
+        """
         self.median_filter(radius=median_radius)
         self.gaussian_filter(sigma=gaussian_sigma)
         self.clahe(clip_limit=clip_limit, factor=clip_factor)
@@ -120,8 +136,9 @@ class MonochromeImage:
                 seed_kws={},
                 seg_kws={},
                 min_segment_area=250):
-        """ Run watershed segmentation. """
-
+        """
+        Segment nuclear contours.
+        """
         self.preprocess(**preprocessing_kws)
         segmentation = Segmentation(self, seed_kws=seed_kws, seg_kws=seg_kws)
         segmentation.exclude_small_segments(min_area=min_segment_area)
@@ -129,12 +146,17 @@ class MonochromeImage:
 
 
 class MultichannelImage(MonochromeImage):
+    """
+    Object represents an RGB image.
+    """
 
     def __init__(self, im, labels=None):
-        MonochromeImage.__init__(self, im, labels=labels)
+        """ Instantiate RGB image. """
+        super().__init__(im, labels=labels)
         self.channels = dict(r=0, g=1, b=2)
 
     def get_channel(self, channel='b', copy=True):
+        """ Returns monochrome image of specified color channel. """
         if copy:
             monochrome = deepcopy(self.im[:, :, self.channels[channel]])
         else:

@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 
 
 class RBF:
+    """
+    Radial basis function fit to cell coordinates.
+    """
 
     def __init__(self, df,
                  basis='r',

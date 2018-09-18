@@ -6,21 +6,6 @@ from matplotlib.colors import ListedColormap
 from modules.paths import Experiment
 from modules.figure_settings import *
 
-# # load example disc and layer
-# disc_id = 42
-# layer_id = 3
-
-# p = '/Volumes/bernasek_t5/pnt_manuscript/microscopy/yan_clones/perturbation/slices/w-eyFLP_PntGFP_YanE833_FRT40A_PntGFP_Ubi-mRFPnls_FRT40A'
-
-# experiment = Experiment(p)
-# stack = experiment[experiment.disc_names.index(disc_id)]
-# layer = stack[layer_id]
-
-# # load example cells
-# exp = df[df.experiment=='perturbation']
-# disc = exp[exp.disc_id==42]
-# cells = disc[disc.layer==3]
-
 
 class Figure:
 
