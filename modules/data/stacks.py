@@ -96,6 +96,14 @@ class Stack:
         # make measurements file
         io.write_json(self.contours_path, {})
 
+        # initialize layers
+        self.load()
+        for layer_id in range(self.depth):
+            im = self.stack[layer_id, :, :, :]
+            layer_path = join(self.layers_path, '{:d}'.format(layer_id))
+            layer = Layer(im, layer_path)
+            layer.initialize()
+
     def save(self):
         """
         Save measurements.
@@ -158,11 +166,8 @@ class Stack:
         layer (clones.data.layers.Layer)
         """
         im = self.stack[layer_id, :, :, :]
-
         layer_path = join(self.layers_path, '{:d}'.format(layer_id))
-
-        layer = Layer(im, layer_id=layer_id, stack_path=self.path)
-        return layer
+        return Layer(im, layer_path)
 
     def load_layer(self, layer_id=0):
         """
@@ -176,7 +181,7 @@ class Stack:
         """
         layer_path = join(self.layers_path, '{:d}'.format(layer_id))
         im = self.stack[layer_id, :, :, :]
-        return Layer.load(im, layer_path)
+        return Layer(im, layer_path)
 
     def load_metadata(self):
         """
@@ -199,7 +204,7 @@ class Stack:
         io = IO()
         return pd.read_json(io.read_json(self.contours_path))
 
-""""" UPDATE BELOW THIS LINE
+    """"" UPDATE BELOW THIS LINE
 
     def segment(self, bg='b',
                     segmentation_kw={},

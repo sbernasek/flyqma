@@ -34,8 +34,8 @@ class Contour:
             'g_std': self.g_std,
             'b_std': self.b_std,
 
-            'pixel_count': int(self.pixel_count),
-            }
+            'pixel_count': int(self.pixel_count)}
+
 
 class Contours:
     """

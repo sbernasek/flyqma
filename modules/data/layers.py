@@ -3,9 +3,6 @@ from os import listdir
 
 from .images import ImageRGB
 
-# create directory
-        #dirpath = io.make_dir(self.path, force=True)
-
 
 class Layer(ImageRGB):
     """
@@ -74,6 +71,16 @@ class Layer(ImageRGB):
 
         # make measurements file
         io.write_json(self.contours_path, {})
+
+        # make segmentation subdirectory
+        self.make_subdir('segmentation')
+
+    def make_subdir(self, dirname):
+        """ Make subdirectory. """
+        dirpath = join(self.path, dirname)
+        if not exists(dirpath):
+            mkdir(dirpath)
+        self.add_subdir(dirname, dirpath)
 
     def add_subdir(self, dirname, dirpath):
         """ Add subdirectory. """

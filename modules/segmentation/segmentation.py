@@ -50,7 +50,17 @@ class Segmentation:
     def find_maxima(im,
                     min_distance=1,
                     num_peaks=np.inf):
-        """ Find local maxima of euclidean distance transform. """
+        """
+        Find local maxima of euclidean distance transform.
+
+        Args:
+        im (np.ndarray[bool]) - 2D boolean foreground mask
+        min_distance (int) - minimum distance separating maxima, px
+        num_peaks (int) - maximum number of peaks
+
+        Returns:
+        seeds (np.ndarray[float]) - local maxima, shape (N, 2)
+        """
         seeds = peak_local_max(im, min_distance=min_distance, num_peaks=num_peaks, exclude_border=False)
         return seeds
 
@@ -184,7 +194,12 @@ class Segmentation:
         return {seg_id: com[::-1] for seg_id, com in zip(seg_ids, coms)}
 
     def show(self, figsize=(15, 15)):
-        """ Visualize segment label mask. """
+        """
+        Visualize segment label mask.
+
+        Args:
+        figsize (tuple) - figure size
+        """
         fig, ax = plt.subplots(figsize=figsize)
         ax.imshow(self.labels, cmap=self.cmap)
 
