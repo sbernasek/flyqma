@@ -301,27 +301,3 @@ class ControlComparison(ChannelComparison):
 
         # format figure
         self.format(grid=grid, labelsize=labelsize)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

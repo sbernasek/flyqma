@@ -20,38 +20,6 @@ from modules.classification import CommunityClassifier
 
 
 
-# class CloneMask:
-
-#     def __init__(self, graph, genotypes):
-
-#         # label unmasked triangles with genotype
-#         exclusion = graph.tri.mask
-#         genotype_labeler = np.vectorize({n:g for n, g in zip(graph.nodes, genotypes)}.get)
-#         nodes = graph.node_map(graph.tri.triangles[~exclusion])
-#         node_genotypes = genotype_labeler(nodes)
-
-#         # define triangle genotypes
-#         borders = self.get_borders(node_genotypes)
-#         genotypes = node_genotypes[:, 0]
-#         genotypes[borders] = -1
-#         self.genotypes = genotypes # np.ma.masked_array(genotypes, borders)
-
-#         N = graph.tri.mask.size
-#         mask = np.ma.masked_where(exclusion, np.ones(N, dtype=int))
-#         mask[~exclusion] = self.genotypes
-#         self.mask = mask
-
-#     @staticmethod
-#     def from_layer(layer):
-#         graph = layer.annotation.graph
-#         genotypes = layer.df.loc[graph.nodes].genotype
-#         return CloneMask(graph, genotypes)
-
-#     @staticmethod
-#     def get_borders(x):
-#         return (x.max(axis=1) != x.min(axis=1))
-
-
 
 class Annotation:
 
@@ -64,12 +32,6 @@ class Annotation:
         # store cell classifier
         self.cell_classifier = cell_classifier
         self.community_classifier = self.build_classifier()
-
-        # if 'genotype' in df.columns.unique():
-        #     clone_mask = CloneMask(self.graph, df.loc[self.graph.nodes].genotype)
-        #     self.clone_mask = clone_mask
-
-        # self.set_colormap()
 
     def __call__(self, cells):
         """
