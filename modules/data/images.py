@@ -10,17 +10,22 @@ from copy import deepcopy
 from .segmentation import Segmentation
 
 
-class MonochromeImage:
+class ImageScalar:
     """
     Object represents a monochrome image.
+
+    Attributes:
+    im (np.ndarray[float]) - 2D array of pixel values
+    shape (array like) - image dimensions
+    mask (np.ndarray[bool]) - image mask
+    labels (np.ndarray[int]) - segment ID mask
     """
 
-    def __init__(self, im, labels=None, channel=None):
+    def __init__(self, im, labels=None):
         self.im = im
         self.shape = im.shape[:2]
         self.mask = np.ones_like(self.im, dtype=bool)
         self.labels = labels
-        self.channel = channel
 
     def show(self,
              segments=True,
@@ -34,7 +39,7 @@ class MonochromeImage:
 
         Args:
         segments (bool) - if True, include cell segment contours
-        cmap (matplotlib.colors.ColorMap)
+        cmap (matplotlib.colors.ColorMap or str) - colormap or RGB channel
         vmin, vmax (float) - bounds for color scale
         figsize (tuple) - figure size
         ax (matplotlib.axes.AxesSubplot) - if None, create axis
@@ -48,23 +53,28 @@ class MonochromeImage:
             fig, ax = plt.subplots(figsize=figsize)
         fig = plt.gcf()
 
-        if cmap is None:
-            if len(self.im.shape) == 2:
-                im = self.im.reshape(*self.shape, 1)
-                cpad = dict(r=(0, 2), g=(1, 1), b=(2, 0))
-                pad = ((0,0), (0,0), cpad[self.channel])
-                im = np.pad(im, pad, mode='constant', constant_values=0)
-            else:
-                im = self.im
+        # show image in RGB format
+        if type(cmap) == str:
+            ind = 'rgb'.index(cmap)
+            im = np.zeros((self.shape[0], self.shape[1], 3))
+            im[:, :, ind] = self.im
             ax.imshow(im)
 
-        else:
+        # otherwise use specified colormap
+        elif cmap is not None:
             ax.imshow(self.im, cmap=cmap, vmin=vmin, vmax=vmax)
 
+        # otherwise show raw image
+        else:
+            ax.imshow(self.im)
+
+        # add segment labels
         if segments and self.labels is not None:
             self.add_contours(ax, **kwargs)
 
+        # remove axis
         ax.axis('off')
+
         return fig
 
     def add_contour(self, ax, mask, lw=1, color='r'):
@@ -77,10 +87,11 @@ class MonochromeImage:
         ax.contour(mask, [0.5], linewidths=[lw], colors=[color])
 
     def gaussian_filter(self, sigma=(1., 1.)):
+        """ Apply 2D gaussian filter. """
         self.im = gaussian_filter(self.im, sigma=sigma)
 
     def median_filter(self, radius=0, structure_dim=1):
-        """ Convolves image with median filter. """
+        """ Apply 2D median filter. """
         struct = iterate_structure(generate_binary_structure(2, structure_dim), radius).astype(int)
         self.im = median_filter(self.im, footprint=struct)
 
@@ -97,7 +108,7 @@ class MonochromeImage:
 
     def clahe(self, factor=8, clip_limit=0.01, nbins=256):
         """
-        Runs CLAHE on reflection-padded image.
+        Run CLAHE on reflection-padded image.
 
         Args:
         factor (float or int) - number of segments per dimension
@@ -126,28 +137,30 @@ class MonochromeImage:
                    clip_factor=20):
         """
         Preprocess image.
+
+        Args:
+        median_radius (int) - median filter size, px
+        gaussian_sigma (tuple) - gaussian filter size, px std dev
+        clip_limit (float) - CLAHE clip limit
+        clip_factor (int) - CLAHE clip factor
         """
         self.median_filter(radius=median_radius)
         self.gaussian_filter(sigma=gaussian_sigma)
         self.clahe(clip_limit=clip_limit, factor=clip_factor)
 
-    def segment(self,
-                preprocessing_kws={},
-                seed_kws={},
-                seg_kws={},
-                min_segment_area=250):
-        """
-        Segment nuclear contours.
-        """
-        self.preprocess(**preprocessing_kws)
-        segmentation = Segmentation(self, seed_kws=seed_kws, seg_kws=seg_kws)
-        segmentation.exclude_small_segments(min_area=min_segment_area)
-        self.labels = segmentation.labels
 
-
-class MultichannelImage(MonochromeImage):
+class ImageRGB(ImageScalar):
     """
     Object represents an RGB image.
+
+    Attributes:
+    im (np.ndarray[float]) - 2D array of RGB pixel values
+    channels (dict) - {color: channel_index} pairs
+
+    Inherited attributes:
+    shape (array like) - image dimensions
+    mask (np.ndarray[bool]) - image mask
+    labels (np.ndarray[int]) - segment ID mask
     """
 
     def __init__(self, im, labels=None):
@@ -156,10 +169,62 @@ class MultichannelImage(MonochromeImage):
         self.channels = dict(r=0, g=1, b=2)
 
     def get_channel(self, channel='b', copy=True):
-        """ Returns monochrome image of specified color channel. """
+        """
+        Returns monochrome image of specified color channel.
+
+        Args:
+        channel (str) - desired channel
+        copy (bool) - if True, instantiate from image copy
+
+        Returns:
+        image (ImageScalar) - monochrome image
+        """
         if copy:
             monochrome = deepcopy(self.im[:, :, self.channels[channel]])
         else:
             monochrome = self.im[:, :, self.channels[channel]]
 
-        return MonochromeImage(monochrome, labels=self.labels, channel=channel)
+        return ImageScalar(monochrome, labels=self.labels)
+
+    def measure(self):
+        """
+        Measure properties of cell segments to generate contours.
+
+        Returns:
+        contours (clones.segmentation.contours.Contours)
+        """
+
+        # get image channels
+        drop_axis = lambda x: x.reshape(*x.shape[:2])
+        r, g, b = [drop_axis(x) for x in np.split(self.im, 3, axis=-1)]
+
+        # get segment ids (ordered)
+        segment_ids = np.unique(self.labels[self.labels.nonzero()])
+
+        # get centroids
+        centroid_dict = Segmentation.evaluate_centroids(self.labels)
+        centroids = [centroid_dict[seg_id] for seg_id in segment_ids]
+
+        # compute means
+        rmeans = mean(r, self.labels, segment_ids)
+        gmeans = mean(g, self.labels, segment_ids)
+        bmeans = mean(b, self.labels, segment_ids)
+        color_avg = (rmeans, gmeans, bmeans)
+
+        # compute std
+        rstd = standard_deviation(r, self.labels, segment_ids)
+        gstd = standard_deviation(g, self.labels, segment_ids)
+        bstd = standard_deviation(b, self.labels, segment_ids)
+        color_std = (rstd, gstd, bstd)
+
+        # compute segment size
+        voxels = self.labels[self.labels!=0]
+        bins = np.arange(0, segment_ids.max()+3, 1)
+        counts, _ = np.histogram(voxels, bins=bins)
+        voxel_counts = counts[segment_ids]
+
+        # createlist of contour dicts (useless but fits with Silhouette)
+        data = (segment_ids, centroids, color_avg, color_std, voxel_counts)
+        contours = Contours(*data).to_json()
+
+        return contours

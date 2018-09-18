@@ -18,36 +18,57 @@ from modules.classification import CellClassifier
 from modules.annotation import Annotation
 
 
+from os.path import join, exists
+from os import mkdir
+
+
 class Stack:
     """
     Object represents a 3D RGB image stack.
 
     Attributes:
-
+    path (str) - path to stack directory
+    _id (int) - stack ID
+    metadata (dict) - stack metadata
+    tif_path (str) - path to multilayer RGB tiff file
+    layers_path (str) - path to layers directory
+    stack (np.ndarray[float]) - 3D RGB image stack
+    shape (tuple) - stack dimensions, (depth, X, Y, 3)
+    depth (int) - number of layers in stack
+    df (pd.DataFrame) - cell contour measurements
     """
 
-    def __init__(self, tif_path, bits=2**12, params={}):
-        disc_name = tif_path.split('/')[-1].split('.')[0]
-        self.disc_name = disc_name
-        self.genotype_path = tif_path.rsplit('/', maxsplit=1)[0]
-        self.tif_path = tif_path
-        self.bits = bits
-        self.stack = self.read_tif(tif_path) / bits
-        self.shape = self.stack.shape
-        self.depth = self.shape[0]
-        self.params = params
-        self.df = None
-        self.path = os.path.join(self.genotype_path, disc_name)
+    def __init__(self, path):
+        """
+        Initialize stack.
+
+        Args:
+        path (str) - path to stack directory
+        """
+
+        # set path to stack directory
+        self.path = path
+
+        # set paths
+        self._id = int(path.rsplit('/', maxsplit=1)[-1])
+        self.tif_path = join(path, '{:d}.tif'.format(self._id))
+        self.layers_path = join(self.path, 'layers')
+        self.contours_path = join(self.path, 'contours.json')
+
+        # reset layer iterator count
         self.count = 0
 
-    def __getitem__(self, ind):
-        return self.load_layer(ind)
+    def __getitem__(self, layer_id):
+        """ Load layer. """
+        return self.load_layer(layer_id)
 
     def __iter__(self):
+        """ Iterate across layers. """
         self.count = 0
         return self
 
     def __next__(self):
+        """ Return next layer. """
         if self.count < self.depth:
             layer = self.__getitem__(self.count)
             self.count += 1
@@ -55,9 +76,69 @@ class Stack:
         else:
             raise StopIteration
 
+    def initialize(self, bits=12):
+        """
+        Initialize stack directory.
+
+        Args:
+        bits (int) - tif resolution
+        """
+
+        # make layers directory
+        if not exists(self.layers_path):
+            mkdir(self.layers_path)
+
+        # make metadata file
+        io = IO()
+        metadata = dict(bits=bits, params={})
+        io.write_json(join(self.path, 'metadata.json'), metadata)
+
+        # make measurements file
+        io.write_json(self.contours_path, {})
+
+    def save(self):
+        """
+        Save measurements.
+        """
+
+        # instantiate IO
+        io = IO()
+
+        # save contours to json
+        contours = self.df.to_json()
+        io.write_json(self.contours_path, contours)
+
+        return stack_path
+
+    def load(self):
+        """
+        Load stack.
+        """
+
+        # load metadata
+        io = IO()
+        self.metadata = io.read_json(join(self.path, 'metadata.json'))
+
+        # load 3D RGB tif
+        self.stack = self._read_tif(self.tif_path) / (2**self.metadata['bits'])
+
+        # set stack shape
+        self.shape = self.stack.shape
+        self.depth = self.shape(0)
+
+        # load measurements
+        self.df = self.load_measurements()
+
     @staticmethod
-    def read_tif(path):
-        """ Loads raw tif. Note: images are flipped from BGR to RGB """
+    def _read_tif(path, bits=12):
+        """
+        Read 3D RGB tif file.
+
+        Args:
+        bits (int) - tif resolution
+
+        Note: images are flipped from BGR to RGB
+        """
         io = IO()
         stack = io.read_tiff(path)
         if len(stack.shape) == 3:
@@ -67,22 +148,58 @@ class Stack:
         return stack[:, :, :, ::-1]
 
     def get_layer(self, layer_id=0):
-        """ Instantiate MultiChannel image of single layer. """
+        """
+        Instantiate single layer.
+
+        Args:
+        layer_id (int) - layer index
+
+        Returns:
+        layer (clones.data.layers.Layer)
+        """
         im = self.stack[layer_id, :, :, :]
+
+        layer_path = join(self.layers_path, '{:d}'.format(layer_id))
+
         layer = Layer(im, layer_id=layer_id, stack_path=self.path)
         return layer
 
     def load_layer(self, layer_id=0):
-        """ Load segmented MultiChannel image of single layer. """
-        layer_path = os.path.join(self.path, '{:d}'.format(layer_id))
+        """
+        Load single layer.
+
+        Args:
+        layer_id (int) - layer index
+
+        Returns:
+        layer (clones.data.layers.Layer)
+        """
+        layer_path = join(self.layers_path, '{:d}'.format(layer_id))
         im = self.stack[layer_id, :, :, :]
         return Layer.load(im, layer_path)
 
     def load_metadata(self):
-        """ Load metadata from segmentation file. """
+        """
+        Load metadata from segmentation file.
+
+        Returns:
+        metadata (dict) - stack metadata
+        """
         metadata_path = os.path.join(self.path, 'metadata.json')
         io = IO()
         return io.read_json(metadata_path)
+
+    def load_measurements(self):
+        """
+        Load contour measurements from contours file.
+
+        Returns:
+        measurements (pd.Dataframe) - contour measurements
+        """
+        io = IO()
+        return pd.read_json(io.read_json(self.contours_path))
+
+""""" UPDATE BELOW THIS LINE
 
     def segment(self, bg='b',
                     segmentation_kw={},
@@ -104,8 +221,6 @@ class Stack:
             layer = Layer(im, layer_id=layer_id, stack_path=self.path)
             layer.segment(bg=bg, **segmentation_kw)
             layer.compile_dataframe()
-            layer.set_foreground(**fg_kw)
-            layer.annotate(**annotation_kw)
 
             # save layer segmentation
             if save:
@@ -117,56 +232,8 @@ class Stack:
         if save:
             _ = self.save(self.path)
 
-    def create_directory(self):
-        """ Create directory for segmentation results. """
-        io = IO()
-        io.make_dir(self.path, force=True)
 
-    def save(self, stack_path):
-        """ Save segmentation parameters and results. """
 
-        # instantiate IO
-        io = IO()
-
-        # save metadata to json
-        metadata = dict(path=self.tif_path,
-                        bits=self.bits,
-                        params=self.params)
-        io.write_json(os.path.join(stack_path, 'metadata.json'), metadata)
-
-        # save contours to json
-        contours = self.df.to_json()
-        io.write_json(os.path.join(stack_path, 'contours.json'), contours)
-
-        return stack_path
-
-    @staticmethod
-    def from_segmentation(path):
-        """ Load segmented Stack from file. """
-
-        io = IO()
-
-        # load metadata
-        metadata_path = os.path.join(path, 'metadata.json')
-        metadata = io.read_json(metadata_path)
-
-        # parse metadata
-        saved_loc, saved_path = metadata['path'].rsplit('clones/', maxsplit=1)
-        current_loc = path.rsplit('clones', maxsplit=1)[0] + 'clones'
-        tif_path = os.path.join(current_loc, saved_path)
-
-        bits = metadata['bits']
-        params = metadata['params']
-
-        # instantiate stack
-        stack = Stack(tif_path, bits=bits, params=params)
-        stack.path = path
-
-        # load measurements
-        contours_path = os.path.join(path, 'contours.json')
-        stack.df = pd.read_json(io.read_json(contours_path))
-
-        return stack
 
 
 

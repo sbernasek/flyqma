@@ -9,7 +9,7 @@ from modules.classification import CommunityClassifier
 
 class Annotation:
     """
-    Object provides mechanis
+    Object for annotating cells based on their local community.
     """
 
     def __init__(self, graph, cell_classifier):

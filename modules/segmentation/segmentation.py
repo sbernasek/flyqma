@@ -10,9 +10,15 @@ from scipy.ndimage.measurements import center_of_mass
 
 class Segmentation:
     """
-    Object for identifying nuclear contours within an image.
+    Object for finding nuclear contours within an image.
 
     Seed detection is performed by finding local maxima in a euclidean distance transform of the image foreground mask. Segmentation is achieved via the watershed method.
+
+    Attributes:
+    seeds (np.ndarray[float]) - seeds for segmentation, 2 x N
+    labels (2D np.ndarray[int]) - segment label mask, number denotes segment ID
+    segment_ids (1D np.ndarray[int]) - unique segment IDs, length N
+    cmap (matplotlib.colors.ColorMap) - segment ID colormap, length N+1
     """
 
     def __init__(self, image, seed_kws={}, seg_kws={}):
@@ -122,10 +128,13 @@ class Segmentation:
 
     def exclude_edge_segments(self):
         """ Removes segments overlaying the edge_mask. """
-        excluded_segments = np.unique(self.labels[self.get_borders(self.labels)])
+
+        # mark segments on edge of image for exclusion
+        edge_segments = self.labels[self.get_borders(self.labels)]
+        excluded_segments = np.unique(edge_segments)
         exclusion_mask = np.isin(self.labels, excluded_segments)
 
-        # set segments to zero and remove seeds
+        # set edge segments to zero and remove seeds
         self.labels[exclusion_mask] = 0
         list(map(self.seeds.__delitem__, filter(self.seeds.__contains__, excluded_segments)))
 
@@ -142,8 +151,10 @@ class Segmentation:
         voxels = self.labels[self.labels!=0]
         counts, _ = np.histogram(voxels, bins=bins)
 
-        excluded = bins[:-1][np.logical_and(np.isin(np.arange(1, counts.size+1), self.segment_ids), counts < min_area)]
-        #excluded = bins[:-1][np.logical_and(counts > 0, counts < min_area)]
+        # mark excluded segment IDs
+        excluded = np.isin(np.arange(1, counts.size+1), self.segment_ids)
+        excluded = np.logical_and(excluded, counts < min_area)
+        excluded = bins[:-1][excluded]
 
         # remove small segments
         self.labels[np.isin(self.labels, excluded)] = 0
