@@ -2,29 +2,40 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 from scipy.spatial import Voronoi
-from scipy.spatial.distance import cdist
 
 from .classification import CommunityClassifier
 
 
-class Annotation:
+class CommunityBasedGenotype(AttributeLabeler):
     """
-    Object for annotating cells based on their local community.
+    Object for assigning genotypes to cells based on their local community.
 
     Attributes:
     graph (Graph) - graph connecting adjacent cells
     cell_classifier (CellClassifier) - callable object
-    community_classifier (CommunityClassifier) - callable object
+    labeler (CommunityClassifier) - callable object
+
+    Inherited attributes:
+    label (str) - name of label field to be added
+    attribute (str) - existing cell attribute used to determine labels
     """
 
-    def __init__(self, graph, cell_classifier):
+    def __init__(self, graph, cell_classifier,
+                 label='community_genotype',
+                 attribute='community'):
         """
-        Instantiate annotation object.
+        Instantiate community-based genotype annotation object.
 
         Args:
         graph (Graph) - graph connecting adjacent cells
         cell_classifier (CellClassifier) - callable object
+        label (str) - name of <genotype> attribute to be added
+        attribute (str) - name of attribute defining community affiliation
         """
+
+        # store label and attribute field names
+        self.label = label
+        self.attribute = attribute
 
         # run community detection and store graph
         graph.find_communities()
@@ -32,19 +43,22 @@ class Annotation:
 
         # store cell classifier
         self.cell_classifier = cell_classifier
-        self.community_classifier = self.build_classifier()
 
-    def __call__(self, cells):
+        # build genotype labeler based on community classifier
+        self.labeler = self.build_classifier()
+
+    @staticmethod
+    def from_layer(layer):
         """
-        Annotate cells using community classifier.
+        Instantiate from layer.
 
         Args:
-        cells (pd.DataFrame) - cells to be classified
+        layer (Layer)
 
         Returns:
-        labels (pd.Series) - classifier output
+        labeler (CommunityBasedGenotype)
         """
-        return self.annotate(cells)
+        return CommunityBasedGenotype(layer.graph, layer.classifier)
 
     def build_classifier(self):
         """
@@ -63,77 +77,6 @@ class Annotation:
         classifier = CommunityClassifier(self.graph.df, self.cell_classifier)
 
         return classifier
-
-    def annotate(self, cells):
-        """
-        Annotate cells using community classifier.
-
-        Args:
-        cells (pd.DataFrame) - cells to be classified
-
-        Returns:
-        labels (pd.Series) - classifier output
-        """
-        return self.community_classifier(cells.community)
-
-
-class Labeler:
-    """
-    Label cells based on a specified attribute.
-
-    Attributes:
-    label_on (str) - cells attribute mapped to labels
-    labeler (vectorized func) - assigns labels to cells
-    """
-    def __init__(self, label_on='genotype', labels=None):
-        """
-        Instantiate labeler.
-
-        Args:
-        label_on (str) - cells attribute mapped to labels
-        labels (dict) - {attribute value: label} pairs
-        """
-        if labels is None:
-            labels = {0:'m', 1:'h', 2:'w', -1:'none'}
-        self.labeler = np.vectorize(labels.get)
-        self.label_on = label_on
-
-    def __call__(self, cells):
-        """
-        Return cell labels.
-
-        Args:
-        cells (pd.DataFrame) - cells containing label_on field
-        """
-        return self.labeler(cells[self.label_on])
-
-
-class Concurrency:
-    """
-    Label all cells as concurrent with each cell type based on minimum x-distance to that cell type.
-    """
-
-    def __init__(self, cells, basis='cell_type', min_pop=5, tolerance=10):
-        self.cells = cells
-        self.basis = basis
-        self.unique_labels = self.cells[self.basis].unique()
-        self.min_pop = min_pop
-        self.tolerance = tolerance
-
-    def evaluate_distance(self, target):
-        candidates = self.cells[self.cells[self.basis]==target]
-        if len(candidates) > self.min_pop:
-            rs = lambda x: x.centroid_x.values.reshape(-1, 1)
-            distances = cdist(rs(self.cells), rs(candidates)).min(axis=1)
-        else:
-            distances = 1000*np.ones(len(self.cells), dtype=np.float64)
-        return distances
-
-    def assign_concurrency(self):
-        """ Assign concurrency for all unique labels. """
-        for label in self.unique_labels:
-            distances = self.evaluate_distance(label)
-            self.cells['concurrent_'+label] = (distances <= self.tolerance)
 
 
 class Tessellation:
@@ -166,19 +109,35 @@ class Tessellation:
 
     @staticmethod
     def _evaluate_area(x, y):
-        """ Compute area enclosed by a set of points. """
+        """ Evaluate area enclosed by a set of points. """
         return 0.5*np.abs(np.dot(x, np.roll(y,1))-np.dot(y, np.roll(x,1)))
 
     def evaluate_region_area(self, region):
+        """ Evaluate pixel area enclosed by a region. """
         return self._evaluate_area(*self.vor.vertices[region, :].T)
 
     def set_region_mask(self, q=90):
+        """
+        Mask regions with pixel areas larger than a specified quantile.
+
+        Args:
+        q (float) - maximum region area quantile, 0 to 100
+        """
         f = np.vectorize(lambda x: -1 not in x and len(x) > 0)
         mask = f(self.vor.regions)
         mask *= self.build_region_area_mask(q=q)
         self.mask = mask
 
     def build_region_area_mask(self, q=90):
+        """
+        Mask regions with pixel areas larger than a specified quantile.
+
+        Args:
+        q (float) - maximum region area quantile, 0 to 100
+
+        Returns:
+        mask (np.ndarray[bool]) - True for regions smaller than maximum area
+        """
         evaluate_area = np.vectorize(lambda x: self.evaluate_region_area(x))
         areas = evaluate_area(self.vor.regions)
         threshold = np.percentile(areas, q=q)
@@ -186,6 +145,7 @@ class Tessellation:
 
     @staticmethod
     def _show(vertices, c='k', ax=None, alpha=0.5):
+        """ Visualize vertices. """
         if ax is None:
             fig, ax = plt.subplots()
             ax.set_xlim(0, 2048)
@@ -196,12 +156,10 @@ class Tessellation:
         poly.set_alpha(alpha)
         ax.add_collection(poly)
 
-
     def show(self, ax=None, **kw):
+        """ Visualize vertices. """
         get_vertices = np.vectorize(lambda region: self.vor.vertices[region])
-        #vertices = get_vertices(self.vor.regions[self.mask])
         vertices = [self.vor.vertices[r] for r in self.vor.regions[self.mask]]
-
         c = self.cmap(self.region_labels[self.mask[1:]])
         self._show(vertices, c=c, ax=ax, **kw)
 
