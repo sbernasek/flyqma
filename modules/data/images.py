@@ -212,29 +212,29 @@ class ImageRGB(ImageScalar):
 
         # get image channels
         drop_axis = lambda x: x.reshape(*x.shape[:2])
-        r, g, b = [drop_axis(x) for x in np.split(self.im, 3, axis=-1)]
+        r, g, b = [drop_axis(x) for x in np.split(im, 3, axis=-1)]
 
         # get segment ids (ordered)
-        segment_ids = np.unique(self.labels[self.labels.nonzero()])
+        segment_ids = np.unique(labels[labels.nonzero()])
 
         # get centroids
-        centroid_dict = Segmentation.evaluate_centroids(self.labels)
+        centroid_dict = Segmentation.evaluate_centroids(labels)
         centroids = [centroid_dict[seg_id] for seg_id in segment_ids]
 
         # compute means
-        rmeans = mean(r, self.labels, segment_ids)
-        gmeans = mean(g, self.labels, segment_ids)
-        bmeans = mean(b, self.labels, segment_ids)
+        rmeans = mean(r, labels, segment_ids)
+        gmeans = mean(g, labels, segment_ids)
+        bmeans = mean(b, labels, segment_ids)
         color_avg = (rmeans, gmeans, bmeans)
 
         # compute std
-        rstd = standard_deviation(r, self.labels, segment_ids)
-        gstd = standard_deviation(g, self.labels, segment_ids)
-        bstd = standard_deviation(b, self.labels, segment_ids)
+        rstd = standard_deviation(r, labels, segment_ids)
+        gstd = standard_deviation(g, labels, segment_ids)
+        bstd = standard_deviation(b, labels, segment_ids)
         color_std = (rstd, gstd, bstd)
 
         # compute segment size
-        voxels = self.labels[self.labels!=0]
+        voxels = labels[labels!=0]
         bins = np.arange(0, segment_ids.max()+3, 1)
         counts, _ = np.histogram(voxels, bins=bins)
         voxel_counts = counts[segment_ids]

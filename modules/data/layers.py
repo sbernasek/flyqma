@@ -1,6 +1,7 @@
 from os.path import join, isdir, exists
 from os import listdir
 import gc
+from copy import deepcopy
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -374,7 +375,7 @@ class Layer(ImageRGB):
                    'b', 'b_std',
                    'pixel_count']
         measurements = pd.DataFrame.from_records(measurements, columns=columns)
-        measurements['layer'] = self.layer_id
+        measurements['layer'] = self._id
 
         # normalize by background intensity
         bg = measurements[self.metadata['bg']]
