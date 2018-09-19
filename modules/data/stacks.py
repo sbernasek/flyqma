@@ -87,7 +87,7 @@ class Stack:
         self.load()
         for layer_id in range(self.depth):
             layer_path = join(self.layers_path, '{:d}'.format(layer_id))
-            layer = Layer(layer_path, load_all=False)
+            layer = Layer(layer_path)
             layer.initialize()
 
     def load(self):
@@ -128,13 +128,13 @@ class Stack:
         stack = np.swapaxes(stack, 2, 3)
         return stack[:, :, :, ::-1]
 
-    def load_layer(self, layer_id=0, load_all=True):
+    def load_layer(self, layer_id=0, full=True):
         """
         Load individual layer.
 
         Args:
         layer_id (int) - layer index
-        load_all (bool) - if True, load labels and build graph
+        full (bool) - if True, load fully labeled RGB image
 
         Returns:
         layer (Layer)
@@ -144,13 +144,13 @@ class Stack:
         layer_path = join(self.layers_path, '{:d}'.format(layer_id))
 
         # if performing light load, don't pass image
-        if load_all:
+        if full:
             im = self.stack[layer_id, :, :, :]
         else:
             im = None
 
         # instantiate layer
-        layer = Layer(layer_path, im, self.classifier, load_all=load_all)
+        layer = Layer(layer_path, im, self.classifier)
 
         return layer
 
@@ -185,7 +185,7 @@ class Stack:
         # load measurements from each included layer
         measurements = []
         for layer_id in range(self.depth):
-            layer = self.load_layer(layer_id, load_all=False)
+            layer = self.load_layer(layer_id, full=False)
             if layer.include == True:
                 measurements.append(layer.df)
 

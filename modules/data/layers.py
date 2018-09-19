@@ -21,7 +21,8 @@ class Layer(ImageRGB):
     Object represents a single RGB image layer.
 
     Attributes:
-    df (pd.DataFrame) - cell measurement data
+    measurements (pd.DataFrame) - raw cell measurement data
+    df (pd.DataFrame) - processed cell measurement data
     path (str) - path to layer directory
     _id (int) - layer ID
     subdirs (dict) - {name: path} pairs for all subdirectories
@@ -39,7 +40,7 @@ class Layer(ImageRGB):
     labels (np.ndarray[int]) - segment ID mask
     """
 
-    def __init__(self, path, im=None, classifier=None, load_all=True):
+    def __init__(self, path, im=None, classifier=None):
         """
         Instantiate layer.
 
@@ -47,7 +48,6 @@ class Layer(ImageRGB):
         path (str) - path to layer directory
         im (np.ndarray[float]) - 2D array of RGB pixel values
         classifier (CellClassifier) - callable that assigns genotypes to cells
-        load_all (bool) - if True, load labels and build graph
         """
 
         # set layer ID
@@ -58,16 +58,11 @@ class Layer(ImageRGB):
         self.path = path
         self.find_subdirs()
 
-        # load layer
-        self.load(load_all=load_all)
+        # set classifier
+        self.classifier = classifier
 
-        # set cell classifier and annotate measurements
-        if classifier is not None:
-            self.classifier = classifier
-            self.annotate()
-            self.build_graph(**self.metadata['params']['graph_kw'])
-            self.mark_boundaries(basis='genotype', max_edges=1)
-            self.assign_concurrency()
+        # load layer
+        self.load()
 
         # load labels and instantiate RGB image if image was provided
         if im is not None:
@@ -110,29 +105,56 @@ class Layer(ImageRGB):
             if isdir(dirpath):
                 self.add_subdir(dirname, dirpath)
 
-    def load(self, load_all=True):
-        """
-        Load layer.
-
-        Args:
-        load_all (bool) - if True, load labels and build graph
-        """
+    def load(self):
+        """ Load layer. """
 
         # load metadata and extract background channel
         self.load_metadata()
 
-        # load measurements
+        # load raw measurements
         if 'segmentation' in self.subdirs.keys():
             self.load_measurements()
+
+        # process raw measurement data
+        self.df = self.process_measurements(self.measurements)
+
+    def process_measurements(self, measurements):
+        """
+        Augment measurements by:
+            1. incorporating manual selection boundary
+            2. assigning cell genotypes
+            3. correcting for fluorescence bleedthrough
+            4. updating graph
+            5. marking clone boundaries
+            6. assigning celltype concurrency information
+
+        Args:
+        measurements (pd.DataFrame) - raw cell measurement data
+
+        Returns:
+        df (pd.DataFrame) - processed cell measurement data
+        """
+
+        # copy raw measurements
+        df = deepcopy(self.measurements)
 
         # load and apply selection
         if 'selection' in self.subdirs.keys():
             self.load_selection()
-            self.apply_selection()
+            self.apply_selection(df)
 
         # load and apply correction
         if 'correction' in self.subdirs.keys():
-            self.apply_correction()
+            self.apply_correction(df)
+
+        # annotate measurements
+        if self.classifier is not None:
+            self.annotate(df)
+            self.build_graph(df, **self.metadata['params']['graph_kw'])
+            self.mark_boundaries(df, basis='genotype', max_edges=1)
+            self.assign_concurrency(df)
+
+        return df
 
 
     def load_metadata(self):
@@ -155,8 +177,8 @@ class Layer(ImageRGB):
     def load_measurements(self):
         """ Load raw measurements. """
         io = IO()
-        path = self.subdirs['segmentation']
-        self.df = pd.read_json(io.read_json(join(path, 'measurements.json')))
+        path = join(self.subdirs['segmentation'], 'measurements.json')
+        self.measurements = pd.read_json(io.read_json(path))
 
     def load_selection(self):
         """ Load selection. """
@@ -165,9 +187,12 @@ class Layer(ImageRGB):
         if selection_md is not None:
             self.include = bool(selection_md['include'])
 
-    def apply_selection(self):
+    def apply_selection(self, df):
         """
         Adds a "selected" attribute to the measurements dataframe. The attribute is true for cells that fall within the selection boundary.
+
+        Args:
+        df (pd.DataFrame) - cell measurement data
         """
 
         # load selection boundary
@@ -175,7 +200,7 @@ class Layer(ImageRGB):
         bounds = io.read_npy(join(self.subdirs['selection'], 'selection.npy'))
 
         # add selected attribute to cell measurement data
-        self.df['selected'] = False
+        df['selected'] = False
 
         if self.include:
 
@@ -183,8 +208,8 @@ class Layer(ImageRGB):
             path = Path(bounds, closed=False)
 
             # mark cells as within or outside the selection boundary
-            cell_positions = self.df[['centroid_x', 'centroid_y']].values
-            self.df['selected'] = path.contains_points(cell_positions)
+            cell_positions = df[['centroid_x', 'centroid_y']].values
+            df['selected'] = path.contains_points(cell_positions)
 
     def load_correction(self):
         """
@@ -195,9 +220,12 @@ class Layer(ImageRGB):
         """
         return LayerCorrection.load(self)
 
-    def apply_correction(self):
+    def apply_correction(self, df):
         """
         Adds a "selected" attribute to the measurements dataframe. The attribute is true for cells that fall within the selection boundary.
+
+        Args:
+        df (pd.DataFrame) - cell measurement data
         """
 
         # load correction coefficients and X/Y variables
@@ -212,65 +240,71 @@ class Layer(ImageRGB):
         b, m = data['coefficients']
 
         # apply correction
-        trend = b+m*self.df[xvar].values
-        self.df[yvar+'p'] = trend
-        self.df[yvar+'_corrected'] = self.df[yvar] - trend
+        trend = b + m * df[xvar].values
+        df[yvar+'p'] = trend
+        df[yvar+'_corrected'] = df[yvar] - trend
 
-    def build_graph(self, **graph_kw):
+    def build_graph(self, df, **graph_kw):
         """
         Compile weighted graph connecting adjacent cells.
+
+        Args:
+        df (pd.DataFrame) - cell measurement data
 
         Keyword Args:
         q (float) - edge length quantile above which edges are pruned
         weighted_by (str) - quantity used to weight edges
         """
         self.metadata['params']['graph_kw'] = graph_kw
-        self.graph = WeightedGraph(self.df, **graph_kw)
+        self.graph = WeightedGraph(df, **graph_kw)
 
-    def annotate(self, cluster=False):
+    def annotate(self, df, cluster=False):
         """
         Assign genotype and celltype labels to cell measurements.
 
         Args:
+        df (pd.DataFrame) - cell measurement data
         cluster (bool) - if True, add community and community genotype labels
         """
 
         # assign single-cell classifier label
-        self.df['genotype'] = self.classifier(self.df)
+        df['genotype'] = self.classifier(df)
 
         # assign cluster labels
         if cluster:
             assign_genotypes = CommunityBasedGenotype.from_layer(self)
-            assign_genotypes(self.df)
+            assign_genotypes(df)
 
         # assign celltype labels
         celltype_labels = {0:'m', 1:'h', 2:'w', -1:'none'}
         assign_celltypes = CelltypeLabeler(labels=celltype_labels)
-        assign_celltypes(self.df)
+        assign_celltypes(df)
 
-    def assign_concurrency(self, min_pop=5, max_distance=10):
+    def assign_concurrency(self, df, min_pop=5, max_distance=10):
         """
         Add boolean 'concurrent_<cell type>' field to cell measurement data for each unique cell type.
 
         Args:
+        df (pd.DataFrame) - cell measurement data
         min_pop (int) - minimum population size for inclusion of cell type
         max_distance (float) - maximum distance threshold for inclusion
         """
         assign_concurrency = ConcurrencyLabeler(min_pop=min_pop,
                                                 max_distance=max_distance)
-        assign_concurrency(self.df)
+        assign_concurrency(df)
 
-    def mark_boundaries(self, basis='genotype', max_edges=0):
+    def mark_boundaries(self, df, basis='genotype', max_edges=0):
         """
         Mark clone boundaries by assigning a boundary label to all cells that share an edge with another cell from a different clone.
 
         Args:
+        df (pd.DataFrame) - cell measurement data
         basis (str) - labels used to identify clones
         max_edges (int) - maximum number of edges for interior cells
         """
 
         # assign genotype to edges
-        assign_genotype = np.vectorize(dict(self.df[basis]).get)
+        assign_genotype = np.vectorize(dict(df[basis]).get)
         edge_genotypes = assign_genotype(self.graph.edges)
 
         # find edges traversing clones
@@ -282,8 +316,8 @@ class Layer(ImageRGB):
 
         # assign boundary label to nodes with too many clone-traversing edges
         boundary_nodes = [n for n, c in edge_counts.items() if c>max_edges]
-        self.df['boundary'] = False
-        self.df.loc[boundary_nodes, 'boundary'] = True
+        df['boundary'] = False
+        df.loc[boundary_nodes, 'boundary'] = True
 
     def segment(self,
                 bg='b',
@@ -321,6 +355,9 @@ class Layer(ImageRGB):
         # update segment labels
         self.labels = seg.labels
 
+        # update cell measurements
+        self.measure()
+
     def measure(self):
         """
         Measure properties of cell segments to generate cell measurement data.
@@ -336,21 +373,20 @@ class Layer(ImageRGB):
                    'g', 'g_std',
                    'b', 'b_std',
                    'pixel_count']
-        df = pd.DataFrame.from_records(measurements, columns=columns)
-        df['layer'] = self.layer_id
+        measurements = pd.DataFrame.from_records(measurements, columns=columns)
+        measurements['layer'] = self.layer_id
 
         # normalize by background intensity
+        bg = measurements[self.metadata['bg']]
         for channel in 'rgb'.strip(self.metadata['bg']):
-            df[channel+'_normalized'] = df[channel] / df[self.metadata['bg']]
+            fg = measurements[channel]
+            measurements[channel+'_normalized'] = fg / bg
 
+        # set measurements
+        self.measurements = measurements
 
-        # add segmentation directory
-        self.make_subdir('segmentation')
-        dirpath = self.subdirs['segmentation']
-
-        # save raw measurements
-        io = IO()
-        io.write_json(join(dirpath, 'measurements.json'), df.to_json())
+        # process raw measurement data
+        self.df = self.process_measurements(measurements)
 
     def plot_graph(self,
                    channel='r',
@@ -382,45 +418,20 @@ class Layer(ImageRGB):
 
         return fig
 
-    # def plot_annotation(self,
-    #                     cmap='grey',
-    #                     fig_kw={},
-    #                     clone_kw={}):
-    #     """
-    #     Show annotation channel overlayed with clone segments.
-
-    #     Args:
-    #     cmap (matplotlib.colors.ColorMap)
-    #     fig_kw (dict) - keyword arguments for layer visualization
-    #     clone_kw (dict) - keyword arguments for clone visualization
-    #     """
-
-    #     if cmap == 'grey':
-    #         cmap = plt.cm.Greys
-
-    #     # get layer
-    #     weighted_by = self.annotation.graph.weighted_by
-    #     if 'normalized' in self.annotation.graph.weighted_by:
-    #         im = self.get_channel(weighted_by.split('_')[0])
-    #     else:
-    #         im = self.get_channel(weighted_by)
-
-    #     # show layer
-    #     fig = im.show(segments=False, cmap=cmap, **fig_kw)
-
-    #     # add clones
-    #     self.annotation.plot_clones(fig.axes[0], **clone_kw)
-
-    #     # mask background
-    #     if self.annotation.fg_only:
-    #         self.fg_mask.add_contourf(fig.axes[0], alpha=0.5)
-
-    #     return fig
-
-    def save_contours(self):
-        """ Save measurements. """
+    def save_metadata(self):
+        """ Save metadata. """
         io = IO()
-        io.write_json(join(self.path, 'contours.json'), self.df.to_json())
+        io.write_json(join(self.path, 'metadata.json'), self.metadata)
+
+    def save_measurements(self):
+        """ Save raw measurements. """
+
+        # get segmentation directory
+        path = join(self.subdirs['segmentation'], 'measurements.json')
+
+        # save raw measurements
+        io = IO()
+        io.write_json(path, self.measurements.to_json())
 
     def save_segmentation(self, **image_kw):
         """
@@ -430,10 +441,14 @@ class Layer(ImageRGB):
         """
 
         # add segmentation directory
+        self.make_subdir('segmentation')
         dirpath = self.subdirs['segmentation']
 
         # save labels
         np.save(join(dirpath, 'labels.npy'), self.labels)
+
+        # save measurements
+        self.save_measurements()
 
         # save segmentation image
         bg = self.get_channel(self.metadata['bg'], copy=False)
@@ -443,11 +458,6 @@ class Layer(ImageRGB):
         fig.clf()
         plt.close(fig)
         gc.collect()
-
-    def save_metadata(self):
-        """ Save metadata. """
-        io = IO()
-        io.write_json(join(self.path, 'metadata.json'), self.metadata)
 
     def save(self,
              segmentation=True,
