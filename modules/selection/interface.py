@@ -23,7 +23,12 @@ class LayerVisualization:
         layer (clones.data.layers.Layer) - image layer
         axes (array like) - axes for blue/red/green color channels
         """
+
+        # set selection path
+        layer.make_subdir('selection')
         self.path = layer.subdirs['selection']
+
+        # set axes
         self.axes = axes
 
         # render images

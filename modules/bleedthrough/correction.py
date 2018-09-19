@@ -1,4 +1,4 @@
-import os
+from os.path import join
 import gc
 import numpy as np
 import pandas as pd
@@ -7,7 +7,7 @@ from matplotlib.gridspec import GridSpec
 import seaborn as sns
 from modules.io import IO
 
-from .models import GLM, OLS
+from .models import GLM
 from .resampling import resample_uniformly
 from .background import BackgroundExtraction
 
@@ -25,14 +25,16 @@ class LayerCorrection(GLM):
                  resample=False,
                  resample_size=None,
                  resample_cutoff=None,
-                 seg_params=None,
                  **fit_kw):
+
+        # set correction path
+        layer.make_subdir('correction')
+        self.path = layer.subdirs['correction']
 
         # store layer
         self.layer = layer
 
         # store parameters
-        self.seg_params = seg_params
         self.xvar = xvar
         self.yvar = yvar
         self.niters = niters
@@ -42,7 +44,7 @@ class LayerCorrection(GLM):
         self.resample_cutoff=resample_cutoff,
 
         # extract X and Y pixels from background
-        bg_ext = BackgroundExtraction(layer, niters, seg_params=seg_params)
+        bg_ext = BackgroundExtraction(layer, niters)
         bg_x = bg_ext.extract_pixels(self.xvar)
         bg_y = bg_ext.extract_pixels(self.yvar)
 
@@ -119,7 +121,7 @@ class LayerCorrection(GLM):
         ax.plot(ax.get_xticks(), self.predict(xticks), '-r', linewidth=1)
 
         # store figure instance
-        self.figs['background_fit'] = fig
+        self.figs['fit'] = fig
 
     def show_correction(self, figsize=(6, 2), furrow_only=False):
         """
@@ -166,28 +168,34 @@ class LayerCorrection(GLM):
             ax.spines['right'].set_visible(False)
 
         # store figure instance
-        self.figs['background_correction'] = fig
+        self.figs['correction'] = fig
 
-    def save_figs(self, dpi=100, fmt='png'):
-        """ Save all figures. """
+    @staticmethod
+    def load(layer):
+        """
+        Load linear model from file.
 
-        # keyword arguments for savefig
-        kw = dict(dpi=dpi, format=fmt, transparent=True, rasterized=True)
+        Args:
+        path (str) - path to correction directory
 
-        for name, fig in self.figs.items():
+        Returns:
+        correction (LayerCorrection)
+        """
 
-            # save figure
-            path = os.path.join(self.layer.path, name+'.png')
-            fig.savefig(path, **kw)
+        path = layer.subdirs['selection']
 
-            # close figure
-            fig.clf()
-            plt.close(fig)
-            gc.collect()
+        # load data
+        io = IO()
+        data = io.read_json(join(path, 'data.json'))
+
+        # check that correction method hasn't changed
+        assert data['mode'] == self.__class__.__name__, 'Different method.'
+
+        return LayerCorrection(layer, **data['params'])
 
     def save(self, images=True):
         """
-        Save linear model, corrected levels, and associated figures.
+        Save linear model and corrected levels.
 
         Args:
         images (bool) - if True, save model fit and corrected measurement figs
@@ -197,24 +205,21 @@ class LayerCorrection(GLM):
         io = IO()
 
         # save metadata to json
-        data = dict(mode=self.__class__.__name__,
+        params = dict(
                     xvar=self.xvar,
                     yvar=self.yvar,
-                    seg_params=self.seg_params,
                     niters=self.niters,
                     remove_zeros=self.remove_zeros,
                     resample=self.resample,
                     resample_size=self.resample_size,
-                    resample_cutoff=self.resample_cutoff,
+                    resample_cutoff=self.resample_cutoff)
+
+        data = dict(mode=self.__class__.__name__,
+                    params=params,
                     coefficients=self.model.params.tolist())
 
         # write metadata to file
-        io.write_json(os.path.join(self.layer.path, 'correction.json'), data)
-
-        # save corrections for layer
-        self.layer.df[self.yvar+'p'] = self.ytp
-        self.layer.df[self.yvar+'_corrected'] = self.yt - self.ytp
-        self.layer.save_contours()
+        io.write_json(join(self.path, 'data.json'), data)
 
         # save figures
         if images:
@@ -222,17 +227,45 @@ class LayerCorrection(GLM):
             self.show_correction()
             self.save_figs()
 
+    def save_figs(self, dpi=100, fmt='png'):
+        """
+        Save all figures.
+
+        Args:
+        dpi (int) - resolution
+        fmt (str) - image format
+        """
+
+        # keyword arguments for savefig
+        kw = dict(dpi=dpi, format=fmt, transparent=True, rasterized=True)
+
+        for name, fig in self.figs.items():
+
+            # save figure
+            path = join(self.path, name+'.png')
+            fig.savefig(path, **kw)
+
+            # close figure
+            fig.clf()
+            plt.close(fig)
+            gc.collect()
+
 
 class StackCorrection:
     """
     Linear correction for background correlation between fluorescence channels, applied to entire image stack.
+
+    Attributes:
+    stack (Stack) - 3D RGB image stack
+    seg_params
+
     """
 
     def __init__(self, stack, **kw):
 
         # load segmentation params
         self.stack = stack
-        self.seg = stack.load_metadata()['params']['segmentation_kw']
+        self.seg_params = stack.load_metadata()['params']['segmentation_kw']
 
         # instantiate corrections
         self.corrections = {}

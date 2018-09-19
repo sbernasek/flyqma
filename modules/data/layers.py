@@ -1,7 +1,10 @@
 from os.path import join, isdir, exists
 from os import listdir
+import gc
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.path import path
 from collections import Counter
 
 from .images import ImageRGB
@@ -15,6 +18,7 @@ class Layer(ImageRGB):
     Object represents a single RGB image layer.
 
     Attributes:
+    df (pd.DataFrame) - cell measurement data
     path (str) - path to layer directory
     _id (int) - layer ID
     subdirs (dict) - {name: path} pairs for all subdirectories
@@ -22,7 +26,6 @@ class Layer(ImageRGB):
     labels (np.ndarray[int]) - segment ID mask
     classifier (CellClassifier)
     graph (clones.annotation.graphs.Graph) - graph connecting cell centroids
-    selection_boundary (np.ndarray[float]) - points bounding selection
     include (bool) - if True, layer was manually marked for inclusion
 
     Inherited attributes:
@@ -55,8 +58,10 @@ class Layer(ImageRGB):
         # load layer
         self.load(load_all=load_all)
 
-        # set cell classifier
-        self.classifier = classifier
+        # set cell classifier and annotate measurements
+        if classifier is not None:
+            self.classifier = classifier
+            self.annotate()
 
         # call parent instantiation if image was provided
         if im is not None:
@@ -78,12 +83,6 @@ class Layer(ImageRGB):
         io = IO()
         metadata = dict(bg='', params=dict(segmentation_kw={}, graph_kw={}))
         io.write_json(join(self.path, 'metadata.json'), metadata)
-
-        # make measurements file
-        io.write_json(self.contours_path, {})
-
-        # make segmentation subdirectory
-        self.make_subdir('segmentation')
 
     def make_subdir(self, dirname):
         """ Make subdirectory. """
@@ -113,15 +112,20 @@ class Layer(ImageRGB):
         """
 
         # load metadata and extract background channel
-        io = IO()
-        self.metadata = io.read_json(join(self.path, 'metadata.json'))
+        self.load_metadata()
 
         # load measurements
-        self.load_measurements()
+        if 'segmentation' in self.subdirs.keys():
+            self.load_measurements()
 
-        # load selection
+        # load and apply selection
         if 'selection' in self.subdirs.keys():
             self.load_selection()
+            self.apply_selection()
+
+        # load and apply correction
+        if 'correction' in self.subdirs.keys():
+            self.apply_correction()
 
         # if load_all, load labels and build graph
         if load_all:
@@ -133,6 +137,16 @@ class Layer(ImageRGB):
             # build graph
             self.build_graph(**self.metadata['params']['graph_kw'])
 
+            # mark cell boundaries
+            self.mark_boundaries(basis='genotype', max_edges=1)
+
+    def load_metadata(self):
+        """ Load metadata. """
+        path = join(self.path, 'metadata.json')
+        if exists(path):
+            io = IO()
+            self.metadata = io.read_json()
+
     def load_labels(self):
         """ Load segment labels. """
         segmentation_path = self.subdirs['segmentation']
@@ -143,22 +157,67 @@ class Layer(ImageRGB):
             self.labels = None
 
     def load_measurements(self):
-        """ Load measurements. """
-        df = pd.read_json(io.read_json(join(self.path, 'contours.json')))
-        self.df = df
+        """ Load raw measurements. """
+        dirpath = self.subdirs['segmentation']
+        self.df = pd.read_json(join(dirpath, 'measurements.json'))
 
     def load_selection(self):
         """ Load selection. """
-
-        # load selection metadata
         io = IO()
         selection_md = io.read_json(join(self.subdirs['selection'], 'md.json'))
         if selection_md is not None:
             self.include = bool(selection_md['include'])
 
+    def apply_selection(self):
+        """
+        Adds a "selected" attribute to the measurements dataframe. The attribute is true for cells that fall within the selection boundary.
+        """
+
         # load selection boundary
-        pts = io.read_npy(join(self.subdirs['selection'], 'selection.npy'))
-        self.selection_boundary = pts
+        io = IO()
+        bounds = io.read_npy(join(self.subdirs['selection'], 'selection.npy'))
+
+        # add selected attribute to cell measurement data
+        self.df['selected'] = False
+
+        if self.include:
+
+            # construct matplotlib path object
+            path = Path(bounds, closed=False)
+
+            # mark cells as within or outside the selection boundary
+            cell_positions = self.df[['centroid_x', 'centroid_y']].values
+            self.df['selected'] = path.contains_points(cell_positions)
+
+    def load_correction(self):
+        """
+        Load linear background correction.
+
+        Returns:
+        correction (LayerCorrection)
+        """
+        return LayerCorrection.load(self)
+
+    def apply_correction(self):
+        """
+        Adds a "selected" attribute to the measurements dataframe. The attribute is true for cells that fall within the selection boundary.
+        """
+
+        # load correction coefficients and X/Y variables
+        io = IO()
+        data = io.read_json(join(self.subdirs['correction'], 'data.json'))
+
+        # get independent/dependent variables
+        xvar = data['params']['xvar']
+        yvar = data['params']['yvar']
+
+        # get linear model coefficients
+        b, m = data['coefficients']
+
+        # apply correction
+        trend = b+m*self.df[xvar].values
+        self.df[yvar+'p'] = trend
+        self.df[yvar+'_corrected'] = self.df[yvar] - trend
 
     def build_graph(self, **graph_kw):
         """
@@ -270,7 +329,14 @@ class Layer(ImageRGB):
         for channel in 'rgb'.strip(self.metadata['bg']):
             df[channel+'_normalized'] = df[channel] / df[self.metadata['bg']]
 
-        self.df = df
+
+        # add segmentation directory
+        self.make_subdir('segmentation')
+        dirpath = self.subdirs['segmentation']
+
+        # save raw measurements
+        io = IO()
+        io.write_json(join(dirpath, 'measurements.json'), df.to_json())
 
     def plot_graph(self,
                    channel='r',
@@ -348,6 +414,8 @@ class Layer(ImageRGB):
 
         image_kw: keyword arguments for segmentation image
         """
+
+        # add segmentation directory
         dirpath = self.subdirs['segmentation']
 
         # save labels
@@ -385,9 +453,6 @@ class Layer(ImageRGB):
                      dpi=dpi,
                      bbox_inches='tight',
                      pad_inches=0)
-
-        # save contours
-        self.save_contours()
 
         # save segmentation
         if segmentation:

@@ -10,17 +10,10 @@ class BackgroundExtraction:
     Object for extracting image background pixels.
     """
 
-    def __init__(self,
-                 layer,
-                 niters=10,
-                 seg_params=None):
+    def __init__(self, layer, niters=10):
 
         # store layer
         self.layer = layer
-
-        # store parameters
-        self.niters = niters
-        self.seg_params = seg_params
 
         # build background mask
         self.bg_mask = self.build_background_mask(niters)
@@ -37,9 +30,11 @@ class BackgroundExtraction:
         """
 
         # re-run image preprocessing to obtain foreground threshold
-        if self.seg_params is not None:
-            bg = self.layer.get_channel('b')
-            _ = bg.preprocess(**self.seg_params['preprocessing_kws'])
+        seg_params = self.layer.metadata['params']['segmentation_kw']
+        preprocessing_kws = seg_params['preprocessing_kws']
+        if preprocessing_kws is not None:
+            bg = self.layer.get_channel(self.layer.metadata['bg'])
+            _ = bg.preprocess(**preprocessing_kws)
             bg.set_otsu_mask()
             bg_mask = bg.mask
         else:
@@ -130,13 +125,4 @@ class BackgroundExtraction:
     #         ax.spines['right'].set_visible(False)
 
     #     return fig
-
-
-
-
-
-
-
-
-
 
