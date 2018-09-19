@@ -16,7 +16,7 @@ class GUI(StackInterface):
         Instantiate GUI.
 
         Args:
-        stack (clones.data.stacks.Stack) - image stack
+        stack (Stack) - image stack
         """
         super().__init__(stack)
 
@@ -25,12 +25,19 @@ class GUI(StackInterface):
         self.saved = False
 
     @staticmethod
-    def load(stack, **kw):
-        """ INCOMPLETE: Load selection GUI from file. """
-        sel = StackSelector(stack, **kw)
-        sel.disconnect()
-        _ = [row.load() for row in sel.rows.values()]
-        return sel
+    def load(stack):
+        """
+        Load selection GUI from file.
+
+        Args:
+        stack (Stack) - image stack
+
+        Returns:
+        gui (GUI) - disconnected gui
+        """
+        gui = GUI(stack)
+        _ = [interface.load() for interface in gui.layer_to_interface.values()]
+        return gui
 
     def save(self, image=True):
         """

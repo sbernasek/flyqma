@@ -6,9 +6,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 
-from modules.io import IO
-from modules.classification import CellClassifier
-from modules.annotation import Annotation
+from ..utilities.io import IO
+from .classifiers import CellClassifier
+
 from modules.figure_settings import *
 
 

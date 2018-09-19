@@ -1,6 +1,6 @@
 
 
-class Contour:
+class Measurement:
     """
     Object describes an individual cell measurement.
 
@@ -20,7 +20,7 @@ class Contour:
         self.pixel_count = voxel_count
 
     def to_json(self):
-        """ Serialize contour in JSON format. """
+        """ Serialize measurement in JSON format. """
         return {
             'id': int(self.id),
             'centroid_x': self.centroid_x,
@@ -37,7 +37,7 @@ class Contour:
             'pixel_count': int(self.pixel_count)}
 
 
-class Contours:
+class Measurements:
     """
     Object describes a collection of cell measurements.
 
@@ -52,13 +52,13 @@ class Contours:
         self.voxel_counts = volume
         self.size = len(self.ids)
 
-    def get_contour(self, index):
+    def get_measurement(self, index):
         _id = self.ids[index]
         centroid = self.centroids[index]
         color_avg = self.color_avgs[index]
         color_std = self.color_stds[index]
         voxel_count = self.voxel_counts[index]
-        return Contour(_id, centroid, color_avg, color_std, voxel_count)
+        return Measurement(_id, centroid, color_avg, color_std, voxel_count)
 
     def to_json(self):
-        return [self.get_contour(idx).to_json() for idx in range(self.size)]
+        return [self.get_measurement(i).to_json() for i in range(self.size)]

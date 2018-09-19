@@ -14,7 +14,20 @@ from .background import BackgroundExtraction
 
 class LayerCorrection(GLM):
     """
-    Linear correction for background correlation between fluorescence channels.
+    Linear correction for background correlation between fluorescence channels within an individual layer.
+
+    Attributes:
+    layer (Layer) - layer RGB image
+    path (str) - path to correction directory for layer
+
+    Parameters:
+    xvar (str) - name of independent variable attribute in measurement data
+    yvar (str) - name of dependent variable attribute in measurement data
+    niters (int) - number of binary dilations applied to foreground mask
+    remove_zeros (bool) - if True, remove all zero-valued pixels.
+    resample (bool) - if True, uniformly resample pixels in X
+    resample_size (int) - number of uniform samples
+    resample_cutoff (int) - upper bound for samples (quantile, 0 to 100)
     """
 
     def __init__(self, layer,
@@ -251,49 +264,49 @@ class LayerCorrection(GLM):
             gc.collect()
 
 
-class StackCorrection:
-    """
-    Linear correction for background correlation between fluorescence channels, applied to entire image stack.
+# class StackCorrection:
+#     """
+#     Linear correction for background correlation between fluorescence channels, applied to entire image stack.
 
-    Attributes:
-    stack (Stack) - 3D RGB image stack
-    seg_params
+#     Attributes:
+#     stack (Stack) - 3D RGB image stack
+#     seg_params
 
-    """
+#     """
 
-    def __init__(self, stack, **kw):
+#     def __init__(self, stack, **kw):
 
-        # load segmentation params
-        self.stack = stack
-        self.seg_params = stack.load_metadata()['params']['segmentation_kw']
+#         # load segmentation params
+#         self.stack = stack
+#         self.seg_params = stack.load_metadata()['params']['segmentation_kw']
 
-        # instantiate corrections
-        self.corrections = {}
-        self.correct(**kw)
+#         # instantiate corrections
+#         self.corrections = {}
+#         self.correct(**kw)
 
-    @staticmethod
-    def load(path):
-        """ USE STORED PARAMETERS TO AVOID OVERWRITING *TO DO* """
-        pass
+#     @staticmethod
+#     def load(path):
+#         """ USE STORED PARAMETERS TO AVOID OVERWRITING *TO DO* """
+#         pass
 
-    def correct(self, **kw):
-        """ Correct all included layers in stack. """
-        for layer in self.stack:
-            if layer.include:
-                self.correct_layer(layer, **kw)
+#     def correct(self, **kw):
+#         """ Correct all included layers in stack. """
+#         for layer in self.stack:
+#             if layer.include:
+#                 self.correct_layer(layer, **kw)
 
-    def correct_layer(self, layer, **kw):
-        """ Correct individual layer. """
-        correction = LayerCorrection(layer, seg_params=self.seg, **kw)
-        correction.correct_measurements()
-        self.corrections[layer_id] = correction
+#     def correct_layer(self, layer, **kw):
+#         """ Correct individual layer. """
+#         correction = LayerCorrection(layer, seg_params=self.seg, **kw)
+#         correction.correct_measurements()
+#         self.corrections[layer_id] = correction
 
-    def show(self):
-        """ Show all corrections. """
-        for layer_id, correction in self.corrections.items():
-            correction.show_correction()
+#     def show(self):
+#         """ Show all corrections. """
+#         for layer_id, correction in self.corrections.items():
+#             correction.show_correction()
 
-    def save(self):
-        """ Save all corrections. """
-        for correction in self.corrections.values():
-            correction.save()
+#     def save(self):
+#         """ Save all corrections. """
+#         for correction in self.corrections.values():
+#             correction.save()

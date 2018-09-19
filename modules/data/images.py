@@ -3,13 +3,12 @@ from scipy.ndimage import gaussian_filter, median_filter
 from scipy.ndimage.measurements import mean, standard_deviation
 from skimage.filters import threshold_otsu
 from skimage.exposure import equalize_adapthist
-
 import matplotlib.pyplot as plt
 import numpy as np
 from copy import deepcopy
 
-from ..segmentation.segmentation import Segmentation
-from ..segmentation.contours import Contours
+from ..measure.segmentation import Segmentation
+from ..measure.measurements import Measurements
 
 
 class ImageScalar:
@@ -190,10 +189,24 @@ class ImageRGB(ImageScalar):
 
     def measure(self):
         """
-        Measure properties of cell segments to generate contours.
+        Measure properties of cell segments to generate cell measurements.
 
         Returns:
-        contours (clones.segmentation.contours.Contours)
+        measurements (Measurements) - measurement data for each labeled segment
+        """
+        return self._measure(self.im, self.labels)
+
+    @staticmethod
+    def _measure(im, labels):
+        """
+        Measure properties of labeled segments within an image.
+
+        Args:
+        im (np.ndarray[float]) - 2D array of RGB pixel values
+        labels (np.ndarray[int]) - cell segment labels
+
+        Returns:
+        measurements (Measurements) - measurement data for each labeled segment
         """
 
         # get image channels
@@ -227,6 +240,6 @@ class ImageRGB(ImageScalar):
 
         # createlist of contour dicts (useless but fits with Silhouette)
         data = (segment_ids, centroids, color_avg, color_std, voxel_counts)
-        contours = Contours(*data).to_json()
+        measurements = Measurements(*data).to_json()
 
-        return contours
+        return measurements

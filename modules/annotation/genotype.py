@@ -3,7 +3,8 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 from scipy.spatial import Voronoi
 
-from .classification import CommunityClassifier
+from .labelers import AttributeLabeler
+from .classifiers import CommunityClassifier
 
 
 class CommunityBasedGenotype(AttributeLabeler):

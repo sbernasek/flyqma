@@ -5,7 +5,7 @@ from matplotlib.tri import Triangulation
 import networkx as nx
 from collections import Counter
 
-from modules.infomap import InfoMap
+from .infomap import InfoMap
 
 
 class Graph:

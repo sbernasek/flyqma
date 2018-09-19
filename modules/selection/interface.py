@@ -20,7 +20,7 @@ class LayerVisualization:
         Instantiate layer visualization.
 
         Args:
-        layer (clones.data.layers.Layer) - image layer
+        layer (Layer) - image layer
         axes (array like) - axes for blue/red/green color channels
         """
 
@@ -113,7 +113,7 @@ class LayerInterface(LayerVisualization):
         Instantiate layer interface.
 
         Args:
-        layer (clones.data.layers.Layer) - image layer
+        layer (Layer) - image layer
         axes (array like) - axes for blue/red/green color channels
         """
 
@@ -236,7 +236,7 @@ class StackInterface:
         Build interface by adding interface for each layer.
 
         Args:
-        stack (clones.data.stacks.Stack) - image stack
+        stack (Stack) - image stack
         """
 
         # create figure

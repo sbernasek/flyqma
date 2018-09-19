@@ -8,8 +8,10 @@ from matplotlib.path import path
 from collections import Counter
 
 from .images import ImageRGB
-from ..annotation.graphs import WeightedGraph
-from ..annotation.annotation import Annotation
+from ..spatial.graphs import WeightedGraph
+from ..annotation.genotype import CommunityBasedGenotype
+from ..annotation.labelers import CelltypeLabeler
+from ..annotation.concurrency import ConcurrencyLabeler
 from ..utilities.io import IO
 
 
@@ -24,8 +26,8 @@ class Layer(ImageRGB):
     subdirs (dict) - {name: path} pairs for all subdirectories
     metadata (dict) - layer metadata
     labels (np.ndarray[int]) - segment ID mask
-    classifier (CellClassifier)
-    graph (clones.annotation.graphs.Graph) - graph connecting cell centroids
+    classifier (CellClassifier) - callable that assigns genotypes to cells
+    graph (Graph) - graph connecting cell centroids
     include (bool) - if True, layer was manually marked for inclusion
 
     Inherited attributes:
@@ -43,7 +45,7 @@ class Layer(ImageRGB):
         Args:
         path (str) - path to layer directory
         im (np.ndarray[float]) - 2D array of RGB pixel values
-        classifier (CellClassifier)
+        classifier (CellClassifier) - callable that assigns genotypes to cells
         load_all (bool) - if True, load labels and build graph
         """
 
@@ -62,6 +64,7 @@ class Layer(ImageRGB):
         if classifier is not None:
             self.classifier = classifier
             self.annotate()
+            self.assign_concurrency()
 
         # call parent instantiation if image was provided
         if im is not None:
@@ -232,10 +235,10 @@ class Layer(ImageRGB):
 
     def annotate(self, cluster=False):
         """
-        Assign genotype labels to cell measurements.
+        Assign genotype and celltype labels to cell measurements.
 
         Args:
-        cluster (bool) - if True, add label for cell cluster
+        cluster (bool) - if True, add community and community genotype labels
         """
 
         # assign single-cell classifier label
@@ -243,8 +246,25 @@ class Layer(ImageRGB):
 
         # assign cluster labels
         if cluster:
-            annotation = Annotation(self.graph, self.classifier)
-            self.df['community_genotype'] = annotation(self.df)
+            assign_genotypes = CommunityBasedGenotype.from_layer(self)
+            assign_genotypes(self.df)
+
+        # assign celltype labels
+        celltype_labels = {0:'m', 1:'h', 2:'w', -1:'none'}
+        assign_celltypes = CelltypeLabeler(labels=celltype_labels)
+        assign_celltypes(self.df)
+
+    def assign_concurrency(self, min_pop=5, max_distance=10):
+        """
+        Add boolean 'concurrent_<cell type>' field to cell measurement data for each unique cell type.
+
+        Args:
+        min_pop (int) - minimum population size for inclusion of cell type
+        max_distance (float) - maximum distance threshold for inclusion
+        """
+        assign_concurrency = ConcurrencyLabeler(min_pop=min_pop,
+                                                max_distance=max_distance)
+        assign_concurrency(self.df)
 
     def mark_boundaries(self, basis='genotype', max_edges=0):
         """
@@ -313,7 +333,7 @@ class Layer(ImageRGB):
         """
 
         # measure segment properties
-        contours = super().measure()
+        measurements = super().measure()
 
         # construct dataframe
         columns = ['id',
@@ -322,7 +342,7 @@ class Layer(ImageRGB):
                    'g', 'g_std',
                    'b', 'b_std',
                    'pixel_count']
-        df = pd.DataFrame.from_records(contours, columns=columns)
+        df = pd.DataFrame.from_records(measurements, columns=columns)
         df['layer'] = self.layer_id
 
         # normalize by background intensity

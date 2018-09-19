@@ -1,12 +1,12 @@
 from os.path import join, exists
 from os import mkdir
-
 import numpy as np
 from sklearn.cluster import KMeans
 from collections import Counter
 from matplotlib.colors import ListedColormap, Normalize
-from modules.io import IO
-from modules.figure_settings import *
+
+from ..utilities.io import IO
+from ..vis.settings import *
 
 
 class KM:

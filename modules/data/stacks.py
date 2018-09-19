@@ -6,7 +6,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from ..utilities.io import IO
-from ..annotation.classification import CellClassifier
+from ..annotation.classifiers import CellClassifier
 
 
 class Stack:
@@ -14,17 +14,16 @@ class Stack:
     Object represents a 3D RGB image stack.
 
     Attributes:
+    df (pd.DataFrame) - cell contour measurements
     path (str) - path to stack directory
     _id (int) - stack ID
     stack (np.ndarray[float]) - 3D RGB image stack
     shape (tuple) - stack dimensions, (depth, X, Y, 3)
     depth (int) - number of layers in stack
-    df (pd.DataFrame) - cell contour measurements
     classifier (CellClassifier) - callable cell classifier
     metadata (dict) - stack metadata
     tif_path (str) - path to multilayer RGB tiff file
     layers_path (str) - path to layers directory
-    contours_path (str) - path to cell measurements
     classifier_path (str) - path to cell classifier directory
     """
 
@@ -43,7 +42,6 @@ class Stack:
         self._id = int(path.rsplit('/', maxsplit=1)[-1])
         self.tif_path = join(path, '{:d}.tif'.format(self._id))
         self.layers_path = join(self.path, 'layers')
-        self.contours_path = join(self.path, 'contours.json')
         self.classifier_path = join(self.path, 'cell_classifier')
 
         # reset layer iterator count
@@ -110,9 +108,6 @@ class Stack:
         self.shape = self.stack.shape
         self.depth = self.shape(0)
 
-        # load measurements
-        self.df = self.load_measurements()
-
         # load cell classifier
         if exists(self.classifier_path):
             self.classifier = self.load_classifier()
@@ -144,7 +139,7 @@ class Stack:
         load_all (bool) - if True, load labels and build graph
 
         Returns:
-        layer (clones.data.layers.Layer)
+        layer (Layer)
         """
 
         # define layer path
@@ -171,16 +166,6 @@ class Stack:
         metadata_path = os.path.join(self.path, 'metadata.json')
         io = IO()
         return io.read_json(metadata_path)
-
-    def load_measurements(self):
-        """
-        Load contour measurements from contours file.
-
-        Returns:
-        measurements (pd.Dataframe) - contour measurements
-        """
-        io = IO()
-        return pd.read_json(io.read_json(self.contours_path))
 
     def load_classifier(self):
         """

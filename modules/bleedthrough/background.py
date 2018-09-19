@@ -8,6 +8,10 @@ from matplotlib.gridspec import GridSpec
 class BackgroundExtraction:
     """
     Object for extracting image background pixels.
+
+    Attributes:
+    layer (Layer) - layer RGB image
+    bg_mask (np.ndarray[bool]) - background mask, True where background
     """
 
     def __init__(self, layer, niters=10):
