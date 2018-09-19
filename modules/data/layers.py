@@ -1,7 +1,13 @@
 from os.path import join, isdir, exists
 from os import listdir
+import pandas as pd
+import numpy as np
+from collections import Counter
 
 from .images import ImageRGB
+from ..annotation.graphs import WeightedGraph
+from ..annotation.annotation import Annotation
+from ..utilities.io import IO
 
 
 class Layer(ImageRGB):
@@ -14,8 +20,10 @@ class Layer(ImageRGB):
     subdirs (dict) - {name: path} pairs for all subdirectories
     metadata (dict) - layer metadata
     labels (np.ndarray[int]) - segment ID mask
-    cell_classifier (clones.annotation.classification.CellClassifier)
+    classifier (CellClassifier)
     graph (clones.annotation.graphs.Graph) - graph connecting cell centroids
+    selection_boundary (np.ndarray[float]) - points bounding selection
+    include (bool) - if True, layer was manually marked for inclusion
 
     Inherited attributes:
     im (np.ndarray[float]) - 2D array of RGB pixel values
@@ -25,14 +33,15 @@ class Layer(ImageRGB):
     labels (np.ndarray[int]) - segment ID mask
     """
 
-    def __init__(self, im, path, cell_classifier=None):
+    def __init__(self, path, im=None, classifier=None, load_all=True):
         """
         Instantiate layer.
 
         Args:
-        im (np.ndarray[float]) - 2D array of RGB pixel values
         path (str) - path to layer directory
-        cell_classifier (clones.annotation.classification.CellClassifier)
+        im (np.ndarray[float]) - 2D array of RGB pixel values
+        classifier (CellClassifier)
+        load_all (bool) - if True, load labels and build graph
         """
 
         # set layer ID
@@ -44,13 +53,14 @@ class Layer(ImageRGB):
         self.find_subdirs()
 
         # load layer
-        self.load()
+        self.load(load_all=load_all)
 
         # set cell classifier
-        self.cell_classifier = cell_classifier
+        self.classifier = classifier
 
-        # call parent instantiation
-        super().__init__(im, labels=self.labels)
+        # call parent instantiation if image was provided
+        if im is not None:
+            super().__init__(im, labels=self.labels)
 
     def initialize(self):
         """
@@ -94,26 +104,34 @@ class Layer(ImageRGB):
                 dirname = dirpath.rsplit('/', maxsplit=1)[-1]
                 self.add_subdir(dirname) = dirpath
 
-    def load(self):
-        """ Load layer. """
+    def load(self, load_all=True):
+        """
+        Load layer.
+
+        Args:
+        load_all (bool) - if True, load labels and build graph
+        """
 
         # load metadata and extract background channel
         io = IO()
         self.metadata = io.read_json(join(self.path, 'metadata.json'))
 
-        # load segment labels
-        if 'segmentation' in self.subdirs.keys():
-            self.load_labels()
-
         # load measurements
         self.load_measurements()
-
-        # build graph
-        self.build_graph(**self.metadata['params']['graph_kw'])
 
         # load selection
         if 'selection' in self.subdirs.keys():
             self.load_selection()
+
+        # if load_all, load labels and build graph
+        if load_all:
+
+            # load segment labels
+            if 'segmentation' in self.subdirs.keys():
+                self.load_labels()
+
+            # build graph
+            self.build_graph(**self.metadata['params']['graph_kw'])
 
     def load_labels(self):
         """ Load segment labels. """
@@ -138,9 +156,9 @@ class Layer(ImageRGB):
         if selection_md is not None:
             self.include = bool(selection_md['include'])
 
-        # load selection points
+        # load selection boundary
         pts = io.read_npy(join(self.subdirs['selection'], 'selection.npy'))
-        self.selection_pts = pts
+        self.selection_boundary = pts
 
     def build_graph(self, **graph_kw):
         """
@@ -162,11 +180,11 @@ class Layer(ImageRGB):
         """
 
         # assign single-cell classifier label
-        self.df['genotype'] = self.cell_classifier(self.df)
+        self.df['genotype'] = self.classifier(self.df)
 
         # assign cluster labels
         if cluster:
-            annotation = Annotation(self.graph, self.cell_classifier)
+            annotation = Annotation(self.graph, self.classifier)
             self.df['community_genotype'] = annotation(self.df)
 
     def mark_boundaries(self, basis='genotype', max_edges=0):
@@ -194,22 +212,6 @@ class Layer(ImageRGB):
         self.df['boundary'] = False
         self.df.loc[boundary_nodes, 'boundary'] = True
 
-    def segment(self, bg='b', **kwargs):
-        """
-        Identify nuclear contours by running watershed segmentation on specified background channel.
-
-        Args:
-        bg (str) - background channel
-
-        Keyword Arguments:
-        preprocessing_kws (dict) - keyword arguments for image preprocessing
-        seed_kws (dict) - keyword arguments for seed detection
-        seg_kws (dict) - keyword arguments for segmentation
-        min_area (int) - threshold for minimum segment size, px
-        """
-        self.metadata['bg'] = bg
-        super().segment(bg=bg, **kwargs)
-
     def segment(self,
                 bg='b',
                 preprocessing_kws={},
@@ -235,22 +237,24 @@ class Layer(ImageRGB):
                                min_area=min_area)
         self.metadata['params']['segmentation_kw'] = segmentation_kw
 
-        # run segmentation on background
+        # extract and preprocess background
         background = self.get_channel(bg)
         background.preprocess(**preprocessing_kws)
+
+        # run segmentation
         seg = Segmentation(background, seed_kws=seed_kws, seg_kws=seg_kws)
         seg.exclude_small_segments(min_area=min_area)
 
-        # update labels
+        # update segment labels
         self.labels = seg.labels
 
-    def compile_measurements(self):
+    def measure(self):
         """
-        Compile measurements from segment labels.
+        Measure properties of cell segments to generate cell measurement data.
         """
 
         # measure segment properties
-        contours = self.measure()
+        contours = super().measure()
 
         # construct dataframe
         columns = ['id',
@@ -262,7 +266,7 @@ class Layer(ImageRGB):
         df = pd.DataFrame.from_records(contours, columns=columns)
         df['layer'] = self.layer_id
 
-        # normalize by background
+        # normalize by background intensity
         for channel in 'rgb'.strip(self.metadata['bg']):
             df[channel+'_normalized'] = df[channel] / df[self.metadata['bg']]
 

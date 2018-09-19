@@ -4,15 +4,27 @@ from matplotlib.colors import ListedColormap
 from scipy.spatial import Voronoi
 from scipy.spatial.distance import cdist
 
-from modules.classification import CommunityClassifier
+from .classification import CommunityClassifier
 
 
 class Annotation:
     """
     Object for annotating cells based on their local community.
+
+    Attributes:
+    graph (Graph) - graph connecting adjacent cells
+    cell_classifier (CellClassifier) - callable object
+    community_classifier (CommunityClassifier) - callable object
     """
 
     def __init__(self, graph, cell_classifier):
+        """
+        Instantiate annotation object.
+
+        Args:
+        graph (Graph) - graph connecting adjacent cells
+        cell_classifier (CellClassifier) - callable object
+        """
 
         # run community detection and store graph
         graph.find_communities()
@@ -24,7 +36,7 @@ class Annotation:
 
     def __call__(self, cells):
         """
-        Annotate cells using cell classifier.
+        Annotate cells using community classifier.
 
         Args:
         cells (pd.DataFrame) - cells to be classified
@@ -54,7 +66,7 @@ class Annotation:
 
     def annotate(self, cells):
         """
-        Annotate cells using cell classifier.
+        Annotate cells using community classifier.
 
         Args:
         cells (pd.DataFrame) - cells to be classified
@@ -68,14 +80,31 @@ class Annotation:
 class Labeler:
     """
     Label cells based on a specified attribute.
+
+    Attributes:
+    label_on (str) - cells attribute mapped to labels
+    labeler (vectorized func) - assigns labels to cells
     """
     def __init__(self, label_on='genotype', labels=None):
+        """
+        Instantiate labeler.
+
+        Args:
+        label_on (str) - cells attribute mapped to labels
+        labels (dict) - {attribute value: label} pairs
+        """
         if labels is None:
             labels = {0:'m', 1:'h', 2:'w', -1:'none'}
         self.labeler = np.vectorize(labels.get)
         self.label_on = label_on
 
     def __call__(self, cells):
+        """
+        Return cell labels.
+
+        Args:
+        cells (pd.DataFrame) - cells containing label_on field
+        """
         return self.labeler(cells[self.label_on])
 
 
@@ -186,12 +215,4 @@ class CloneVisualization(Tessellation):
         xy = df[['centroid_x', 'centroid_y']].values
         labels = df[label].values
         Tessellation.__init__(self, xy, labels, **kw)
-
-
-
-
-
-
-
-
 

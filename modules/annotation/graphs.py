@@ -3,11 +3,23 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize, ListedColormap
 from matplotlib.tri import Triangulation
 import networkx as nx
+from collections import Counter
 
 from modules.infomap import InfoMap
 
 
 class Graph:
+    """
+    Object representing an undirected weighted graph connecting adjacent cells.
+
+    Attributes:
+    df (pd.DataFrame) - cell measurement data (nodes)
+    nodes (np.ndarray[int]) - node indices
+    edges (np.ndarray[int]) - pairs of connected node indices
+    node_map (vectorized func) - maps positional index to node index
+    position_map (vectorized func) - maps node index to positional index
+    tri (matplotlib.tri.Triangulation) - triangulation of node positions
+    """
 
     def __init__(self, df):
         self.df = df
@@ -54,42 +66,48 @@ class Graph:
         return np.array(distances)
 
     def apply_distance_filter(self, q=95):
+        """ Mask edges with lengths exceeding specified quantile. """
         max_lengths = self._evaluate_max_edge_lengths(self.tri)
         mask = max_lengths > np.percentile(max_lengths, q=q)
         self.tri.set_mask(mask)
 
     def update_graph(self):
+        """ Update node list based on included edges. """
         self.edges = self.node_map(self.tri.edges)
         self.nodes = np.array(sorted(np.unique(self.edges)), dtype=int)
 
     def plot_edges(self, ax=None, **kwargs):
+        """ Plot triangulation. """
         if ax is None:
             fig, ax = plt.subplots()
         lines, markers = plt.triplot(self.tri, **kwargs)
 
-    def color_triangles(self, color_by='genotype', agg='mean'):
-        """ Assign color to each triangle based on aggregate node values. """
+    def label_triangles(self, label_by='genotype'):
+        """
+        Label each triangle with most common node attribute value.
+
+        Args:
+        label_by (str) - node attribute used to label each triangle
+
+        Returns:
+        labels (np.ndarray[int]) - labels for each triangle
+        """
 
         # get triangulation vertices
         vertices = self.node_map(self.tri.triangles)
 
         # get value of each node
-        get_level = lambda node_id: self.df[color_by].loc[node_id]
+        get_level = lambda node_id: self.df[label_by].loc[node_id]
         levels = np.apply_along_axis(get_level, axis=1, arr=vertices)
 
-        # aggregate across each triangle
-        if agg == 'max':
-            colors = levels.max(axis=1)
-        elif agg == 'min':
-            colors = levels.min(axis=1)
-        elif agg == 'std':
-            colors = levels.std(axis=1)
-        else:
-            colors = levels.mean(axis=1)
+        # aggregate within triangles
+        get_mode = lambda x: Counter(x).most_common(1)[0][0]
+        labels = np.apply_along_axis(get_mode, axis=1, levels)
 
-        return colors
+        return labels
 
     def plot_triangles(self, ax=None, colors=None, **kwargs):
+        """ Plot triangle faces using tripcolor. """
         if ax is None:
             fig, ax = plt.subplots()
         ax.tripcolor(self.tri, facecolors=colors, lw=0, edgecolor='none', antialiased=True, **kwargs)
@@ -138,27 +156,62 @@ class WeightedGraph(Graph):
 
 
 class WeightFunction:
+    """
+    Object for weighting graph edges by similarity.
+
+    Attributes:
+    df (pd.DataFrame) - nodes data
+    weighted_by (str) - node attribute used to assess similarity
+    values (pd.Series) - node attribute values
+    """
 
     def __init__(self, df, weighted_by='r'):
+        """
+        Instantiate edge weighting function.
+
+        Args:
+        df (pd.DataFrame) - nodes data
+        weighted_by (str) - node attribute used to assess similarity
+        """
         self.df = df
+        self.weighted_by = weighted_by
         self.values = df[weighted_by]
 
     def difference(self, i, j):
+        """
+        Evaluate difference in values between nodes i and j.
+
+        Args:
+        i, j (ind) - node indices
+
+        Returns:
+        difference (float)
+        """
         return np.abs(self.values.loc[i] - self.values.loc[j])
 
-    def scaled_difference(self, i, j):
-        x = self.values.loc[i]
-        y = self.values.loc[j]
-        return np.abs(x-y) / ((x+y)/2)
-
     def assess_weights(self, edges):
+        """
+        Evaluate edge weights normalized by mean difference in node values.
+
+        Args:
+        edges (list of (i, j) tuples) - edges between nodes i and j
+
+        Returns:
+        weights (np.ndarray[float]) - edge weights
+        """
         energy = np.array([self.difference(*e) for e in edges])
         weights = np.exp(-energy/np.mean(energy))
         return weights
 
 
 class GraphVisualization:
-    """ Object for visualization of grpah. """
+    """
+    Object for graph visualization.
+
+    Attributes:
+    G (nx.Graph) - networkx graph object
+    pos (np.ndarray[float]) - 2D node positions
+    """
 
     def __init__(self, G, pos):
         self.G = G
@@ -166,10 +219,18 @@ class GraphVisualization:
 
     @classmethod
     def from_graph(cls, graph):
-        """ Instantiate nxGraph from Graph instance. """
+        """
+        Instantiate from Graph instance.
+
+        Args:
+        graph (Graph)
+
+        Returns:
+        nxGraph (GraphVisualization)
+        """
 
         # build graph from edges
-        edges = [cls.parse_weighted_edge(*link) for link in graph.build_links()]
+        edges = [cls.to_nx_edge(*edge) for edge in graph.build_links()]
         G = cls.build_graph(edges)
 
         # assign node positions
@@ -195,17 +256,19 @@ class GraphVisualization:
 
     @staticmethod
     def build_graph(edges):
-        """ Build NetworkX graph object. """
+        """ Build networkx graph object. """
         G = nx.Graph()
         G.add_edges_from(edges)
         return G
 
     @staticmethod
-    def parse_weighted_edge(x, y, z):
-        return (x, y, dict(weight=z))
+    def to_nx_edge(x, y, weight):
+        """ Convert edge to networkx format.  """
+        return (x, y, dict(weight=weight))
 
     @staticmethod
     def assign_node_positions(graph):
+        """ Assign 2D coordinate positions to nodes. """
         node_positions = {}
         for k in graph.nodes:
             i = graph.position_map(k)
@@ -219,20 +282,44 @@ class GraphVisualization:
         colors = np.random.random(size=(N, 3))
         return ListedColormap(colors, 'indexed', N)
 
-    def get_edge_weights(self, colorby, disconnect=True):
-        """ Get edge weights. """
+    def get_edge_weights(self, label_on, disconnect=True):
+        """
+        Get edge weights.
+
+        Args:
+        label_on (str) - attribute used to determine node kinship
+        disconnect (bool) - if True, exclude edges between communities
+
+        Returns:
+        weights (list) - edge weights
+        """
         weights = []
         for u, v in self.G.edges:
-            if self.G.node[u][colorby]==self.G.node[v][colorby]:
+            if self.G.node[u][label_on]==self.G.node[v][label_on]:
                 weights.append(self.G[u][v]['weight'])
             elif not disconnect:
                 weights.append(self.G[u][v]['weight'])
             else:
-                weights.append(0)
+                continue
         return weights
 
-    def draw(self, ax=None, colorby='community', disconnect=False, ec='k', node_cmap=None, **kw):
-        """ Draw graph. """
+    def draw(self,
+             ax=None,
+             colorby='community',
+             disconnect=False,
+             ec='k',
+             node_cmap=None,
+             **kw):
+        """
+        Draw graph.
+
+        Args:
+        ax (matplotlib.axes.AxesSubplot) - axis on which to draw graph
+        colorby (str) - node attribute on which nodes are colored
+        disconnect (bool) - if True, exclude edges between communities
+        ec (str) - edge color
+        node_cmap (matplotlib.colors.ColorMap) - node colormap
+        """
 
         # create figure
         if ax is None:
@@ -269,7 +356,9 @@ class GraphVisualization:
               lw=3,
               edge_alpha=0.5,
               **kw):
-        """ Draw graph. """
+        """
+        Draw graph.
+        """
 
         # draw edges
         norm = Normalize(vmin=min(edge_weights), vmax=max(edge_weights))

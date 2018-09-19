@@ -3,6 +3,14 @@ import infomap
 
 
 class InfoMap:
+    """
+    Object for performing infomap flow-based community detection.
+
+    Attributes:
+    infomap (infomap.Infomap) - infomap object
+    node_to_module (dict) - {node: module} pairs
+    classifier (vectorized func) - maps nodes to modules
+    """
 
     def __init__(self, edges, **kw):
         self.infomap = self.build_network(edges, **kw)
@@ -30,9 +38,16 @@ class InfoMap:
     def run(self, report=False):
         self.infomap.run()
         if report:
-            print("Identified {:d} modules.".format(self.infomap.numTopModules()))
+            print("Found {:d} modules.".format(self.infomap.numTopModules()))
 
     def build_classifier(self):
+        """
+        Construct node to module classifier.
+
+        Returns:
+        node_to_module (dict) - {node: module} pairs
+        classifier (vectorized func) - maps nodes to modules
+        """
         node_to_module = {}
         for node in self.infomap.iterTree():
             if node.isLeaf():

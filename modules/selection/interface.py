@@ -17,11 +17,13 @@ class LayerVisualization:
 
     def __init__(self, layer, axes):
         """
+        Instantiate layer visualization.
+
         Args:
         layer (clones.data.layers.Layer) - image layer
         axes (array like) - axes for blue/red/green color channels
         """
-        self.path = layer.path
+        self.path = layer.subdirs['selection']
         self.axes = axes
 
         # render images
@@ -91,9 +93,26 @@ class LayerVisualization:
 class LayerInterface(LayerVisualization):
     """
     Event handler for an individual layer.
+
+    Attributes:
+    include (bool) - flag for layer inclusion
+    duplicate (bool) - flag for duplicate layer
+    exemplar (bool) - flag for exemplary layer
+    active_polyhon (bool) - if True, polygon is currently active
+    pts (list) - selection boundary points
+    traceback (list) - exception traceback
     """
 
     def __init__(self, layer, axes):
+        """
+        Instantiate layer interface.
+
+        Args:
+        layer (clones.data.layers.Layer) - image layer
+        axes (array like) - axes for blue/red/green color channels
+        """
+
+        # call visualization instantiation method
         super().__init__(layer, axes)
 
         # set layer attributes
@@ -201,6 +220,11 @@ class StackInterface:
     def __init__(self, stack):
         self.path = stack.path
         self.build_interface(stack)
+
+    def load(self):
+        """ Load from existing selection data. """
+        for interface in layer_to_interface.values():
+            interface.load()
 
     def build_interface(self, stack):
         """

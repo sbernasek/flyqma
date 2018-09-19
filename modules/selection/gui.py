@@ -7,6 +7,8 @@ from .interface import StackInterface
 class GUI(StackInterface):
     """
     GUI for manually selecting regions within each layer of an image stack.
+
+    Following instantiation, run "GUI.connect()" to begin event handling.
     """
 
     def __init__(self, stack):
@@ -18,15 +20,9 @@ class GUI(StackInterface):
         """
         super().__init__(stack)
 
-        # set paths to segmentation and selection directories
-        self.selection_path = join('./stack_selection', str(disc_id))
-
         # set attributes
         self.traceback = []
         self.saved = False
-
-        # open user connection
-        self.connect()
 
     @staticmethod
     def load(stack, **kw):
@@ -52,7 +48,7 @@ class GUI(StackInterface):
         # save selection image
         if image:
             kw = dict(format='png', dpi=200, bbox_inches='tight', pad_inches=0)
-            im_path = join(self.selection_path, 'selection.png')
+            im_path = join(self.path, 'selection.png')
             self.fig.savefig(im_path, **kw)
 
         self.saved = True

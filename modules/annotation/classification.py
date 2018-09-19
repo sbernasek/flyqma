@@ -1,4 +1,6 @@
-import os
+from os.path import join, exists
+from os import mkdir
+
 import numpy as np
 from sklearn.cluster import KMeans
 from collections import Counter
@@ -8,6 +10,22 @@ from modules.figure_settings import *
 
 
 class KM:
+    """
+    K-means classifier.
+
+    Attributes:
+    values (array like) - basis for clustering
+    log (bool) - indicates whether clustering performed on log values
+    n (int) - number of clusters
+    groups (dict) - {cluster_id: group_id} pairs for merging clusters
+    cluster_to_groups (vectorized func) - maps cluster_id to group_id
+    km (sklearn.cluster.KMeans) - kmeans object
+    classifier (vectorized func) - maps value to group_id
+    labels (np.ndarray[int]) - group_id labels assigned to fitted values
+    cmap (matplotlib.colors.ColorMap) - colormap for group_id
+    parameters (dict) - {param name: param value} pairs
+    fig (matplotlib.figures.Figure) - histogram figure
+    """
 
     def __init__(self, values, n=3, groups=None, log=False, cmap=None):
 
@@ -74,10 +92,6 @@ class KM:
     def set_cmap(self, cmap=None):
         """ Set colormap for class labels. """
         if cmap is None:
-            # cmap = plt.cm.plasma
-            # norm = Normalize(vmin=0, vmax=self.n)
-            # colors = [cmap(norm(i)) for i in range(self.n)]
-            # self.cmap = ListedColormap(colors)
             self.cmap = ListedColormap(['y', 'c', 'm'], 'indexed', N=3)
         else:
             self.cmap = cmap
@@ -98,18 +112,38 @@ class KM:
             xi = x[(labels==label)]
             ax.hist(xi, bins=bins, facecolor=cmap(label))
 
+        # format axis
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
         ax.set_xlabel('Values', fontsize=8)
         ax.set_ylabel('Frequency', fontsize=8)
+
         return fig
 
 
 class CellClassifier(KM):
-    """ Classifier for assigning labels to communities. """
+    """
+    K-means based classifier for assigning labels to individual cells.
+
+    Attributes:
+    classify_on (str) - cell attribute on which clustering occurs
+
+    Inherited attributes:
+    values (array like) - basis for clustering
+    log (bool) - indicates whether clustering performed on log values
+    n (int) - number of clusters
+    groups (dict) - {cluster_id: group_id} pairs for merging clusters
+    cluster_to_groups (vectorized func) - maps cluster_id to group_id
+    km (sklearn.cluster.KMeans) - kmeans object
+    classifier (vectorized func) - maps value to group_id
+    labels (np.ndarray[int]) - group_id labels assigned to fitted values
+    cmap (matplotlib.colors.ColorMap) - colormap for group_id
+    parameters (dict) - {param name: param value} pairs
+    fig (matplotlib.figures.Figure) - histogram figure
+    """
 
     def __init__(self, values, classify_on='r_normalized', **kw):
-        KM.__init__(self, values, **kw)
+        super().__init__(values, **kw)
         self.classify_on = classify_on
         self.parameters['classify_on'] = classify_on
 
@@ -135,29 +169,36 @@ class CellClassifier(KM):
         """ Save classifier to specified path. """
 
         # create directory for classifier
-        path = os.path.join(stack_path, 'cell_classifier')
-        if not os.path.exists(path):
-            os.mkdir(path)
+        path = join(stack_path, 'cell_classifier')
+        if not exists(path):
+            mkdir(path)
 
         # save values
-        np.save(os.path.join(path, 'values.npy'), self.values)
+        np.save(join(path, 'values.npy'), self.values)
 
         # save parameters
         io = IO()
-        io.write_json(os.path.join(path, 'parameters.json'), self.parameters)
+        io.write_json(join(path, 'parameters.json'), self.parameters)
 
         # save image
         if image and (self.fig is not None):
             kw = dict(dpi=300, format='pdf', transparent=True, rasterized=True)
-            self.fig.savefig(os.path.join(path, 'classifier.pdf'), **kw)
+            self.fig.savefig(join(path, 'classifier.pdf'), **kw)
 
     @classmethod
-    def load(cls, stack_path):
-        """ Load classifier from saved values and parameters. """
-        path = os.path.join(stack_path, 'cell_classifier')
+    def load(cls, path):
+        """
+        Load classifier from file.
+
+        Args:
+        path (str) - path to classifier directory
+
+        Returns:
+        classifier (CellClassifier)
+        """
         io = IO()
-        values = io.read_npy(os.path.join(path, 'values.npy'))
-        parameters = io.read_json(os.path.join(path, 'parameters.json'))
+        values = io.read_npy(join(path, 'values.npy'))
+        parameters = io.read_json(join(path, 'parameters.json'))
         return CellClassifier(values, **parameters)
 
     @staticmethod
@@ -170,20 +211,29 @@ class CellClassifier(KM):
 
 
 class CommunityClassifier:
-    """ Classifier for assigning labels to communities. """
+    """
+    Classifier for assigning labels to communities.
+
+    Attributes:
+    classifier (CellClassifier) - individual cell classifier
+    """
 
     def __init__(self, cells, cell_classifier):
+        """ Instantiate community classifier. """
         self.classifier = self.build_classifier(cells, cell_classifier)
 
     def __call__(self, communities):
+        """ Classify communities. """
         return self.classifier(communities)
 
     @staticmethod
     def from_layer(layer, cell_classifier):
+        """ Instantiate community classifier from a layer. """
         return CommunityClassifier(layer.df, cell_classifier)
 
     @staticmethod
     def get_mode(x):
+        """ Returns most common value in an array. """
         mode, count = Counter(x).most_common(1)[0]
         return mode
 
@@ -194,7 +244,7 @@ class CommunityClassifier:
 
         Args:
         cells (pd.DataFrame) - cell data including community labels
-        cell_classifier (callable) - assigns genotype to individual cell
+        cell_classifier (CellClassifier) - assigns genotype to individual cell
         """
         majority_vote = lambda x: cls.get_mode(cell_classifier(x))
         community_to_genotype = cells.groupby('community').apply(majority_vote).to_dict()

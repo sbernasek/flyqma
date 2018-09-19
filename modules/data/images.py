@@ -1,5 +1,6 @@
 from scipy.ndimage import iterate_structure, generate_binary_structure
 from scipy.ndimage import gaussian_filter, median_filter
+from scipy.ndimage.measurements import mean, standard_deviation
 from skimage.filters import threshold_otsu
 from skimage.exposure import equalize_adapthist
 
@@ -7,7 +8,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from copy import deepcopy
 
-from .segmentation import Segmentation
+from ..segmentation.segmentation import Segmentation
+from ..segmentation.contours import Contours
 
 
 class ImageScalar:
