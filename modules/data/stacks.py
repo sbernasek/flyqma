@@ -1,4 +1,4 @@
-from os.path import join, exists
+from os.path import join, exists, abspath
 from os import mkdir
 import gc
 import numpy as np
@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 
 from ..utilities.io import IO
 from ..annotation.classifiers import CellClassifier
+from .layers import Layer
 
 
 class Stack:
@@ -36,7 +37,7 @@ class Stack:
         """
 
         # set path to stack directory
-        self.path = path
+        self.path = abspath(path)
 
         # set paths
         self._id = int(path.rsplit('/', maxsplit=1)[-1])
@@ -82,9 +83,6 @@ class Stack:
         metadata = dict(bits=bits, params={})
         io.write_json(join(self.path, 'metadata.json'), metadata)
 
-        # make measurements file
-        io.write_json(self.contours_path, {})
-
         # initialize layers
         self.load()
         for layer_id in range(self.depth):
@@ -106,7 +104,7 @@ class Stack:
 
         # set stack shape
         self.shape = self.stack.shape
-        self.depth = self.shape(0)
+        self.depth = self.stack.shape[0]
 
         # load cell classifier
         if exists(self.classifier_path):
@@ -198,8 +196,3 @@ class Stack:
         measurements['stack_id'] = self._id
 
         return measurements
-
-    def save_measurements(self):
-        """ Save cell measurement data. """
-        io = IO()
-        io.write_json(self.contours_path, self.df.to_json())

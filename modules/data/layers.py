@@ -4,10 +4,11 @@ import gc
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.path import path
+from matplotlib.path import Path
 from collections import Counter
 
 from .images import ImageRGB
+from ..measure.segmentation import Segmentation
 from ..spatial.graphs import WeightedGraph
 from ..annotation.genotype import CommunityBasedGenotype
 from ..annotation.labelers import CelltypeLabeler
@@ -64,10 +65,13 @@ class Layer(ImageRGB):
         if classifier is not None:
             self.classifier = classifier
             self.annotate()
+            self.build_graph(**self.metadata['params']['graph_kw'])
+            self.mark_boundaries(basis='genotype', max_edges=1)
             self.assign_concurrency()
 
-        # call parent instantiation if image was provided
+        # load labels and instantiate RGB image if image was provided
         if im is not None:
+            self.load_labels()
             super().__init__(im, labels=self.labels)
 
     def initialize(self):
@@ -101,10 +105,10 @@ class Layer(ImageRGB):
     def find_subdirs(self):
         """ Find all subdirectories. """
         self.subdirs = {}
-        for dirpath in listdir(self.path):
+        for dirname in listdir(self.path):
+            dirpath = join(self.path, dirname)
             if isdir(dirpath):
-                dirname = dirpath.rsplit('/', maxsplit=1)[-1]
-                self.add_subdir(dirname) = dirpath
+                self.add_subdir(dirname, dirpath)
 
     def load(self, load_all=True):
         """
@@ -130,39 +134,29 @@ class Layer(ImageRGB):
         if 'correction' in self.subdirs.keys():
             self.apply_correction()
 
-        # if load_all, load labels and build graph
-        if load_all:
-
-            # load segment labels
-            if 'segmentation' in self.subdirs.keys():
-                self.load_labels()
-
-            # build graph
-            self.build_graph(**self.metadata['params']['graph_kw'])
-
-            # mark cell boundaries
-            self.mark_boundaries(basis='genotype', max_edges=1)
 
     def load_metadata(self):
         """ Load metadata. """
         path = join(self.path, 'metadata.json')
         if exists(path):
             io = IO()
-            self.metadata = io.read_json()
+            self.metadata = io.read_json(path)
 
     def load_labels(self):
-        """ Load segment labels. """
-        segmentation_path = self.subdirs['segmentation']
-        labels_path = join(segmentation_path, 'labels.npy')
-        if exists(labels_path):
-            self.labels = np.load(labels_path)
-        else:
-            self.labels = None
+        """ Load segment labels if they are available. """
+        labels = None
+        if 'segmentation' in self.subdirs.keys():
+            segmentation_path = self.subdirs['segmentation']
+            labels_path = join(segmentation_path, 'labels.npy')
+            if exists(labels_path):
+                labels = np.load(labels_path)
+        self.labels = labels
 
     def load_measurements(self):
         """ Load raw measurements. """
-        dirpath = self.subdirs['segmentation']
-        self.df = pd.read_json(join(dirpath, 'measurements.json'))
+        io = IO()
+        path = self.subdirs['segmentation']
+        self.df = pd.read_json(io.read_json(join(path, 'measurements.json')))
 
     def load_selection(self):
         """ Load selection. """
@@ -360,9 +354,9 @@ class Layer(ImageRGB):
 
     def plot_graph(self,
                    channel='r',
-                   figsize=(15, 15)
-                   **image_kw,
-                   **graph_kw):
+                   figsize=(15, 15),
+                   image_kw={},
+                   graph_kw={}):
         """
         Plot graph on top of relevant channel from RGB image.
 

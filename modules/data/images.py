@@ -6,6 +6,7 @@ from skimage.exposure import equalize_adapthist
 import matplotlib.pyplot as plt
 import numpy as np
 from copy import deepcopy
+import warnings
 
 from ..measure.segmentation import Segmentation
 from ..measure.measurements import Measurements

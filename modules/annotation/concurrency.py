@@ -10,7 +10,6 @@ class ConcurrencyLabeler(AttributeLabeler):
 
     Attributes:
     attribute (str) - measurement attribute used to denote cell type
-    target_types (np.ndarray) - unique cell types labels
     min_pop (int) - minimum population size for inclusion of cell type
     max_distance (float) - maximum distance threshold for inclusion
     """
@@ -26,7 +25,6 @@ class ConcurrencyLabeler(AttributeLabeler):
         """
 
         self.attribute = attribute
-        self.target_types = self.cells[self.attribute].unique()
         self.min_pop = min_pop
         self.max_distance = max_distance
 
@@ -63,6 +61,11 @@ class ConcurrencyLabeler(AttributeLabeler):
         Args:
         df (pd.DataFrame) - cell measurement data
         """
-        for target_type in self.target_types:
+
+        # find unique target cell types
+        target_types = df[self.attribute].unique()
+
+        # assign concurrency label
+        for target_type in target_types:
             distances = self.evaluate_distance(df, target_type)
             df['concurrent_'+target_type] = (distances <= self.max_distance)

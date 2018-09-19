@@ -1,7 +1,7 @@
-import os
+from os.path import join, exists
+from os import mkdir
 import shutil
 import json
-import tifffile as tf
 import numpy as np
 
 
@@ -9,7 +9,7 @@ def safeload(loader):
     """ Decorator for checking files exist before attempting to load them. """
     def wrapper(self, path):
         out = None
-        if os.path.exists(path):
+        if exists(path):
             out = loader(path)
         return out
     return wrapper
@@ -26,10 +26,10 @@ class IO:
 
         # compile directory name
         if path is not None:
-            dir_name = os.path.join(path, dir_name)
+            dir_name = join(path, dir_name)
 
         # check if directory exists
-        if os.path.exists(dir_name):
+        if exists(dir_name):
             if force == True:
                 shutil.rmtree(dir_name, ignore_errors=True)
             else:
@@ -37,7 +37,7 @@ class IO:
                 return dir_name
 
         # make dir
-        os.mkdir(dir_name)
+        mkdir(dir_name)
 
         return dir_name
 
@@ -57,6 +57,7 @@ class IO:
     @safeload
     def read_tiff(path):
         """ Read stack from tiff """
+        import tifffile as tf
         im = tf.imread(path)
         return im
 

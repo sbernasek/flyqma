@@ -102,7 +102,7 @@ class Graph:
 
         # aggregate within triangles
         get_mode = lambda x: Counter(x).most_common(1)[0][0]
-        labels = np.apply_along_axis(get_mode, axis=1, levels)
+        labels = np.apply_along_axis(get_mode, axis=1, arr=levels)
 
         return labels
 
