@@ -9,6 +9,17 @@ class GUI(StackInterface):
     GUI for manually selecting regions within each layer of an image stack.
 
     Following instantiation, run "GUI.connect()" to begin event handling.
+
+    Key actions:
+
+        Z: remove last added point
+        M: reset all points in layer
+        S: save selection
+        X: disconnect and exit GUI
+        N: mark layer as neurons+cones and exclude
+        D: mark layer as duplicate and exclude
+        E: mark layer as exemplar
+
     """
 
     def __init__(self, stack):
@@ -71,8 +82,7 @@ class GUI(StackInterface):
         self.fig.canvas.mpl_disconnect(self.cid_press)
 
     def exit(self):
-        """ Save selection and exit. """
-        self.save()
+        """ Disconnect and exit GUI. """
         self.disconnect()
         self.fig.clf()
         plt.close(self.fig)
@@ -94,13 +104,18 @@ class GUI(StackInterface):
 
         Z: remove last added point
         M: reset all points in layer
-        X: save selection and exit GUI
+        S: save selection
+        X: disconnect and exit GUI
         N: mark layer as neurons+cones and exclude
         D: mark layer as duplicate and exclude
         E: mark layer as exemplar
         """
 
         row = self.which_layer(event)
+
+        # save and disconnect
+        if event.key == 's':
+            self.save()
 
         # save and disconnect
         if event.key == 'x':

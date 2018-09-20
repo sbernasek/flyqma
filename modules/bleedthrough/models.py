@@ -34,8 +34,15 @@ class GLM(OLS):
     GLM with identity link function fit to X and Y data.
     """
 
-    def fit(self, N=10000, maxiter=100, shift=0):
-        """ Fit Gamma GLM with identity link function. """
+    def fit(self, N=100000, maxiter=500, shift=0):
+        """
+        Fit Gamma GLM with identity link function.
+
+        Args:
+        N (int) - numebr of samples used
+        maxiter (int) - maximum number of iterations for optimization
+        shift (float) - offset used to keep values positive
+        """
 
         self.domain = np.linspace(0, self.x.max(), 10)
 
@@ -43,7 +50,8 @@ class GLM(OLS):
         if N is not None:
             ind = np.random.randint(0, self.x.size, size=N)
         else:
-            ind = np.arange(x.size)
+            ind = np.arange(self.x.size)
+
         x, y = self.x[ind], self.y[ind]
 
         # construct variables
@@ -58,8 +66,6 @@ class GLM(OLS):
 
         # fit model
         start_params = [0.1+shift, 0.5]
-        model = glm.fit(start_params=start_params, maxiter=maxiter)
-        if not model.converged:
+        self.model = glm.fit(start_params=start_params, maxiter=maxiter)
+        if not self.model.converged:
             raise Warning('GLM did not converge.')
-
-        return model

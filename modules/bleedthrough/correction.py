@@ -5,11 +5,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 import seaborn as sns
-from modules.io import IO
 
+from ..utilities.io import IO
 from .models import GLM
 from .resampling import resample_uniformly
 from .background import BackgroundExtraction
+from ..vis.settings import *
 
 
 class LayerCorrection(GLM):
@@ -33,7 +34,7 @@ class LayerCorrection(GLM):
     def __init__(self, layer,
                  xvar='r',
                  yvar='g',
-                 niters=10,
+                 niters=50,
                  remove_zeros=False,
                  resample=False,
                  resample_size=None,
@@ -63,7 +64,7 @@ class LayerCorrection(GLM):
 
         # remove zero-valued pixels
         if remove_zeros:
-            bg_x, bg_y = self.remove_zeros(bg_x, bg_y)
+            bg_x, bg_y = self._remove_zeros(bg_x, bg_y)
 
         # resample uniformly in X
         if resample:
@@ -72,17 +73,38 @@ class LayerCorrection(GLM):
         # fit line to background pixels
         super().__init__(bg_x, bg_y, **fit_kw)
 
+        # apply correction to measurements (internally)
+        self.correct_measurements()
+
         # instantiate container for figures
         self.figs = {}
 
-    def correct_measurements(self):
+    @classmethod
+    def load(cls, layer):
         """
-        Apply correction to measurements.
+        Load linear model from file.
+
+        Args:
+        path (str) - path to correction directory
+
+        Returns:
+        correction (LayerCorrection)
         """
 
+        path = layer.subdirs['correction']
+
+        # load data
+        io = IO()
+        data = io.read_json(join(path, 'data.json'))
+
+        return LayerCorrection(layer, **data['params'])
+
+    def correct_measurements(self):
+        """ Apply correction to measurements. """
+
         # store measurement values (test data)
-        self.xt = layer.df[xvar].values
-        self.yt = layer.df[yvar].values
+        self.xt = self.layer.df[self.xvar].values
+        self.yt = self.layer.df[self.yvar].values
         self.xtdomain = np.linspace(0, self.xt.max(), 10)
 
         # store model prediction and corrected measurements
@@ -90,7 +112,7 @@ class LayerCorrection(GLM):
         self.ytc = self.yt - self.ytp
 
     @staticmethod
-    def remove_zeros(x, y):
+    def _remove_zeros(x, y):
         """ Remove pixels with zero values in either channel. """
         nonzero_mask = np.logical_and(x!=0, y!=0)
         return x[nonzero_mask], y[nonzero_mask]
@@ -136,13 +158,13 @@ class LayerCorrection(GLM):
         # store figure instance
         self.figs['fit'] = fig
 
-    def show_correction(self, figsize=(6, 2), furrow_only=False):
+    def show_correction(self, figsize=(6, 2), selected_only=False):
         """
         Show cell measurements before and after correction.
 
         Args:
         figsize (tuple) - figure size
-        furrow_only (bool) - if True, only include cells near the furrow
+        selected_only (bool) - if True, exclude cells outside selection bounds
         """
 
         # instantiate figure
@@ -152,10 +174,11 @@ class LayerCorrection(GLM):
         ax1 = plt.subplot(gs[1])
 
         # add data to plots
-        if furrow_only:
-            mask = self.layer.df.near_furrow.values
+        if selected_only:
+            mask = self.layer.df.selected.values
         else:
-            mask = np.ones(self.x.size, dtype=bool)
+            mask = np.ones(self.xt.size, dtype=bool)
+
         ax0.scatter(self.xt[mask], self.yt[mask], c='k', s=1, linewidth=0)
         ax1.scatter(self.xt[mask], self.ytc[mask], c='k', s=1, linewidth=0)
 
@@ -166,7 +189,7 @@ class LayerCorrection(GLM):
         # label axes
         ax0.set_xlabel('Nuclear RFP level')
         ax0.set_ylabel('Nuclear GFP level')
-        ax0.set_title('Original (Layer {:d})'.format(self.layer.layer_id))
+        ax0.set_title('Original (Layer {:d})'.format(self.layer._id))
         ax1.set_ylabel('Corrected GFP level')
         ax1.set_xlabel('Nuclear RFP level')
         ax1.set_title('Corrected')
@@ -182,29 +205,6 @@ class LayerCorrection(GLM):
 
         # store figure instance
         self.figs['correction'] = fig
-
-    @staticmethod
-    def load(layer):
-        """
-        Load linear model from file.
-
-        Args:
-        path (str) - path to correction directory
-
-        Returns:
-        correction (LayerCorrection)
-        """
-
-        path = layer.subdirs['selection']
-
-        # load data
-        io = IO()
-        data = io.read_json(join(path, 'data.json'))
-
-        # check that correction method hasn't changed
-        assert data['mode'] == self.__class__.__name__, 'Different method.'
-
-        return LayerCorrection(layer, **data['params'])
 
     def save(self, images=True):
         """

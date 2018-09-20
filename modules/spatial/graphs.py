@@ -237,7 +237,8 @@ class GraphVisualization:
         pos = cls.assign_node_positions(graph)
 
         # assign two-level InfoMap communities
-        nx.set_node_attributes(G, name='community', values=InfoMap(graph).node_to_module)
+        edges = graph.build_links()
+        nx.set_node_attributes(G, name='community', values=InfoMap(edges).node_to_module)
 
         try:
             gs = graph.df.loc[graph.nodes].genotype
@@ -248,9 +249,10 @@ class GraphVisualization:
 
         try:
             node_to_km_label = dict(graph.df.km_label)
-            nx.set_node_attributes(G, name='km_label', values=node_to_km_label)
+            nx.set_node_attributes(G, name='community_genotype', values=node_to_km_label)
         except:
-            raise ValueError('No km_label attribute found.')
+            pass
+            #raise ValueError('No community_genotype attribute found.')
 
         return GraphVisualization(G, pos)
 

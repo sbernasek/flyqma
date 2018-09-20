@@ -1,3 +1,4 @@
+from os.path import join
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
@@ -37,19 +38,23 @@ class LayerVisualization:
     def render_images(self, layer, cmap=None):
         """ Add blue, green, and red channels of layer to axes. """
 
+        # if cmap is None, use natural colors
+        if cmap is None:
+            b, r, g = 'brg'
+        else:
+            b, r, g = (cmap,)*3
+
         # visualize layers
         ax0, ax1, ax2 = self.axes
-        _ = layer.get_channel('b').show(segments=False, ax=ax0, cmap=cmap)
-        _ = layer.get_channel('r').show(segments=False, ax=ax1, cmap=cmap)
-        _ = layer.get_channel('g').show(segments=False, ax=ax2, cmap=cmap)
-        for ax in axes:
+        _ = layer.get_channel('b').show(segments=False, ax=ax0, cmap=b)
+        _ = layer.get_channel('r').show(segments=False, ax=ax1, cmap=r)
+        _ = layer.get_channel('g').show(segments=False, ax=ax2, cmap=g)
+        for ax in self.axes:
             ax.set_aspect(1)
 
         # add layer number
-        annotation = ' {:d}'.format(layer_id)
-        ax0.text(0, 0, annotation, fontsize=14, color='y', va='top')
-
-        plt.tight_layout()
+        text = ' {:d}'.format(layer._id)
+        ax0.text(0, 0, text, fontsize=14, color='y', va='top')
 
     def add_marker(self, x, y, color='k', markersize=10):
         """ Add marker to layer images. """
@@ -61,12 +66,12 @@ class LayerVisualization:
         for ax in self.axes:
             ax.lines[-1].remove()
 
-    def update_marker(self, color, markersize):
+    def update_marker(self, color, markersize, ind=-1):
         """ Update size and color of last added marker. """
         for ax in self.axes:
             if len(ax.lines) > 0:
-                ax.lines[-1].set_color(color)
-                ax.lines[-1].set_markersize(markersize)
+                ax.lines[ind].set_color(color)
+                ax.lines[ind].set_markersize(markersize)
 
     def clear_markers(self):
         """" Remove all markers. """
@@ -91,7 +96,7 @@ class LayerVisualization:
         """ Overlay string centered on image. """
         for ax in self.axes:
             ax.images[0].set_alpha(0.5)
-            xx, yy = np.mean(ax.get_xlim()), np.mean(ax.get_ylim())
+            x, y = np.mean(ax.get_xlim()), np.mean(ax.get_ylim())
             ax.text(x, y, msg, color='k', fontsize=s, ha='center', va='center')
 
 
@@ -146,9 +151,15 @@ class LayerInterface(LayerVisualization):
         self.duplicate = md['duplicate']
         self.exemplar = md['exemplar']
 
+        # add markers
+        for pt in self.pts:
+             self.add_marker(*pt, color='y', markersize=5)
+        self.update_marker('r', markersize=10)
+
         # add polygon
         if len(self.pts) >= 3:
             self.add_polygon()
+            self.active_polygon = True
 
         # mark if neurons/cones
         if self.include==False and self.duplicate==False:
@@ -264,12 +275,7 @@ class StackInterface:
                 self.ax_to_layer[ax] = i
 
             # label top row
-            if layer_id == layers[0]:
-                name = stack.disc_name
-                ax0.set_title('Disc {}\nDAPI'.format(name), fontsize=14)
-                ax1.set_title('Disc {}\nUbiRFP'.format(name), fontsize=14)
-                ax2.set_title('Disc {}\nPntGFP'.format(name), fontsize=14)
-
-
-
-
+            if i == 0:
+                ax0.set_title('Disc {}\nDAPI'.format(stack._id), fontsize=14)
+                ax1.set_title('Disc {}\nUbiRFP'.format(stack._id), fontsize=14)
+                ax2.set_title('Disc {}\nPntGFP'.format(stack._id), fontsize=14)

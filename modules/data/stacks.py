@@ -190,7 +190,7 @@ class Stack:
                 measurements.append(layer.df)
 
         # aggregate measurements
-        measurements = pd.concat(measurements)
+        measurements = pd.concat(measurements, join='inner')
 
         # assign stack ID
         measurements['stack_id'] = self._id

@@ -14,6 +14,7 @@ from ..spatial.graphs import WeightedGraph
 from ..annotation.genotype import CommunityBasedGenotype
 from ..annotation.labelers import CelltypeLabeler
 from ..annotation.concurrency import ConcurrencyLabeler
+from ..bleedthrough.correction import LayerCorrection
 from ..utilities.io import IO
 
 
@@ -84,7 +85,9 @@ class Layer(ImageRGB):
 
         # make metadata file
         io = IO()
-        metadata = dict(bg='', params=dict(segmentation_kw={}, graph_kw={}))
+        segmentation_kw = dict(preprocessing_kws={}, seed_kws={}, seg_kws={})
+        params = dict(segmentation_kw=segmentation_kw, graph_kw={})
+        metadata = dict(bg='', params=params)
         io.write_json(join(self.path, 'metadata.json'), metadata)
 
     def make_subdir(self, dirname):
@@ -141,7 +144,7 @@ class Layer(ImageRGB):
 
         # load and apply selection
         if 'selection' in self.subdirs.keys():
-            self.load_selection()
+            self.load_inclusion()
             self.apply_selection(df)
 
         # load and apply correction
@@ -156,7 +159,6 @@ class Layer(ImageRGB):
             self.assign_concurrency(df)
 
         return df
-
 
     def load_metadata(self):
         """ Load metadata. """
@@ -181,8 +183,8 @@ class Layer(ImageRGB):
         path = join(self.subdirs['segmentation'], 'measurements.json')
         self.measurements = pd.read_json(io.read_json(path))
 
-    def load_selection(self):
-        """ Load selection. """
+    def load_inclusion(self):
+        """ Load inclusion flag. """
         io = IO()
         selection_md = io.read_json(join(self.subdirs['selection'], 'md.json'))
         if selection_md is not None:

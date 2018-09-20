@@ -1,4 +1,5 @@
 import numpy as np
+from collections import Counter
 
 
 def resample_uniformly(x, y, size=None, cutoff=None):
