@@ -1,5 +1,6 @@
 from os.path import join, isdir, exists
-from os import listdir
+from os import listdir, mkdir
+from shutil import rmtree
 import gc
 from copy import deepcopy
 import pandas as pd
@@ -10,12 +11,15 @@ from collections import Counter
 
 from .images import ImageRGB
 from ..measure.segmentation import Segmentation
+from ..measure.measure import Measurements
 from ..spatial.graphs import WeightedGraph
 from ..annotation.genotype import CommunityBasedGenotype
 from ..annotation.labelers import CelltypeLabeler
 from ..annotation.concurrency import ConcurrencyLabeler
 from ..bleedthrough.correction import LayerCorrection
 from ..utilities.io import IO
+from .defaults import Defaults
+defaults = Defaults()
 
 
 class Layer(ImageRGB):
@@ -63,9 +67,6 @@ class Layer(ImageRGB):
         # set classifier
         self.classifier = classifier
 
-        # load layer
-        self.load()
-
         # load labels and instantiate RGB image if image was provided
         if im is not None:
             self.load_labels()
@@ -73,22 +74,27 @@ class Layer(ImageRGB):
 
     def initialize(self):
         """
-        Initialize layer directory.
+        Initialize layer directory by:
 
-        Args:
-        bits (int) - tif resolution
+            - Creating a layer directory
+            - Removing existing segmentation directory
+            - Saving metadata to file
+
         """
 
         # make layers directory
         if not exists(self.path):
             mkdir(self.path)
 
+        # remove existing segmentation directory
+        if 'segmentation' in self.subdirs.keys():
+            rmtree(self.subdirs['segmentation'])
+
         # make metadata file
         io = IO()
         segmentation_kw = dict(preprocessing_kws={}, seed_kws={}, seg_kws={})
         params = dict(segmentation_kw=segmentation_kw, graph_kw={})
         metadata = dict(bg='', params=params)
-        io.write_json(join(self.path, 'metadata.json'), metadata)
 
     def make_subdir(self, dirname):
         """ Make subdirectory. """
@@ -115,12 +121,52 @@ class Layer(ImageRGB):
         # load metadata and extract background channel
         self.load_metadata()
 
-        # load raw measurements
+        # check whether segmentation exists
         if 'segmentation' in self.subdirs.keys():
+
+            # load raw measurements
             self.load_measurements()
 
-        # process raw measurement data
-        self.df = self.process_measurements(self.measurements)
+            # process raw measurement data
+            self.df = self.process_measurements(self.measurements)
+
+    def load_metadata(self):
+        """ Load metadata. """
+        path = join(self.path, 'metadata.json')
+        if exists(path):
+            io = IO()
+            self.metadata = io.read_json(path)
+
+    def load_labels(self):
+        """ Load segment labels if they are available. """
+        labels = None
+        if 'segmentation' in self.subdirs.keys():
+            segmentation_path = self.subdirs['segmentation']
+            labels_path = join(segmentation_path, 'labels.npy')
+            if exists(labels_path):
+                labels = np.load(labels_path)
+        self.labels = labels
+
+    def load_measurements(self):
+        """ Load raw measurements. """
+        path = join(self.subdirs['segmentation'], 'measurements.hdf')
+        self.measurements = pd.read_hdf(path, 'measurements')
+
+    def load_inclusion(self):
+        """ Load inclusion flag. """
+        io = IO()
+        selection_md = io.read_json(join(self.subdirs['selection'], 'md.json'))
+        if selection_md is not None:
+            self.include = bool(selection_md['include'])
+
+    def load_correction(self):
+        """
+        Load linear background correction.
+
+        Returns:
+        correction (LayerCorrection)
+        """
+        return LayerCorrection.load(self)
 
     def process_measurements(self, measurements):
         """
@@ -142,6 +188,12 @@ class Layer(ImageRGB):
         # copy raw measurements
         df = deepcopy(self.measurements)
 
+        # assign layer id
+        df['layer'] = self._id
+
+        # apply normalization
+        self.apply_normalization(df)
+
         # load and apply selection
         if 'selection' in self.subdirs.keys():
             self.load_inclusion()
@@ -153,42 +205,27 @@ class Layer(ImageRGB):
 
         # annotate measurements
         if self.classifier is not None:
-            self.annotate(df)
+            self.apply_annotation(df)
             self.build_graph(df, **self.metadata['params']['graph_kw'])
             self.mark_boundaries(df, basis='genotype', max_edges=1)
-            self.assign_concurrency(df)
+            self.apply_concurrency(df)
 
         return df
 
-    def load_metadata(self):
-        """ Load metadata. """
-        path = join(self.path, 'metadata.json')
-        if exists(path):
-            io = IO()
-            self.metadata = io.read_json(path)
+    def apply_normalization(self, df):
+        """
+        Normalize fluorescence intensity measurements by measured background channel intensity.
 
-    def load_labels(self):
-        """ Load segment labels if they are available. """
-        labels = None
-        if 'segmentation' in self.subdirs.keys():
-            segmentation_path = self.subdirs['segmentation']
-            labels_path = join(segmentation_path, 'labels.npy')
-            if exists(labels_path):
-                labels = np.load(labels_path)
-        self.labels = labels
+        Args:
+        df (pd.DataFrame) - cell measurement data
+        """
 
-    def load_measurements(self):
-        """ Load raw measurements. """
-        io = IO()
-        path = join(self.subdirs['segmentation'], 'measurements.json')
-        self.measurements = pd.read_json(io.read_json(path))
+        # get background channel from metadata
+        bg = self.metadata['bg']
 
-    def load_inclusion(self):
-        """ Load inclusion flag. """
-        io = IO()
-        selection_md = io.read_json(join(self.subdirs['selection'], 'md.json'))
-        if selection_md is not None:
-            self.include = bool(selection_md['include'])
+        # apply normalization to each foreground channel
+        for fg in 'rgb'.strip(bg):
+            df[fg+'_normalized'] = df[fg] / df[bg]
 
     def apply_selection(self, df):
         """
@@ -214,15 +251,6 @@ class Layer(ImageRGB):
             cell_positions = df[['centroid_x', 'centroid_y']].values
             df['selected'] = path.contains_points(cell_positions)
 
-    def load_correction(self):
-        """
-        Load linear background correction.
-
-        Returns:
-        correction (LayerCorrection)
-        """
-        return LayerCorrection.load(self)
-
     def apply_correction(self, df):
         """
         Adds a "selected" attribute to the measurements dataframe. The attribute is true for cells that fall within the selection boundary.
@@ -244,7 +272,7 @@ class Layer(ImageRGB):
 
         # apply correction
         trend = b + m * df[xvar].values
-        df[yvar+'p'] = trend
+        df[yvar+'_predicted'] = trend
         df[yvar+'_corrected'] = df[yvar] - trend
 
     def build_graph(self, df, **graph_kw):
@@ -261,7 +289,7 @@ class Layer(ImageRGB):
         self.metadata['params']['graph_kw'] = graph_kw
         self.graph = WeightedGraph(df, **graph_kw)
 
-    def annotate(self, df, cluster=False):
+    def apply_annotation(self, df, cluster=False):
         """
         Assign genotype and celltype labels to cell measurements.
 
@@ -283,7 +311,7 @@ class Layer(ImageRGB):
         assign_celltypes = CelltypeLabeler(labels=celltype_labels)
         assign_celltypes(df)
 
-    def assign_concurrency(self, df, min_pop=5, max_distance=10):
+    def apply_concurrency(self, df, min_pop=5, max_distance=10):
         """
         Add boolean 'concurrent_<cell type>' field to cell measurement data for each unique cell type.
 
@@ -339,7 +367,12 @@ class Layer(ImageRGB):
         min_area (int) - threshold for minimum segment size, px
         """
 
-        # update metadata
+        # append default parameter values
+        preprocessing_kws = defaults('preprocessing', preprocessing_kws)
+        seed_kws = defaults('seeds', seed_kws)
+        seg_kws = defaults('segmentation', seg_kws)
+
+        # store parameters in metadata
         self.metadata['bg'] = bg
         segmentation_kw = dict(preprocessing_kws=preprocessing_kws,
                                seed_kws=seed_kws,
@@ -353,6 +386,8 @@ class Layer(ImageRGB):
 
         # run segmentation
         seg = Segmentation(background, seed_kws=seed_kws, seg_kws=seg_kws)
+
+        # exclude small segments
         seg.exclude_small_segments(min_area=min_area)
 
         # update segment labels
@@ -363,33 +398,15 @@ class Layer(ImageRGB):
 
     def measure(self):
         """
-        Measure properties of cell segments to generate cell measurement data.
+        Measure properties of cell segments. Raw measurements are stored under in the 'measurements' attribute, while processed measurements are stored in the 'df' attribute.
         """
 
         # measure segment properties
-        measurements = super().measure()
-
-        # construct dataframe
-        columns = ['id',
-                   'centroid_x', 'centroid_y',
-                   'r', 'r_std',
-                   'g', 'g_std',
-                   'b', 'b_std',
-                   'pixel_count']
-        measurements = pd.DataFrame.from_records(measurements, columns=columns)
-        measurements['layer'] = self._id
-
-        # normalize by background intensity
-        bg = measurements[self.metadata['bg']]
-        for channel in 'rgb'.strip(self.metadata['bg']):
-            fg = measurements[channel]
-            measurements[channel+'_normalized'] = fg / bg
-
-        # set measurements
-        self.measurements = measurements
+        measurements = Measurements(self.im, self.labels)
+        self.measurements = measurements.build_dataframe()
 
         # process raw measurement data
-        self.df = self.process_measurements(measurements)
+        self.df = self.process_measurements(self.measurements)
 
     def plot_graph(self,
                    channel='r',
@@ -430,11 +447,10 @@ class Layer(ImageRGB):
         """ Save raw measurements. """
 
         # get segmentation directory
-        path = join(self.subdirs['segmentation'], 'measurements.json')
+        path = join(self.subdirs['segmentation'], 'measurements.hdf')
 
         # save raw measurements
-        io = IO()
-        io.write_json(path, self.measurements.to_json())
+        self.measurements.to_hdf(path, 'measurements', mode='w')
 
     def save_segmentation(self, **image_kw):
         """
@@ -496,5 +512,3 @@ class Layer(ImageRGB):
         #     fig.clf()
         #     plt.close(fig)
         #     gc.collect()
-
-        return dirpath

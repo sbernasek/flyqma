@@ -1,15 +1,11 @@
 from scipy.ndimage import iterate_structure, generate_binary_structure
 from scipy.ndimage import gaussian_filter, median_filter
-from scipy.ndimage.measurements import mean, standard_deviation
 from skimage.filters import threshold_otsu
 from skimage.exposure import equalize_adapthist
 import matplotlib.pyplot as plt
 import numpy as np
 from copy import deepcopy
 import warnings
-
-from ..measure.segmentation import Segmentation
-from ..measure.measurements import Measurements
 
 
 class ImageScalar:
@@ -187,60 +183,3 @@ class ImageRGB(ImageScalar):
             monochrome = self.im[:, :, self.channels[channel]]
 
         return ImageScalar(monochrome, labels=self.labels)
-
-    def measure(self):
-        """
-        Measure properties of cell segments to generate cell measurements.
-
-        Returns:
-        measurements (Measurements) - measurement data for each labeled segment
-        """
-        return self._measure(self.im, self.labels)
-
-    @staticmethod
-    def _measure(im, labels):
-        """
-        Measure properties of labeled segments within an image.
-
-        Args:
-        im (np.ndarray[float]) - 2D array of RGB pixel values
-        labels (np.ndarray[int]) - cell segment labels
-
-        Returns:
-        measurements (Measurements) - measurement data for each labeled segment
-        """
-
-        # get image channels
-        drop_axis = lambda x: x.reshape(*x.shape[:2])
-        r, g, b = [drop_axis(x) for x in np.split(im, 3, axis=-1)]
-
-        # get segment ids (ordered)
-        segment_ids = np.unique(labels[labels.nonzero()])
-
-        # get centroids
-        centroid_dict = Segmentation.evaluate_centroids(labels)
-        centroids = [centroid_dict[seg_id] for seg_id in segment_ids]
-
-        # compute means
-        rmeans = mean(r, labels, segment_ids)
-        gmeans = mean(g, labels, segment_ids)
-        bmeans = mean(b, labels, segment_ids)
-        color_avg = (rmeans, gmeans, bmeans)
-
-        # compute std
-        rstd = standard_deviation(r, labels, segment_ids)
-        gstd = standard_deviation(g, labels, segment_ids)
-        bstd = standard_deviation(b, labels, segment_ids)
-        color_std = (rstd, gstd, bstd)
-
-        # compute segment size
-        voxels = labels[labels!=0]
-        bins = np.arange(0, segment_ids.max()+3, 1)
-        counts, _ = np.histogram(voxels, bins=bins)
-        voxel_counts = counts[segment_ids]
-
-        # createlist of contour dicts (useless but fits with Silhouette)
-        data = (segment_ids, centroids, color_avg, color_std, voxel_counts)
-        measurements = Measurements(*data).to_json()
-
-        return measurements

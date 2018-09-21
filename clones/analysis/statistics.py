@@ -36,7 +36,7 @@ class CloneComparison(PairwiseComparison):
         self.b = b
         cells = df[df.experiment==experiment]
         cells = cells[cells['concurrent_'+a+b]]
-        x, y = (cells[cells.cell_type == a]), (cells[cells.cell_type == b])
+        x, y = (cells[cells.celltype == a]), (cells[cells.celltype == b])
         PairwiseComparison.__init__(self, x, y, basis=basis)
 
     def plot(self, ax=None, figsize=(2, 4), **kw):
@@ -48,7 +48,7 @@ class CloneComparison(PairwiseComparison):
         # boxplot
         order = (self.a, self.b)
         data = pd.concat((self.x, self.y))
-        sns.boxplot(x='cell_type', y=self.basis, data=data, order=order, notch=True, ax=ax, **kw)
+        sns.boxplot(x='celltype', y=self.basis, data=data, order=order, notch=True, ax=ax, **kw)
         ax.grid(axis='y')
         return fig
 

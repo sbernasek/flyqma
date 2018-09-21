@@ -10,7 +10,7 @@ from .infomap import InfoMap
 
 class Graph:
     """
-    Object representing an undirected weighted graph connecting adjacent cells.
+    Object provides an undirected unweighted graph connecting adjacent cells.
 
     Attributes:
     df (pd.DataFrame) - cell measurement data (nodes)
@@ -54,19 +54,19 @@ class Graph:
 
     @staticmethod
     def _evaluate_max_edge_lengths(tri):
-        distances = []
-        x, y = tri.x, tri.y
-        for points in tri.triangles:
-            a,b,c = points
-            d0 = np.sqrt( (x[a] - x[b]) **2 + (y[a] - y[b])**2 )
-            d1 = np.sqrt( (x[b] - x[c]) **2 + (y[b] - y[c])**2 )
-            d2 = np.sqrt( (x[c] - x[a]) **2 + (y[c] - y[a])**2 )
-            max_edge = max([d0, d1, d2])
-            distances.append(max_edge)
-        return np.array(distances)
+        """ Returns max edge length per triangle. """
+        merge = lambda x: np.hstack((x, x.sum(axis=1).reshape(-1, 1)))
+        dx = np.diff(tri.x[tri.triangles], axis=1)
+        dy = np.diff(tri.y[tri.triangles], axis=1)
+        return np.sqrt((merge(dx)**2) + (merge(dy)**2)).max(axis=1)
 
     def apply_distance_filter(self, q=95):
-        """ Mask edges with lengths exceeding specified quantile. """
+        """
+        Mask edges with lengths exceeding specified quantile.
+
+        Args:
+        q (float) - length quantile, 0 to 100
+        """
         max_lengths = self._evaluate_max_edge_lengths(self.tri)
         mask = max_lengths > np.percentile(max_lengths, q=q)
         self.tri.set_mask(mask)
@@ -77,7 +77,13 @@ class Graph:
         self.nodes = np.array(sorted(np.unique(self.edges)), dtype=int)
 
     def plot_edges(self, ax=None, **kwargs):
-        """ Plot triangulation. """
+        """
+        Plot triangulation edges.
+
+        Args:
+        ax (matplotlib.axes.AxesSubplot)
+        kwargs: keyword arguments for matplotlib.pyplot.triplot
+        """
         if ax is None:
             fig, ax = plt.subplots()
         lines, markers = plt.triplot(self.tri, **kwargs)
@@ -106,11 +112,37 @@ class Graph:
 
         return labels
 
-    def plot_triangles(self, ax=None, colors=None, **kwargs):
-        """ Plot triangle faces using tripcolor. """
+    def plot_triangles(self,
+                       label_by='genotype',
+                       cmap=None,
+                       ax=None,
+                       **kwargs):
+        """
+        Plot triangle faces using tripcolor.
+
+        Args:
+        label_by (str) - cell measurement attribute used to color each triangle
+        cmap (matplotlib.colors.ColorMap) - colormap for cell attribute values
+        ax (matplotlib.axes.AxesSubplot)
+        kwargs: keyword ar
+        """
         if ax is None:
             fig, ax = plt.subplots()
-        ax.tripcolor(self.tri, facecolors=colors, lw=0, edgecolor='none', antialiased=True, **kwargs)
+
+        # assign triangle colors
+        colors = self.label_triangles(label_by=label_by)
+
+        # define colormap
+        if cmap is None:
+            cmap = ListedColormap(['y', 'm', 'k'], N=3)
+
+        # plot triangle faces
+        ax.tripcolor(self.tri,
+                     facecolors=colors,
+                     lw=0,
+                     edgecolor='none',
+                     antialiased=True,
+                     **kwargs)
 
     def show(self, ax, **kw):
         """ Visualize graph. """
@@ -119,29 +151,64 @@ class Graph:
 
 
 class WeightedGraph(Graph):
+    """
+    Object provides an undirected weighted graph connecting adjacent cells.
+
+    Attributes:
+    q (float) - edge length quantile above which edges are excluded, 0 to 100
+
+    Inherited attributes:
+    df (pd.DataFrame) - cell measurement data (nodes)
+    nodes (np.ndarray[int]) - node indices
+    edges (np.ndarray[int]) - pairs of connected node indices
+    node_map (vectorized func) - maps positional index to node index
+    position_map (vectorized func) - maps node index to positional index
+    tri (matplotlib.tri.Triangulation) - triangulation of node positions
+    """
+
 
     def __init__(self, df, weighted_by='r_normalized', q=95):
         Graph.__init__(self, df)
-        self.apply_distance_filter(q)
         self.q = q
+        self.apply_distance_filter(q)
         self.update_graph()
         self.excluded = self.get_excluded_nodes()
         self.weighted_by = weighted_by
         self.community_labels = None
 
     def get_excluded_nodes(self):
+        """
+        Determine indices of nodes excluded by the distance filter.
+
+        Returns:
+        excluded (np.ndarray[int]) - indices of excluded nodes
+        """
         before = self.df.index.values
         after = self.nodes
         return before[~np.isin(before, after)]
 
-    def weight_edges(self, weighted_by='r'):
+    def evaluate_edge_weights(self, weighted_by='r'):
+        """
+        Evaluate edge weights.
+
+        Args:
+        weighted_by (str) - cell measurement attribute used to quantify the similarity of two nodes
+
+        Returns:
+        weights (np.ndarray[float]) - edge weights
+        """
         wf = WeightFunction(self.df, weighted_by=weighted_by)
         return wf.assess_weights(self.edges)
 
     def build_links(self):
-        """ Returns list of (node_from, node_to, [weight]) tuples. """
+        """
+        Construct list of weighted edges.
+
+        Returns:
+        links (list) - series of (node_from, node_to, [weight]) tuples
+        """
         if self.weighted_by not in (None, 'none', 'None'):
-            weights = self.weight_edges(self.weighted_by)
+            weights = self.evaluate_edge_weights(self.weighted_by)
             unpack = lambda e, w: (int(e[0]), int(e[1]), w)
             links = [unpack(e, w) for e, w in zip(self.edges, weights)]
         else:
@@ -149,7 +216,11 @@ class WeightedGraph(Graph):
         return links
 
     def find_communities(self, **kw):
-        """ Find communities. """
+        """
+        Assign communities using InfoMap clustering.
+
+        kwargs: keyword arguments for InfoMap (default is two-level)
+        """
         edges = self.build_links()
         community_detector = InfoMap(edges, **kw)
         self.community_labels = community_detector(self.nodes)
@@ -214,6 +285,13 @@ class GraphVisualization:
     """
 
     def __init__(self, G, pos):
+        """
+        Instantiate graph visualization.
+
+        Args:
+        G (nx.Graph) - networkx graph object
+        pos (np.ndarray[float]) - 2D node positions
+        """
         self.G = G
         self.pos = pos
 

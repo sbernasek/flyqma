@@ -1,5 +1,6 @@
-from os.path import join, exists, abspath
+from os.path import join, exists, abspath, isdir
 from os import mkdir
+from glob import glob
 import gc
 import numpy as np
 import pandas as pd
@@ -15,7 +16,6 @@ class Stack:
     Object represents a 3D RGB image stack.
 
     Attributes:
-    df (pd.DataFrame) - cell contour measurements
     path (str) - path to stack directory
     _id (int) - stack ID
     stack (np.ndarray[float]) - 3D RGB image stack
@@ -38,12 +38,21 @@ class Stack:
 
         # set path to stack directory
         self.path = abspath(path)
+        self.stack = None
 
         # set paths
         self._id = int(path.rsplit('/', maxsplit=1)[-1])
         self.tif_path = join(path, '{:d}.tif'.format(self._id))
         self.layers_path = join(self.path, 'layers')
         self.classifier_path = join(self.path, 'cell_classifier')
+
+        # initialize stack if layers directory doesn't exist
+        if not isdir(self.layers_path):
+            self.initialize()
+
+        # load metadata and classifier
+        self.load_metadata()
+        self.load_classifier()
 
         # reset layer iterator count
         self.count = 0
@@ -78,9 +87,12 @@ class Stack:
         if not exists(self.layers_path):
             mkdir(self.layers_path)
 
+        # load stack (to determine shape)
+        stack = self._read_tif(self.tif_path) / (2**bits)
+
         # make metadata file
         io = IO()
-        metadata = dict(bits=bits, params={})
+        metadata = dict(bits=bits, depth=stack.shape[0], params={})
         io.write_json(join(self.path, 'metadata.json'), metadata)
 
         # initialize layers
@@ -90,25 +102,30 @@ class Stack:
             layer = Layer(layer_path)
             layer.initialize()
 
-    def load(self):
+    def load_metadata(self):
         """
-        Load stack.
+        Load available metadata.
         """
+        metadata_path = join(self.path, 'metadata.json')
+        if exists(metadata_path):
+            io = IO()
+            self.metadata = io.read_json(metadata_path)
+            self.depth = self.metadata['depth']
 
-        # load metadata
-        io = IO()
-        self.metadata = io.read_json(join(self.path, 'metadata.json'))
+    def load_classifier(self):
+        """ Load cell classifier from cell_classifier directory. """
+        if exists(self.classifier_path):
+            self.classifier = CellClassifier.load(self.classifier_path)
+
+    def load_image(self):
+        """ Load 3D image from tif file. """
 
         # load 3D RGB tif
         self.stack = self._read_tif(self.tif_path) / (2**self.metadata['bits'])
 
         # set stack shape
-        self.shape = self.stack.shape
         self.depth = self.stack.shape[0]
-
-        # load cell classifier
-        if exists(self.classifier_path):
-            self.classifier = self.load_classifier()
+        self.metadata['depth'] = self.stack.shape[0]
 
     @staticmethod
     def _read_tif(path, bits=12):
@@ -144,7 +161,7 @@ class Stack:
         layer_path = join(self.layers_path, '{:d}'.format(layer_id))
 
         # if performing light load, don't pass image
-        if full:
+        if full and self.stack is not None:
             im = self.stack[layer_id, :, :, :]
         else:
             im = None
@@ -152,34 +169,22 @@ class Stack:
         # instantiate layer
         layer = Layer(layer_path, im, self.classifier)
 
+        # load layer
+        layer.load()
+
         return layer
 
-    def load_metadata(self):
-        """
-        Load metadata from segmentation file.
-
-        Returns:
-        metadata (dict) - stack metadata
-        """
-        metadata_path = os.path.join(self.path, 'metadata.json')
+    def save_metadata(self):
+        """ Save metadata. """
         io = IO()
-        return io.read_json(metadata_path)
-
-    def load_classifier(self):
-        """
-        Load cell classifier from file.
-
-        Returns:
-        classifier (CellClassifier) - callable cell classifier
-        """
-        return CellClassifier.load(self.classifier_path)
+        io.write_json(join(self.path, 'metadata.json'), self.metadata)
 
     def aggregate_measurements(self):
         """
         Aggregate measurements from each layer.
 
         Returns:
-        measurements (pd.Dataframe) - contour measurements
+        measurements (pd.Dataframe) - curated cell measurement data
         """
 
         # load measurements from each included layer
@@ -187,12 +192,10 @@ class Stack:
         for layer_id in range(self.depth):
             layer = self.load_layer(layer_id, full=False)
             if layer.include == True:
+                layer.df['layer'] = layer._id
                 measurements.append(layer.df)
 
         # aggregate measurements
         measurements = pd.concat(measurements, join='inner')
-
-        # assign stack ID
-        measurements['stack_id'] = self._id
 
         return measurements

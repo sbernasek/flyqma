@@ -5,7 +5,6 @@ from skimage.segmentation import watershed
 from matplotlib.colors import ListedColormap
 from scipy.ndimage import distance_transform_edt, gaussian_filter
 from scipy.ndimage import generate_binary_structure, iterate_structure
-from scipy.ndimage.measurements import center_of_mass
 
 
 class Segmentation:
@@ -170,28 +169,6 @@ class Segmentation:
         self.labels[np.isin(self.labels, excluded)] = 0
         _ = [self.seeds.pop(seed) for seed in excluded]
         self.segment_ids = np.array(list(self.seeds.keys()))
-
-    def get_centroids(self):
-        """ Set centroids to center of mass of segmentation. """
-        return self.evaluate_centroids(self.labels)
-
-    @staticmethod
-    def evaluate_centroids(labels):
-        """
-        Evaluate center of mass of each label.
-
-        * Note: scipy returns centroids as (y, x) which are flipped to (x, y)
-
-        Args:
-        labels (np.ndarray[int]) - segment label mask
-
-        Returns:
-        center_of_mass (dict) - {segment_id: [centroid_x, centroid_y]} pairs
-        """
-
-        seg_ids = np.unique(labels[labels!=0])
-        coms = center_of_mass(labels, labels, seg_ids)
-        return {seg_id: com[::-1] for seg_id, com in zip(seg_ids, coms)}
 
     def show(self, figsize=(15, 15)):
         """
