@@ -50,51 +50,60 @@ Clones Modules
 
 Clones is organized into several modules:
 
-* Data. Components for managing **FlyEye Silhouette** data. FlyEye provides three levels of organization:
+* Data. Components for managing image and cell measurement data. Clones provides three levels of organization:
 
-  1. ``Cells`` objects contain one or more expression level measurements
+  1. ``Experiment`` collection of eye discs obtained under similar conditions
 
-  2. ``Disc`` objects contain all expression level measurements from a single ``.silhouette`` file
+  2. ``Stack`` collection of layers depicting an individual eye disc
 
-  3. ``Experiment`` objects contain multiple ``Disc`` instances collected under similar conditions
+  3. ``Layer`` 2D RGB cross section of an eye disc
 
-* Processing. Methods for converting cell measurements into expression time series.
+* Measure. Methods for identifying cells and quantifying their expression levels
 
-* Dynamics. Methods for time series visualization.
+* Annotation. Methods for automated classification of clonal subpopulations
 
-* Analysis. Methods for quantitative analysis of expression data.
+* Bleedthrough. Methods for correcting fluorescence bleedthrough between reporters
+
+* Selection. Simple matplotlib-based GUI for manual curation of measurement data
+
+* Analysis. Methods for statistical comparison of measurement data
 
 
 
 Example Usage
 =========
 
-Import an experiment from a directory containing ``.silhouette`` files:
+Load an experiment from a directory containing subdirectories of ``.tif`` files:
 
     #!/usr/bin/env python
 
-    from flyeye.data import experiments
+    from clones.data import experiments
 
-    path = './silhouette_data'
+    path = './data/clones/yanE833'
     experiment = experiments.Experiment(path)
 
 
-Select a specific disc:
+Aggregate all measurement data for an experiment
 
-    disc_id = 2
-    disc = experiment.discs[disc_id]
-
-
-Select a specific cell type:
-
-    cell_type = 'pre'
-    cells = disc.select_cell_type(cell_type)
+    experiment.aggregate_measurements()
 
 
-Plot expression dynamics:
+Load a specific stack:
 
-    fluorescence_channel = 'green'
-    cells.plot_dynamics(fluorescence_channel)
+    stack_id = 0
+    stack = experiment[stack_id]
+
+
+Load a specific layer:
+
+    layer_id = 0
+    layer = stack[layer_id]
+
+
+Segment and measure a layer:
+
+    layer.segment()
+
 
 
 Further Examples
