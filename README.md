@@ -73,36 +73,61 @@ Clones is organized into several modules:
 Example Usage
 =========
 
-Load an experiment from a directory containing subdirectories of ``.tif`` files:
+Load an experiment, stack, or layer from a directory containing subdirectories of ``.tif`` files:
 
     #!/usr/bin/env python
 
     from clones.data import experiments
 
+    # load a specific experiment
     path = './data/clones/yanE833'
     experiment = experiments.Experiment(path)
 
-
-Aggregate all measurement data for an experiment
-
-    experiment.aggregate_measurements()
-
-
-Load a specific stack:
-
+    # load a specific stack
     stack_id = 0
     stack = experiment[stack_id]
 
-
-Load a specific layer:
-
+    # load a specific layer
     layer_id = 0
     layer = stack[layer_id]
 
 
-Segment and measure a layer:
+Aggregate all measurement data for an experiment
+
+    #!/usr/bin/env python
+
+    data = experiment.aggregate_measurements()
+
+
+Segment a layer and save the results:
+
+    #!/usr/bin/env python
 
     layer.segment()
+
+    layer.save()
+
+
+Perform bleedthrough correction:
+
+  #!/usr/bin/env python
+
+  from clones.bleedthrough.correction import LayerCorrection
+
+  correction = LayerCorrection(layer, niters=60)
+  correction.show_correction()
+  correction.save()
+
+
+Launch the selection GUI (in Jupyter):
+
+    #!/usr/bin/env python
+
+    %matplotlib notebook
+
+    stack = experiment.load_stack(stack_ind, full=True)
+
+    gui = GUI.load(stack)
 
 
 

@@ -42,7 +42,6 @@ class LayerCorrection(GLM):
                  **fit_kw):
 
         # set correction path
-        layer.make_subdir('correction')
         self.path = layer.subdirs['correction']
 
         # store layer
@@ -213,6 +212,9 @@ class LayerCorrection(GLM):
         Args:
         images (bool) - if True, save model fit and corrected measurement figs
         """
+
+        # add subdirectory to layer
+        self.layer.make_subdir('correction')
 
         # instantiate IO
         io = IO()
