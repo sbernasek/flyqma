@@ -57,7 +57,7 @@ Clones is organized into several submodules:
 
 * ``clones.selection`` provides a matplotlib-based GUI for spatial curation of measurement data.
 
-* ``clones.selection`` provides methods for statistical comparison of measurement data.
+* ``clones.analysis`` provides methods for statistical comparison of measurement data.
 
 
 Clones Usage
@@ -127,6 +127,8 @@ To begin analyzing an image stack, layers must be added to the corresponding sta
     └── ... N
 
 Image layers may now be analyzed individually. To access an individual layer:
+
+    #!/usr/bin/env python
 
     # load specific layer
     layer = stack.load_layer(layer_id)
@@ -213,7 +215,8 @@ Note that cell-based classifiers are fit to an entire stack, rather than to each
 Example Usage
 -------------
 
-Load an experiment, stack, or layer from a directory containing subdirectories of ``.tif`` files:
+
+**Load an experiment, stack, or layer from a directory containing subdirectories of ``.tif`` files:**
 
     #!/usr/bin/env python
 
@@ -232,7 +235,8 @@ Load an experiment, stack, or layer from a directory containing subdirectories o
     layer = stack[layer_id]
 
 
-Segment an image layer and save the results:
+
+**Segment an image layer and save the results:**
 
     #!/usr/bin/env python
 
@@ -241,18 +245,20 @@ Segment an image layer and save the results:
     layer.save()
 
 
-Perform bleedthrough correction:
 
-  #!/usr/bin/env python
+**Perform bleedthrough correction:**
 
-  from clones.bleedthrough.correction import LayerCorrection
+    #!/usr/bin/env python
 
-  correction = LayerCorrection(layer, niters=60)
-  correction.show_correction()
-  correction.save()
+    from clones.bleedthrough.correction import LayerCorrection
+
+    correction = LayerCorrection(layer, niters=50)
+    correction.show_correction()
+    correction.save()
 
 
-Launch the cell selection GUI for a fully loaded image stack:
+
+**Launch the cell selection GUI for a fully loaded image stack:**
 
     #!/usr/bin/env python
 
@@ -263,7 +269,8 @@ Launch the cell selection GUI for a fully loaded image stack:
     gui = GUI.load(stack)
 
 
-Aggregate all measurement data for an experiment
+
+**Aggregate all measurement data for an experiment:**
 
     #!/usr/bin/env python
 
