@@ -10,8 +10,8 @@ from matplotlib.path import Path
 from collections import Counter
 
 from .images import ImageRGB
-from ..measure.segmentation import Segmentation
-from ..measure.measure import Measurements
+from ..measurement.segmentation import Segmentation
+from ..measurement.measure import Measurements
 from ..spatial.graphs import WeightedGraph
 from ..annotation.genotype import CommunityBasedGenotype
 from ..annotation.labelers import CelltypeLabeler
