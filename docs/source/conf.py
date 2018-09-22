@@ -1,3 +1,7 @@
+import sys
+if '..' not in sys.path:
+    sys.path.insert(0, '..')
+
 # -*- coding: utf-8 -*-
 #
 # Configuration file for the Sphinx documentation builder.
