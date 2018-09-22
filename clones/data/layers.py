@@ -170,7 +170,9 @@ class Layer(ImageRGB):
         Load linear background correction.
 
         Returns:
-        correction (LayerCorrection)
+
+           correction (LayerCorrection)
+
         """
         return LayerCorrection.load(self)
 
@@ -185,10 +187,13 @@ class Layer(ImageRGB):
             6. assigning celltype concurrency information
 
         Args:
-        measurements (pd.DataFrame) - raw cell measurement data
+
+            measurements (pd.DataFrame) - raw cell measurement data
 
         Returns:
-        data (pd.DataFrame) - processed cell measurement data
+
+            data (pd.DataFrame) - processed cell measurement data
+
         """
 
         # copy raw measurements
@@ -287,11 +292,14 @@ class Layer(ImageRGB):
         Compile weighted graph connecting adjacent cells.
 
         Args:
-        data (pd.DataFrame) - processed cell measurement data
+
+            data (pd.DataFrame) - processed cell measurement data
 
         Keyword Args:
-        q (float) - edge length quantile above which edges are pruned
-        weighted_by (str) - quantity used to weight edges
+
+            q (float) - edge length quantile above which edges are pruned
+
+            weighted_by (str) - quantity used to weight edges
         """
         self.metadata['params']['graph_kw'] = graph_kw
         self.graph = WeightedGraph(data, **graph_kw)
@@ -301,8 +309,11 @@ class Layer(ImageRGB):
         Assign genotype and celltype labels to cell measurements.
 
         Args:
-        data (pd.DataFrame) - processed cell measurement data
-        cluster (bool) - if True, add community and community genotype labels
+
+            data (pd.DataFrame) - processed cell measurement data
+
+            cluster (bool) - if True, add community and community genotype labels
+
         """
 
         # assign single-cell classifier label
@@ -430,6 +441,7 @@ class Layer(ImageRGB):
         graph_kw (dict) - keyword arguments for scalar image visualization
 
         Returns:
+
         fig (matplotlib.figures.Figure)
         """
 
