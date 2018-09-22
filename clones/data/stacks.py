@@ -16,16 +16,27 @@ class Stack:
     Object represents a 3D RGB image stack.
 
     Attributes:
-    path (str) - path to stack directory
-    _id (int) - stack ID
-    stack (np.ndarray[float]) - 3D RGB image stack
-    shape (tuple) - stack dimensions, (depth, X, Y, 3)
-    depth (int) - number of layers in stack
-    classifier (CellClassifier) - callable cell classifier
-    metadata (dict) - stack metadata
-    tif_path (str) - path to multilayer RGB tiff file
-    layers_path (str) - path to layers directory
-    classifier_path (str) - path to cell classifier directory
+
+        path (str) - path to stack directory
+
+        _id (int) - stack ID
+
+        stack (np.ndarray[float]) - 3D RGB image stack
+
+        shape (tuple) - stack dimensions, (depth, X, Y, 3)
+
+        depth (int) - number of layers in stack
+
+        classifier (CellClassifier) - callable cell classifier
+
+        metadata (dict) - stack metadata
+
+        tif_path (str) - path to multilayer RGB tiff file
+
+        layers_path (str) - path to layers directory
+
+        classifier_path (str) - path to cell classifier directory
+
     """
 
     def __init__(self, path):
@@ -33,7 +44,9 @@ class Stack:
         Initialize stack.
 
         Args:
-        path (str) - path to stack directory
+
+            path (str) - path to stack directory
+
         """
 
         # set path to stack directory
@@ -80,7 +93,9 @@ class Stack:
         Initialize stack directory.
 
         Args:
-        bits (int) - tif resolution
+
+            bits (int) - tif resolution
+
         """
 
         # make layers directory
@@ -106,9 +121,7 @@ class Stack:
             layer.initialize()
 
     def load_metadata(self):
-        """
-        Load available metadata.
-        """
+        """ Load available metadata. """
         metadata_path = join(self.path, 'metadata.json')
         if exists(metadata_path):
             io = IO()
@@ -136,9 +149,11 @@ class Stack:
         Read 3D RGB tif file.
 
         Args:
-        bits (int) - tif resolution
+
+            bits (int) - tif resolution
 
         Note: images are flipped from BGR to RGB
+
         """
         io = IO()
         stack = io.read_tiff(path)
@@ -153,11 +168,15 @@ class Stack:
         Load individual layer.
 
         Args:
-        layer_id (int) - layer index
-        full (bool) - if True, load fully labeled RGB image
+
+            layer_id (int) - layer index
+
+            full (bool) - if True, load fully labeled RGB image
 
         Returns:
-        layer (Layer)
+
+            layer (Layer)
+
         """
 
         # define layer path
@@ -187,10 +206,13 @@ class Stack:
         Aggregate measurements from each layer.
 
         Args:
-        raw (bool) - if True, aggregate raw measurements from included discs
+
+            raw (bool) - if True, aggregate raw measurements from included discs
 
         Returns:
-        data (pd.Dataframe) - processed cell measurement data
+
+            data (pd.Dataframe) - processed cell measurement data
+
         """
 
         # load measurements from each included layer

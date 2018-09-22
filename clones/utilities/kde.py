@@ -27,6 +27,7 @@ class KDE:
         return kde
 
     def evaluate_density(self):
+        """ Returns density estimate for all cell measurement positions. """
         return self.__call__(self.xy)
 
     def cluster_density(self, n=2):

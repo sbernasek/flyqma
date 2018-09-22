@@ -27,23 +27,39 @@ class Layer(ImageRGB):
     Object represents a single RGB image layer.
 
     Attributes:
-    measurements (pd.DataFrame) - raw cell measurement data
-    data (pd.DataFrame) - processed cell measurement data
-    path (str) - path to layer directory
-    _id (int) - layer ID
-    subdirs (dict) - {name: path} pairs for all subdirectories
-    metadata (dict) - layer metadata
-    labels (np.ndarray[int]) - segment ID mask
-    classifier (CellClassifier) - callable that assigns genotypes to cells
-    graph (Graph) - graph connecting cell centroids
-    include (bool) - if True, layer was manually marked for inclusion
+
+        measurements (pd.DataFrame) - raw cell measurement data
+
+        data (pd.DataFrame) - processed cell measurement data
+
+        path (str) - path to layer directory
+
+        _id (int) - layer ID
+
+        subdirs (dict) - {name: path} pairs for all subdirectories
+
+        metadata (dict) - layer metadata
+
+        labels (np.ndarray[int]) - segment ID mask
+
+        classifier (CellClassifier) - callable that assigns genotypes to cells
+
+        graph (Graph) - graph connecting cell centroids
+
+        include (bool) - if True, layer was manually marked for inclusion
 
     Inherited attributes:
-    im (np.ndarray[float]) - 2D array of RGB pixel values
-    channels (dict) - {color: channel_index} pairs
-    shape (array like) - image dimensions
-    mask (np.ndarray[bool]) - image mask
-    labels (np.ndarray[int]) - segment ID mask
+
+        im (np.ndarray[float]) - 2D array of RGB pixel values
+
+        channels (dict) - {color: channel_index} pairs
+
+        shape (array like) - image dimensions
+
+        mask (np.ndarray[bool]) - image mask
+
+        labels (np.ndarray[int]) - segment ID mask
+
     """
 
     def __init__(self, path, im=None, classifier=None):
@@ -51,9 +67,13 @@ class Layer(ImageRGB):
         Instantiate layer.
 
         Args:
-        path (str) - path to layer directory
-        im (np.ndarray[float]) - 2D array of RGB pixel values
-        classifier (CellClassifier) - callable that assigns genotypes to cells
+
+            path (str) - path to layer directory
+
+            im (np.ndarray[float]) - 2D array of RGB pixel values
+
+            classifier (CellClassifier) - callable that assigns genotypes to cells
+
         """
 
         # set layer ID
@@ -228,7 +248,9 @@ class Layer(ImageRGB):
         Normalize fluorescence intensity measurements by measured background channel intensity.
 
         Args:
-        data (pd.DataFrame) - processed cell measurement data
+
+            data (pd.DataFrame) - processed cell measurement data
+
         """
 
         # get background channel from metadata
@@ -243,7 +265,9 @@ class Layer(ImageRGB):
         Adds a "selected" attribute to the measurements dataframe. The attribute is true for cells that fall within the selection boundary.
 
         Args:
-        data (pd.DataFrame) - processed cell measurement data
+
+            data (pd.DataFrame) - processed cell measurement data
+
         """
 
         # load selection boundary
@@ -267,7 +291,9 @@ class Layer(ImageRGB):
         Adds a "selected" attribute to the measurements dataframe. The attribute is true for cells that fall within the selection boundary.
 
         Args:
-        data (pd.DataFrame) - processed cell measurement data
+
+            data (pd.DataFrame) - processed cell measurement data
+
         """
 
         # load correction coefficients and X/Y variables
@@ -334,9 +360,13 @@ class Layer(ImageRGB):
         Add boolean 'concurrent_<cell type>' field to cell measurement data for each unique cell type.
 
         Args:
-        data (pd.DataFrame) - processed cell measurement data
-        min_pop (int) - minimum population size for inclusion of cell type
-        max_distance (float) - maximum distance threshold for inclusion
+
+            data (pd.DataFrame) - processed cell measurement data
+
+            min_pop (int) - minimum population size for inclusion of cell type
+
+            max_distance (float) - maximum distance threshold for inclusion
+
         """
         assign_concurrency = ConcurrencyLabeler(min_pop=min_pop,
                                                 max_distance=max_distance)
@@ -347,9 +377,13 @@ class Layer(ImageRGB):
         Mark clone boundaries by assigning a boundary label to all cells that share an edge with another cell from a different clone.
 
         Args:
-        data (pd.DataFrame) - processed cell measurement data
-        basis (str) - labels used to identify clones
-        max_edges (int) - maximum number of edges for interior cells
+
+            data (pd.DataFrame) - processed cell measurement data
+
+            basis (str) - labels used to identify clones
+
+            max_edges (int) - maximum number of edges for interior cells
+
         """
 
         # assign genotype to edges
@@ -378,11 +412,17 @@ class Layer(ImageRGB):
         Identify nuclear contours by running watershed segmentation on specified background channel.
 
         Args:
-        bg (str) - background channel on which to segment RGB image
-        preprocessing_kws (dict) - keyword arguments for image preprocessing
-        seed_kws (dict) - keyword arguments for seed detection
-        seg_kws (dict) - keyword arguments for segmentation
-        min_area (int) - threshold for minimum segment size, px
+
+            bg (str) - background channel on which to segment RGB image
+
+            preprocessing_kws (dict) - keyword arguments for image preprocessing
+
+            seed_kws (dict) - keyword arguments for seed detection
+
+            seg_kws (dict) - keyword arguments for segmentation
+
+            min_area (int) - threshold for minimum segment size, px
+
         """
 
         # append default parameter values
@@ -435,14 +475,19 @@ class Layer(ImageRGB):
         Plot graph on top of relevant channel from RGB image.
 
         Args:
-        channel (str) - RGB channel to visualize
-        figsize (tuple) - figure size
-        image_kw (dict) - keyword arguments for scalar image visualization
-        graph_kw (dict) - keyword arguments for scalar image visualization
+
+            channel (str) - RGB channel to visualize
+
+            figsize (tuple) - figure size
+
+            image_kw (dict) - keyword arguments for scalar image visualization
+
+            graph_kw (dict) - keyword arguments for scalar image visualization
 
         Returns:
 
-        fig (matplotlib.figures.Figure)
+            fig (matplotlib.figures.Figure)
+
         """
 
         # create axis
@@ -476,6 +521,7 @@ class Layer(ImageRGB):
         Save segmentation.
 
         image_kw: keyword arguments for segmentation image
+
         """
 
         # add segmentation directory
@@ -505,9 +551,13 @@ class Layer(ImageRGB):
         Save segmentation parameters and results.
 
         Args:
-        segmentation (bool) - if True, save segmentation
-        annotation (bool) - if True, save annotation
-        dpi (int) - image resolution
+
+            segmentation (bool) - if True, save segmentation
+
+            annotation (bool) - if True, save annotation
+
+            dpi (int) - image resolution
+
         """
 
         # set image keyword arguments
@@ -522,12 +572,3 @@ class Layer(ImageRGB):
 
         # save metadata
         self.save_metadata()
-
-        # # save annotation image
-        # if annotation:
-        #     im_path = os.path.join(dirpath, 'annotation.png')
-        #     fig = self.plot_annotation()
-        #     fig.savefig(im_path, **im_kw)
-        #     fig.clf()
-        #     plt.close(fig)
-        #     gc.collect()

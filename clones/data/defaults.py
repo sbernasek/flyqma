@@ -6,10 +6,15 @@ class Defaults:
     Object contains default parameters. Defaults are stored as dictionaries within the instance attributes:
 
     Attributes:
-    parameters (dict) - {parameter set: parameters dict} pairs for:
+
+        parameters (dict) - {parameter set: parameters dict} pairs for:
+
         preprocessing (dict) - default parameters for image preprocessing
+
         seeds (dict) - default parameters for seed detection
+
         segmentation (dict) - default parameters for segmentation
+
     """
 
     def __init__(self):
@@ -45,11 +50,15 @@ class Defaults:
         Adds default values for unspecified <key> parameters.
 
         Args:
-        key (str) - name of parameter set
-        specified (dict) - {name: value} pairs for specified <key> parameters
+
+            key (str) - name of parameter set
+
+            specified (dict) - {name: value} pairs for specified <key> parameters
 
         Returns:
-        parameters (dict) - {name: value} pairs for all <key> parameters
+
+            parameters (dict) - {name: value} pairs for all <key> parameters
+
         """
         return self.append_defaults(key, specified)
 
@@ -58,11 +67,15 @@ class Defaults:
         Add default values for unspecified <key> parameters.
 
         Args:
-        key (str) - name of parameter set
-        specified (dict) - {name: value} pairs for specified <key> parameters
+
+            key (str) - name of parameter set
+
+            specified (dict) - {name: value} pairs for specified <key> parameters
 
         Returns:
-        parameters (dict) - {name: value} pairs for all <key> parameters
+
+            parameters (dict) - {name: value} pairs for all <key> parameters
+
         """
         assert key in self.parameters.keys(), 'Parameter set not recognized.'
         default = self.parameters[key]
@@ -74,11 +87,15 @@ class Defaults:
         Add default values for unspecified parameters.
 
         Args:
-        specified (dict) - {name: value} pairs for specified parameters
-        default (dict) - {name: default value} pairs for all parameters
+
+            specified (dict) - {name: value} pairs for specified parameters
+
+            default (dict) - {name: default value} pairs for all parameters
 
         Returns:
-        parameters (dict) - {name: value} pairs for all parameters
+
+            parameters (dict) - {name: value} pairs for all parameters
+
         """
         parameters = {}
         for k, v in default.items():

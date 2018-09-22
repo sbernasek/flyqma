@@ -13,13 +13,28 @@ class ImageScalar:
     Object represents a monochrome image.
 
     Attributes:
-    im (np.ndarray[float]) - 2D array of pixel values
-    shape (array like) - image dimensions
-    mask (np.ndarray[bool]) - image mask
-    labels (np.ndarray[int]) - segment ID mask
+
+        im (np.ndarray[float]) - 2D array of pixel values
+
+        shape (array like) - image dimensions
+
+        mask (np.ndarray[bool]) - image mask
+
+        labels (np.ndarray[int]) - segment ID mask
+
     """
 
     def __init__(self, im, labels=None):
+        """
+        Instantiate scalar image.
+
+        Args:
+
+            im (np.ndarray[float]) - 2D array of pixel values
+
+           labels (np.ndarray[int]) - segment ID mask
+
+        """
         self.im = im
         self.shape = im.shape[:2]
         self.mask = np.ones_like(self.im, dtype=bool)
@@ -36,15 +51,23 @@ class ImageScalar:
         Render image.
 
         Args:
-        segments (bool) - if True, include cell segment contours
-        cmap (matplotlib.colors.ColorMap or str) - colormap or RGB channel
-        vmin, vmax (float) - bounds for color scale
-        figsize (tuple) - figure size
-        ax (matplotlib.axes.AxesSubplot) - if None, create axis
-        kwargs: keyword arguments for add_contours
+
+            segments (bool) - if True, include cell segment contours
+
+            cmap (matplotlib.colors.ColorMap or str) - colormap or RGB channel
+
+            vmin, vmax (float) - bounds for color scale
+
+            figsize (tuple) - figure size
+
+            ax (matplotlib.axes.AxesSubplot) - if None, create axis
+
+            kwargs: keyword arguments for add_contours
 
         Returns:
-        fig (matplotlib.figures.Figure)
+
+            fig (matplotlib.figures.Figure)
+
         """
 
         if ax is None:
@@ -109,9 +132,14 @@ class ImageScalar:
         Run CLAHE on reflection-padded image.
 
         Args:
-        factor (float or int) - number of segments per dimension
-        clip_limit (float) - clip limit for CLAHE
-        nbins (int) - number of grey-scale bins for histogram
+
+
+            factor (float or int) - number of segments per dimension
+
+            clip_limit (float) - clip limit for CLAHE
+
+            nbins (int) - number of grey-scale bins for histogram
+
         """
 
         # set kernel size as fraction of image size
@@ -137,10 +165,15 @@ class ImageScalar:
         Preprocess image.
 
         Args:
-        median_radius (int) - median filter size, px
-        gaussian_sigma (tuple) - gaussian filter size, px std dev
-        clip_limit (float) - CLAHE clip limit
-        clip_factor (int) - CLAHE clip factor
+
+            median_radius (int) - median filter size, px
+
+            gaussian_sigma (tuple) - gaussian filter size, px std dev
+
+            clip_limit (float) - CLAHE clip limit
+
+            clip_factor (int) - CLAHE clip factor
+
         """
         self.median_filter(radius=median_radius)
         self.gaussian_filter(sigma=gaussian_sigma)
@@ -152,17 +185,32 @@ class ImageRGB(ImageScalar):
     Object represents an RGB image.
 
     Attributes:
-    im (np.ndarray[float]) - 2D array of RGB pixel values
-    channels (dict) - {color: channel_index} pairs
+
+        im (np.ndarray[float]) - 2D array of RGB pixel values
+
+        channels (dict) - {color: channel_index} pairs
 
     Inherited attributes:
-    shape (array like) - image dimensions
-    mask (np.ndarray[bool]) - image mask
-    labels (np.ndarray[int]) - segment ID mask
+
+        shape (array like) - image dimensions
+
+        mask (np.ndarray[bool]) - image mask
+
+        labels (np.ndarray[int]) - segment ID mask
+
     """
 
     def __init__(self, im, labels=None):
-        """ Instantiate RGB image. """
+        """
+        Instantiate RGB image.
+
+        Args:
+
+            im (np.ndarray[float]) - 2D array of pixel values
+
+           labels (np.ndarray[int]) - segment ID mask
+
+        """
         super().__init__(im, labels=labels)
         self.channels = dict(r=0, g=1, b=2)
 
@@ -171,11 +219,15 @@ class ImageRGB(ImageScalar):
         Returns monochrome image of specified color channel.
 
         Args:
-        channel (str) - desired channel
-        copy (bool) - if True, instantiate from image copy
+
+            channel (str) - desired channel
+
+            copy (bool) - if True, instantiate from image copy
 
         Returns:
-        image (ImageScalar) - monochrome image
+
+            image (ImageScalar) - monochrome image
+
         """
         if copy:
             monochrome = deepcopy(self.im[:, :, self.channels[channel]])

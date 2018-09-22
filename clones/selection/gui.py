@@ -13,11 +13,17 @@ class GUI(StackInterface):
     Key actions:
 
         Z: remove last added point
+
         M: reset all points in layer
+
         S: save selection
+
         X: disconnect and exit GUI
+
         N: mark layer as neurons+cones and exclude
+
         D: mark layer as duplicate and exclude
+
         E: mark layer as exemplar
 
     """
@@ -27,7 +33,9 @@ class GUI(StackInterface):
         Instantiate GUI.
 
         Args:
-        stack (Stack) - image stack
+
+            stack (Stack) - image stack
+
         """
         super().__init__(stack)
 
@@ -41,10 +49,13 @@ class GUI(StackInterface):
         Load selection GUI from file.
 
         Args:
-        stack (Stack) - image stack
+
+            stack (Stack) - image stack
 
         Returns:
-        gui (GUI) - disconnected gui
+
+            gui (GUI) - disconnected gui
+
         """
         gui = GUI(stack)
         _ = [interface.load() for interface in gui.layer_to_interface.values()]
@@ -55,7 +66,9 @@ class GUI(StackInterface):
         Save selection path for each layer.
 
         Args:
-        image (bool) - if True, save overall image of selections
+
+            image (bool) - if True, save overall image of selections
+
         """
 
         # save each layer
@@ -102,13 +115,20 @@ class GUI(StackInterface):
         """
         Key actions.
 
-        Z: remove last added point
-        M: reset all points in layer
-        S: save selection
-        X: disconnect and exit GUI
-        N: mark layer as neurons+cones and exclude
-        D: mark layer as duplicate and exclude
-        E: mark layer as exemplar
+            Z: remove last added point
+
+            M: reset all points in layer
+
+            S: save selection
+
+            X: disconnect and exit GUI
+
+            N: mark layer as neurons+cones and exclude
+
+            D: mark layer as duplicate and exclude
+
+            E: mark layer as exemplar
+
         """
 
         row = self.which_layer(event)

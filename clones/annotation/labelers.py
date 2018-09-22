@@ -6,18 +6,27 @@ class AttributeLabeler:
     Assigns label to cell measurement data based on an existing attribute.
 
     Attributes:
-    label (str) - name of label field to be added
-    attribute (str) - existing cell attribute used to determine labels
-    labeler (vectorized func) - callable that maps attribute values to labels
+
+        label (str) - name of label field to be added
+
+        attribute (str) - existing cell attribute used to determine labels
+
+        labeler (vectorized func) - callable that maps attribute values to labels
+
     """
+
     def __init__(self, label, attribute, labels):
         """
         Instantiate labeler.
 
         Args:
-        label (str) - name of label attribute to be added
-        attribute (str) - existing cell attribute used to determine labels
-        labels (dict) - {attribute value: label value} pairs
+
+            label (str) - name of label attribute to be added
+
+            attribute (str) - existing cell attribute used to determine labels
+
+            labels (dict) - {attribute value: label value} pairs
+
         """
 
         # store label and attribute field names
@@ -32,7 +41,9 @@ class AttributeLabeler:
         Assign labels by adding <label> field to cell measurement data.
 
         Args:
-        data (pd.DataFrame) - cells measurement data with <attribute> field
+
+           data (pd.DataFrame) - cells measurement data with <attribute> field
+
         """
         return self.assign_labels(data)
 
@@ -41,7 +52,9 @@ class AttributeLabeler:
         Assign labels by adding <label> field to cell measurement data.
 
         Args:
-        data (pd.DataFrame) - cells measurement data with <attribute> field
+
+            data (pd.DataFrame) - cells measurement data with <attribute> field
+
         """
         data[self.label] = self.labeler(data[self.attribute])
 
@@ -51,16 +64,23 @@ class CelltypeLabeler(AttributeLabeler):
     Assigns <celltype> to cell measurement data based on <genotype> attribute.
 
     Attributes:
-    label (str) - name of label field to be added
-    attribute (str) - existing cell attribute used to determine labels
-    labeler (vectorized func) - callable that maps attribute values to labels
+
+        label (str) - name of label field to be added
+
+        attribute (str) - existing cell attribute used to determine labels
+
+        labeler (vectorized func) - callable that maps attribute values to labels
+
     """
+
     def __init__(self, labels=None):
         """
         Instantiate celltype labeler.
 
         Args:
-        labels (dict) - {genotype value: label} pairs
+
+            labels (dict) - {genotype value: label} pairs
+
         """
 
         # use default genotype labels

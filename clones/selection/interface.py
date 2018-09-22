@@ -12,8 +12,11 @@ class LayerVisualization:
     Object for visualizing a single layer.
 
     Attributes:
-    path (str) - layer path
-    axes (array like) - axes for blue/red/green color channels
+
+        path (str) - layer path
+
+        axes (array like) - axes for blue/red/green color channels
+
     """
 
     def __init__(self, layer, axes):
@@ -21,8 +24,11 @@ class LayerVisualization:
         Instantiate layer visualization.
 
         Args:
-        layer (Layer) - image layer
-        axes (array like) - axes for blue/red/green color channels
+
+            layer (Layer) - image layer
+
+            axes (array like) - axes for blue/red/green color channels
+
         """
 
         # set selection path
@@ -36,7 +42,16 @@ class LayerVisualization:
         self.render_images(layer)
 
     def render_images(self, layer, cmap=None):
-        """ Add blue, green, and red channels of layer to axes. """
+        """
+        Add blue, green, and red channels of layer to axes.
+
+        Args:
+
+            layer (Layer) - RGB image layer
+
+            cmap (matplotlib.colors.ColorMap)
+
+        """
 
         # if cmap is None, use natural colors
         if cmap is None:
@@ -104,13 +119,28 @@ class LayerInterface(LayerVisualization):
     """
     Event handler for an individual layer.
 
+
     Attributes:
-    include (bool) - flag for layer inclusion
-    duplicate (bool) - flag for duplicate layer
-    exemplar (bool) - flag for exemplary layer
-    active_polyhon (bool) - if True, polygon is currently active
-    pts (list) - selection boundary points
-    traceback (list) - exception traceback
+
+        include (bool) - flag for layer inclusion
+
+        duplicate (bool) - flag for duplicate layer
+
+        exemplar (bool) - flag for exemplary layer
+
+        active_polyhon (bool) - if True, polygon is currently active
+
+        pts (list) - selection boundary points
+
+        traceback (list) - exception traceback
+
+
+    Inherited attributes:
+
+        path (str) - layer path
+
+        axes (array like) - axes for blue/red/green color channels
+
     """
 
     def __init__(self, layer, axes):
@@ -118,8 +148,11 @@ class LayerInterface(LayerVisualization):
         Instantiate layer interface.
 
         Args:
-        layer (Layer) - image layer
-        axes (array like) - axes for blue/red/green color channels
+
+            layer (Layer) - image layer
+
+            axes (array like) - axes for blue/red/green color channels
+
         """
 
         # call visualization instantiation method
@@ -229,8 +262,11 @@ class StackInterface:
     Object for visualizing multiple layers in an image stack.
 
     Attributes:
-    path (str) - layer path
-    axes (array like) - axes for blue/red/green color channels
+
+        path (str) - layer path
+
+        axes (array like) - axes for blue/red/green color channels
+
     """
 
     def __init__(self, stack):
@@ -247,7 +283,9 @@ class StackInterface:
         Build interface by adding interface for each layer.
 
         Args:
-        stack (Stack) - image stack
+
+            stack (Stack) - image stack
+
         """
 
         # create figure

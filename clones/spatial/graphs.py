@@ -13,12 +13,19 @@ class Graph:
     Object provides an undirected unweighted graph connecting adjacent cells.
 
     Attributes:
-    df (pd.DataFrame) - cell measurement data (nodes)
-    nodes (np.ndarray[int]) - node indices
-    edges (np.ndarray[int]) - pairs of connected node indices
-    node_map (vectorized func) - maps positional index to node index
-    position_map (vectorized func) - maps node index to positional index
-    tri (matplotlib.tri.Triangulation) - triangulation of node positions
+
+        df (pd.DataFrame) - cell measurement data (nodes)
+
+        nodes (np.ndarray[int]) - node indices
+
+        edges (np.ndarray[int]) - pairs of connected node indices
+
+        node_map (vectorized func) - maps positional index to node index
+
+        position_map (vectorized func) - maps node index to positional index
+
+        tri (matplotlib.tri.Triangulation) - triangulation of node positions
+
     """
 
     def __init__(self, data):
@@ -38,6 +45,7 @@ class Graph:
         self.update_graph()
 
     def get_networkx(self):
+        """ Returns networkx instance of graph. """
         G = nx.Graph()
         G.add_edges_from(self.edges)
         return G
@@ -65,7 +73,9 @@ class Graph:
         Mask edges with lengths exceeding specified quantile.
 
         Args:
-        q (float) - length quantile, 0 to 100
+
+            q (float) - length quantile, 0 to 100
+
         """
         max_lengths = self._evaluate_max_edge_lengths(self.tri)
         mask = max_lengths > np.percentile(max_lengths, q=q)
@@ -81,8 +91,11 @@ class Graph:
         Plot triangulation edges.
 
         Args:
-        ax (matplotlib.axes.AxesSubplot)
-        kwargs: keyword arguments for matplotlib.pyplot.triplot
+
+            ax (matplotlib.axes.AxesSubplot)
+
+            kwargs: keyword arguments for matplotlib.pyplot.triplot
+
         """
         if ax is None:
             fig, ax = plt.subplots()
@@ -93,10 +106,13 @@ class Graph:
         Label each triangle with most common node attribute value.
 
         Args:
-        label_by (str) - node attribute used to label each triangle
+
+            label_by (str) - node attribute used to label each triangle
 
         Returns:
-        labels (np.ndarray[int]) - labels for each triangle
+
+            labels (np.ndarray[int]) - labels for each triangle
+
         """
 
         # get triangulation vertices
@@ -121,10 +137,15 @@ class Graph:
         Plot triangle faces using tripcolor.
 
         Args:
-        label_by (str) - cell measurement attribute used to color each triangle
-        cmap (matplotlib.colors.ColorMap) - colormap for cell attribute values
-        ax (matplotlib.axes.AxesSubplot)
-        kwargs: keyword ar
+
+            label_by (str) - data attribute used to color each triangle
+
+            cmap (matplotlib.colors.ColorMap) - colormap for attribute values
+
+            ax (matplotlib.axes.AxesSubplot)
+
+            kwargs: keyword arguments for plt.tripcolor
+
         """
         if ax is None:
             fig, ax = plt.subplots()
@@ -152,22 +173,44 @@ class Graph:
 
 class WeightedGraph(Graph):
     """
-    Object provides an undirected weighted graph connecting adjacent cells.
+    Object provides an undirected weighted graph connecting adjacent cells. Edge weights are evaluated based on the similarity of expression between pairs of connected nodes. Node similariy is based on the cell measurement data attribute specified by the 'weighted_by' parameter.
 
     Attributes:
-    q (float) - edge length quantile above which edges are excluded, 0 to 100
+
+        weighted_by (str) - data attribute used to weight edges
+
+        q (float) - edge length quantile above which edges are excluded, 0-100
 
     Inherited attributes:
-    df (pd.DataFrame) - cell measurement data (nodes)
-    nodes (np.ndarray[int]) - node indices
-    edges (np.ndarray[int]) - pairs of connected node indices
-    node_map (vectorized func) - maps positional index to node index
-    position_map (vectorized func) - maps node index to positional index
-    tri (matplotlib.tri.Triangulation) - triangulation of node positions
+
+        df (pd.DataFrame) - cell measurement data (nodes)
+
+        nodes (np.ndarray[int]) - node indices
+
+        edges (np.ndarray[int]) - pairs of connected node indices
+
+        node_map (vectorized func) - maps positional index to node index
+
+        position_map (vectorized func) - maps node index to positional index
+
+        tri (matplotlib.tri.Triangulation) - triangulation of node positions
+
     """
 
-
     def __init__(self, data, weighted_by='r_normalized', q=95):
+        """
+        Instantiate weighted graph.
+
+        Args:
+
+            data (pd.DataFrame) - cell measurement data
+
+            weighted_by (str) - data attribute used to weight edges
+
+            q (float) - maximum edge length quantile for edge inclusion, 0-100
+
+        """
+
         Graph.__init__(self, data)
         self.q = q
         self.apply_distance_filter(q)
@@ -181,7 +224,9 @@ class WeightedGraph(Graph):
         Determine indices of nodes excluded by the distance filter.
 
         Returns:
-        excluded (np.ndarray[int]) - indices of excluded nodes
+
+            excluded (np.ndarray[int]) - indices of excluded nodes
+
         """
         before = self.df.index.values
         after = self.nodes
@@ -192,10 +237,12 @@ class WeightedGraph(Graph):
         Evaluate edge weights.
 
         Args:
-        weighted_by (str) - cell measurement attribute used to quantify the similarity of two nodes
+            weighted_by (str) - data attribute used to weight edges
 
         Returns:
-        weights (np.ndarray[float]) - edge weights
+
+            weights (np.ndarray[float]) - edge weights
+
         """
         wf = WeightFunction(self.df, weighted_by=weighted_by)
         return wf.assess_weights(self.edges)
@@ -205,7 +252,9 @@ class WeightedGraph(Graph):
         Construct list of weighted edges.
 
         Returns:
-        links (list) - series of (node_from, node_to, [weight]) tuples
+
+            links (list) - series of (node_from, node_to, [weight]) tuples
+
         """
         if self.weighted_by not in (None, 'none', 'None'):
             weights = self.evaluate_edge_weights(self.weighted_by)
@@ -220,6 +269,7 @@ class WeightedGraph(Graph):
         Assign communities using InfoMap clustering.
 
         kwargs: keyword arguments for InfoMap (default is two-level)
+
         """
         edges = self.build_links()
         community_detector = InfoMap(edges, **kw)
@@ -231,9 +281,13 @@ class WeightFunction:
     Object for weighting graph edges by similarity.
 
     Attributes:
-    df (pd.DataFrame) - nodes data
-    weighted_by (str) - node attribute used to assess similarity
-    values (pd.Series) - node attribute values
+
+        df (pd.DataFrame) - nodes data
+
+        weighted_by (str) - node attribute used to assess similarity
+
+        values (pd.Series) - node attribute values
+
     """
 
     def __init__(self, df, weighted_by='r'):
@@ -241,8 +295,11 @@ class WeightFunction:
         Instantiate edge weighting function.
 
         Args:
-        df (pd.DataFrame) - nodes data
-        weighted_by (str) - node attribute used to assess similarity
+
+            df (pd.DataFrame) - nodes data
+
+            weighted_by (str) - node attribute used to assess similarity
+
         """
         self.df = df
         self.weighted_by = weighted_by
@@ -253,10 +310,13 @@ class WeightFunction:
         Evaluate difference in values between nodes i and j.
 
         Args:
-        i, j (ind) - node indices
+
+            i, j (ind) - node indices
 
         Returns:
-        difference (float)
+
+            difference (float)
+
         """
         return np.abs(self.values.loc[i] - self.values.loc[j])
 
@@ -265,10 +325,13 @@ class WeightFunction:
         Evaluate edge weights normalized by mean difference in node values.
 
         Args:
-        edges (list of (i, j) tuples) - edges between nodes i and j
+
+            edges (list of (i, j) tuples) - edges between nodes i and j
 
         Returns:
-        weights (np.ndarray[float]) - edge weights
+
+            weights (np.ndarray[float]) - edge weights
+
         """
         energy = np.array([self.difference(*e) for e in edges])
         weights = np.exp(-energy/np.mean(energy))
@@ -280,8 +343,11 @@ class GraphVisualization:
     Object for graph visualization.
 
     Attributes:
-    G (nx.Graph) - networkx graph object
-    pos (np.ndarray[float]) - 2D node positions
+
+        G (nx.Graph) - networkx graph object
+
+        pos (np.ndarray[float]) - 2D node positions
+
     """
 
     def __init__(self, G, pos):
@@ -289,8 +355,11 @@ class GraphVisualization:
         Instantiate graph visualization.
 
         Args:
-        G (nx.Graph) - networkx graph object
-        pos (np.ndarray[float]) - 2D node positions
+
+            G (nx.Graph) - networkx graph object
+
+            pos (np.ndarray[float]) - 2D node positions
+
         """
         self.G = G
         self.pos = pos
@@ -301,10 +370,13 @@ class GraphVisualization:
         Instantiate from Graph instance.
 
         Args:
-        graph (Graph)
+
+            graph (Graph)
 
         Returns:
-        nxGraph (GraphVisualization)
+
+            nxGraph (GraphVisualization)
+
         """
 
         # build graph from edges
@@ -367,11 +439,15 @@ class GraphVisualization:
         Get edge weights.
 
         Args:
-        label_on (str) - attribute used to determine node kinship
-        disconnect (bool) - if True, exclude edges between communities
+
+            label_on (str) - attribute used to determine node kinship
+
+            disconnect (bool) - if True, exclude edges between communities
 
         Returns:
-        weights (list) - edge weights
+
+            weights (list) - edge weights
+
         """
         weights = []
         for u, v in self.G.edges:
@@ -394,11 +470,17 @@ class GraphVisualization:
         Draw graph.
 
         Args:
-        ax (matplotlib.axes.AxesSubplot) - axis on which to draw graph
-        colorby (str) - node attribute on which nodes are colored
-        disconnect (bool) - if True, exclude edges between communities
-        ec (str) - edge color
-        node_cmap (matplotlib.colors.ColorMap) - node colormap
+
+            ax (matplotlib.axes.AxesSubplot) - axis on which to draw graph
+
+            colorby (str) - node attribute on which nodes are colored
+
+            disconnect (bool) - if True, exclude edges between communities
+
+            ec (str) - edge color
+
+            node_cmap (matplotlib.colors.ColorMap) - node colormap
+
         """
 
         # create figure
@@ -429,20 +511,45 @@ class GraphVisualization:
               pos,
               node_colors,
               edge_colors,
-              edge_weights,
+              edge_widths,
               cmap=None,
               node_alpha=1,
               node_size=20,
               lw=3,
               edge_alpha=0.5,
-              **kw):
+              **kwargs):
         """
         Draw graph.
+
+        Args:
+
+            G (nx.Graph) - graph object
+
+            pos (np.ndarray[float]) - node xy positions in space (graph layout)
+
+            node_colors (array like) - node values
+
+            edge_colors (array like) - edge colors
+
+            edge_widths (array like) - edge linewidths
+
+            cmap (matplotlib.colors.ColorMap) - colormap applied to node values
+
+            node_alpha (float) - node transparency
+
+            node_size (float) - node size
+
+            lw (float) - maximum edge linewidth
+
+            edge_alpha (float) - edge line transparency
+
+            kwargs: keyword arguments for nx.draw_networkx_nodes
+
         """
 
         # draw edges
         norm = Normalize(vmin=min(edge_weights), vmax=max(edge_weights))
-        edge_widths = [norm(w)*lw for w in edge_weights]
+        edge_widths = [norm(w)*lw for w in edge_widths]
         nx.draw_networkx_edges(G, pos, ax=ax, edge_color=edge_colors, width=edge_widths, alpha=edge_alpha)
 
         # draw nodes
@@ -451,6 +558,6 @@ class GraphVisualization:
             node_color=node_colors,
             node_alpha=node_alpha,
             node_size=node_size,
-            cmap=cmap, **kw)
+            cmap=cmap, **kwargs)
 
         ax.axis('off')

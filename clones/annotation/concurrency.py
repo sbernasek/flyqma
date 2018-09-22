@@ -9,9 +9,13 @@ class ConcurrencyLabeler(AttributeLabeler):
     Object for labeling cell measurements as concurrent with other cell types.  Concurrency with each unique target cell type is determined by applying a maximum threshold on the x-distance between each cell and its nearest neighbor of the target type.
 
     Attributes:
-    attribute (str) - measurement attribute used to denote cell type
-    min_pop (int) - minimum population size for inclusion of cell type
-    max_distance (float) - maximum distance threshold for inclusion
+
+        attribute (str) - measurement attribute used to denote cell type
+
+        min_pop (int) - minimum population size for inclusion of cell type
+
+        max_distance (float) - maximum distance threshold for inclusion
+
     """
 
     def __init__(self, attribute='celltype', min_pop=5, max_distance=10):
@@ -19,9 +23,13 @@ class ConcurrencyLabeler(AttributeLabeler):
         Instantiate object for labeling measurements as concurrent with other cell types.
 
         Args:
-        attribute (str) - measurement attribute used to denote cell type
-        min_pop (int) - minimum population size for inclusion of cell type
-        max_distance (float) - maximum distance threshold for inclusion
+
+            attribute (str) - measurement attribute used to denote cell type
+
+            min_pop (int) - minimum population size for inclusion of cell type
+
+            max_distance (float) - maximum distance threshold for inclusion
+
         """
 
         self.attribute = attribute
@@ -33,11 +41,15 @@ class ConcurrencyLabeler(AttributeLabeler):
         Evaluate x-distance of all cells to nearest neighbor of target cell type.
 
         Args:
-        data (pd.DataFrame) - processed cell measurement data
-        target_type (str) - target cell type
+
+            data (pd.DataFrame) - processed cell measurement data
+
+            target_type (str) - target cell type
 
         Returns:
-        distances (np.ndarray[float]) - distances to target cell type
+
+            distances (np.ndarray[float]) - distances to target cell type
+
         """
 
         # get target cells
@@ -59,7 +71,9 @@ class ConcurrencyLabeler(AttributeLabeler):
         Add boolean 'concurrent_<cell type>' field to cell measurement data for each unique cell type.
 
         Args:
-        data (pd.DataFrame) - processed cell measurement data
+
+            data (pd.DataFrame) - processed cell measurement data
+
         """
 
         # find unique target cell types

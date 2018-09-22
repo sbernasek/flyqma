@@ -12,9 +12,13 @@ class PairwiseComparison:
     Pairwise statistical comparison between measurements of two populations.
 
     Attributes:
-    x (pd.DataFrame) - measurements of first population
-    y (pd.DataFrame) - measurements of second population
-    basis (str) - attribute on which populations are compared
+
+        x (pd.DataFrame) - measurements of first population
+
+        y (pd.DataFrame) - measurements of second population
+
+        basis (str) - attribute on which populations are compared
+
     """
 
     def __init__(self, x, y, basis):
@@ -22,10 +26,14 @@ class PairwiseComparison:
         Instantiate pairwise comparison of two populations.
 
         Attributes:
-        x (pd.DataFrame) - measurements of first population
-        y (pd.DataFrame) - measurements of second population
-        basis (str) - attribute on which populations are compared
-        """
+
+            x (pd.DataFrame) - measurements of first population
+
+            y (pd.DataFrame) - measurements of second population
+
+            basis (str) - attribute on which populations are compared
+
+            """
         self.x = x
         self.y = y
         self.basis = basis
@@ -35,10 +43,13 @@ class PairwiseComparison:
         Run statistical test.
 
         Args:
-        test (str) - name of test used, one of ('KS', 't', 'MW')
+
+            test (str) - name of test used, one of ('KS', 't', 'MW')
 
         Returns:
-        p (float) - p-value
+
+            p (float) - p-value
+
         """
 
         # extract compared values for each population
@@ -60,13 +71,19 @@ class CloneComparison(PairwiseComparison):
     Pairwise statistical comparison between two concurrent cell types.
 
     Attributes:
-    type1 (str) - first cell type
-    type2 (str) - second cell type
+
+        type1 (str) - first cell type
+
+        type2 (str) - second cell type
 
     Inherited attributes:
-    x (pd.DataFrame) - measurements of first population
-    y (pd.DataFrame) - measurements of second population
-    basis (str) - attribute on which populations are compared
+
+        x (pd.DataFrame) - measurements of first population
+
+        y (pd.DataFrame) - measurements of second population
+
+        basis (str) - attribute on which populations are compared
+
     """
 
     def __init__(self, measurements, type1, type2, basis):
@@ -74,10 +91,15 @@ class CloneComparison(PairwiseComparison):
         Instantiate comparison between two concurrent cell types.
 
         Args:
-        measurements (pd.DataFrame) - cell measurement data
-        type1 (str) - first cell type
-        type2 (str) - second cell type
-        basis (str) - attribute on which populations are compared
+
+            measurements (pd.DataFrame) - cell measurement data
+
+            type1 (str) - first cell type
+
+            type2 (str) - second cell type
+
+            basis (str) - attribute on which populations are compared
+
         """
 
         # store cell types
@@ -105,10 +127,15 @@ class CloneComparison(PairwiseComparison):
         Visualize comparison using seaborn box or violinplot.
 
         Args:
-        ax (matplotlib.axes.AxesSubplot)
-        mode (str) - type of comparison, either 'box', 'violin', or 'strip'
-        ylabel (str) - label for yaxis
-        kwargs: keyword arguments for seaborn plotting function
+
+            ax (matplotlib.axes.AxesSubplot)
+
+            mode (str) - type of comparison, either 'box', 'violin', or 'strip'
+
+            ylabel (str) - label for yaxis
+
+            kwargs: keyword arguments for seaborn plotting function
+
         """
 
         # create figure if none provided
@@ -155,9 +182,13 @@ class CloneComparison(PairwiseComparison):
         Format axis.
 
         Args:
-        ax (matplotlib.axes.AxesSubplot)
-        mode (str) - type of comparison, either 'box', 'violin', or 'strip'
-        ylabel (str) - label for y axis
+
+            ax (matplotlib.axes.AxesSubplot)
+
+            mode (str) - type of comparison, either 'box', 'violin', or 'strip'
+
+            ylabel (str) - label for y axis
+
         """
 
         # define labels and corresponding fill colors
@@ -205,9 +236,13 @@ class SummaryStatistics:
     Summary of comparisons between mutant, heterozygote, and wildtype clones.
 
     Attributes:
-    measurements (pd.DataFrame) - cell measurement data
-    basis (str) - attribute on which clones are compared
-    test (str) - name of test used, one of ('KS', 't', 'MW')
+
+        measurements (pd.DataFrame) - cell measurement data
+
+        basis (str) - attribute on which clones are compared
+
+        test (str) - name of test used, one of ('KS', 't', 'MW')
+
     """
 
     def __init__(self, control, perturbation, basis, test='MW'):
@@ -215,10 +250,15 @@ class SummaryStatistics:
         Instantiate summary of comaprisons between mutant, heterozygote, and wildtype clones.
 
         Args:
-        control (pd.DataFrame) - measurements for control condition
-        perturbation (pd.DataFrame) - measurements for perturbation condition
-        basis (str) - attribute on which clones are compared
-        test (str) - name of test used, one of ('KS', 't', 'MW')
+
+            control (pd.DataFrame) - measurements for control condition
+
+            perturbation (pd.DataFrame) - measurements for perturbation condition
+
+            basis (str) - attribute on which clones are compared
+
+            test (str) - name of test used, one of ('KS', 't', 'MW')
+
         """
         self.measurements = dict(control=control, perturbation=perturbation)
         self.basis = basis
@@ -231,12 +271,17 @@ class SummaryStatistics:
     def compare_celltype(self, condition, type1, type2):
         """
         Args:
-        condition (str) - experimental condition, 'control' or 'perturbation'
-        type1 (str) - first cell type
-        type2 (str) - second cell type
+
+            condition (str) - experimental condition, 'control' or 'perturbation'
+
+            type1 (str) - first cell type
+
+            type2 (str) - second cell type
 
         Returns:
-        p (float) - p value for comparison statistic
+
+            p (float) - p value for comparison statistic
+
         """
         data = self.measurements[condition]
         comparison = CloneComparison(data, type1, type2, self.basis)
@@ -247,7 +292,9 @@ class SummaryStatistics:
         Compare mutant vs heterozygous and heterozygous vs wildtype for both the control and perturbation conditions.
 
         Returns:
-        pvals (dict) - {comparison: pvalue} pairs
+
+            pvals (dict) - {comparison: pvalue} pairs
+
         """
         pvals = dict(
             c_mh = self.compare_celltype('control', 'm', 'h'),
@@ -261,7 +308,9 @@ class SummaryStatistics:
         Print summary of statistical comparisons for each condition.
 
         Args:
-        pvals (dict) - {comparison: pvalue} pairs
+
+            pvals (dict) - {comparison: pvalue} pairs
+
         """
         print('Statistical test: {}'.format(self.test))
         print('Control: 0x vs 1x: {:0.4f}'.format(pvals['c_mh']))

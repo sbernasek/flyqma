@@ -11,11 +11,17 @@ class Experiment:
     Object represents a collection of 3D RGB image stacks collected under the same experimental conditions.
 
     Attributes:
-    path (str) - path to experiment directory
-    _id (int) - experiment ID
-    stacks (list) - paths to stack directories
-    size (int) - number of stacks in experiment
-    count (int) - counter for stack iteration
+
+        path (str) - path to experiment directory
+
+        _id (int) - experiment ID
+
+        stacks (list) - paths to stack directories
+
+        size (int) - number of stacks in experiment
+
+        count (int) - counter for stack iteration
+
     """
 
     def __init__(self, path):
@@ -23,7 +29,9 @@ class Experiment:
         Instantiate experiment object.
 
         Args:
-        path (str) - directory with subdirectories of 3D RGB image stacks
+
+            path (str) - directory with subdirectories of 3D RGB image stacks
+
         """
 
         # set path to experiment directory
@@ -64,11 +72,15 @@ class Experiment:
         Load 3D RGB image stack.
 
         Args:
-        stack_ind (int) - stack index in list of paths
-        full (bool) - if True, load full 3D image from tif file
+
+            stack_ind (int) - stack index in list of paths
+
+            full (bool) - if True, load full 3D image from tif file
 
         Returns:
-        stack (Stack)
+
+            stack (Stack)
+
         """
         stack = Stack(self.stacks[stack_ind])
         if full:
@@ -83,12 +95,17 @@ class Experiment:
         Aggregate measurements from each stack.
 
         Args:
-        selected_only (bool) - if True, exclude cells not marked for inclusion
-        exclude_boundary (bool) - if True, exclude cells on clone boundaries
-        raw (bool) - if True, aggregate raw measurements from included discs
+
+            selected_only (bool) - if True, exclude cells not marked for inclusion
+
+            exclude_boundary (bool) - if True, exclude cells on clone boundaries
+
+            raw (bool) - if True, aggregate raw measurements from included discs
 
         Returns:
-        data (pd.Dataframe) - curated cell measurement data
+
+            data (pd.Dataframe) - curated cell measurement data
+
         """
 
         # load measurements from each stack in the experiment

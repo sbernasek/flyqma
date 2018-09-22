@@ -7,12 +7,16 @@ def resample_uniformly(x, y, size=None, cutoff=None):
     Resample X and Y uniformly in X.
 
     Args:
-    x, y (np.ndarray[float]) - original samples
-    size (int) - number of uniform samples
-    cutoff (int) - upper bound for samples (quantile, 0 to 100)
+
+        x, y (np.ndarray[float]) - original samples
+
+        size (int) - number of uniform samples
+
+        cutoff (int) - upper bound for samples (quantile, 0 to 100)
 
     Returns:
-    x, y (np.ndarray[float]) - resampled s.t. x is uniformly distributed
+
+        x, y (np.ndarray[float]) - resampled s.t. x is uniformly distributed
 
     """
 

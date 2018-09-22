@@ -14,10 +14,15 @@ class Segmentation:
     Seed detection is performed by finding local maxima in a euclidean distance transform of the image foreground mask. Segmentation is achieved via the watershed method.
 
     Attributes:
-    seeds (np.ndarray[float]) - seeds for segmentation, 2 x N
-    labels (2D np.ndarray[int]) - segment label mask, number denotes segment ID
-    segment_ids (1D np.ndarray[int]) - unique segment IDs, length N
-    cmap (matplotlib.colors.ColorMap) - segment ID colormap, length N+1
+
+        seeds (np.ndarray[float]) - seeds for segmentation, 2 x N
+
+        labels (2D np.ndarray[int]) - segment label mask, number denotes segment ID
+
+        segment_ids (1D np.ndarray[int]) - unique segment IDs, length N
+
+        cmap (matplotlib.colors.ColorMap) - segment ID colormap, length N+1
+
     """
 
     def __init__(self, image, seed_kws={}, seg_kws={}):
@@ -25,9 +30,13 @@ class Segmentation:
         Instantiate and run segmentation.
 
         Args:
-        image (MonochromeImage) - image to be segmented
-        seed_kws (dict) - keyword arguments for seed detection
-        seg_kws (dict) - keyword arguments for segmentation
+
+            image (MonochromeImage) - image to be segmented
+
+            seed_kws (dict) - keyword arguments for seed detection
+
+            seg_kws (dict) - keyword arguments for segmentation
+
         """
         image.set_otsu_mask()
         self.labels = None
@@ -53,12 +62,17 @@ class Segmentation:
         Find local maxima of euclidean distance transform.
 
         Args:
-        im (np.ndarray[bool]) - 2D boolean foreground mask
-        min_distance (int) - minimum distance separating maxima, px
-        num_peaks (int) - maximum number of peaks
+
+            im (np.ndarray[bool]) - 2D boolean foreground mask
+
+            min_distance (int) - minimum distance separating maxima, px
+
+            num_peaks (int) - maximum number of peaks
 
         Returns:
-        seeds (np.ndarray[float]) - local maxima, shape (N, 2)
+
+            seeds (np.ndarray[float]) - local maxima, shape (N, 2)
+
         """
         seeds = peak_local_max(im, min_distance=min_distance, num_peaks=num_peaks, exclude_border=False)
         return seeds
@@ -68,7 +82,24 @@ class Segmentation:
                                 sigma=2,
                                 min_distance=1,
                                 num_peaks=np.inf):
-        """ Seed detection via euclidean distance transform of binary map. """
+        """
+        Seed detection via euclidean distance transform of binary map.
+
+        Args:
+
+            mask (nd.ndarray[bool]) - foreground mask
+
+            sigma (float) - smoothing applied to euclidean distance mask
+
+            min_distance (int) - minimum pixel distance between local maxima
+
+            num_peaks (int) - maximum number of local maxima
+
+        Returns:
+
+            seeds (dict) - {segment_id: (xpos, ypos)} pairs
+
+        """
 
         # get values
         values = distance_transform_edt(mask).astype(float)
@@ -86,8 +117,11 @@ class Segmentation:
         Get mask for markers.
 
         Args:
-        im (np.ndarray[float]) - image to be segmented
-        seeds (dict) - {segment_id: [x, y]} pairs
+
+            im (np.ndarray[float]) - image to be segmented
+
+            seeds (dict) - {segment_id: [x, y]} pairs
+
         """
 
         # create marker mask
@@ -105,9 +139,13 @@ class Segmentation:
         Run watershed segmentation to generate segment label mask.
 
         Args:
-        mask (np.ndarray[bool]) - binary foreground mask
-        sigma (float) - parameter for smoothing distance mask
-        watershed_line (bool) - if True, include 1 px line separating contours
+
+            mask (np.ndarray[bool]) - binary foreground mask
+
+            sigma (float) - parameter for smoothing distance mask
+
+            watershed_line (bool) - if True, include 1px line between contours
+
         """
 
         # define distances
@@ -152,7 +190,9 @@ class Segmentation:
         Exclude small segments.
 
         Args:
-        min_area (float) - minimum contour area
+
+            min_area (float) - minimum contour area
+
         """
 
         # identify small segments
@@ -175,9 +215,9 @@ class Segmentation:
         Visualize segment label mask.
 
         Args:
-        figsize (tuple) - figure size
+
+            figsize (tuple) - figure size
+
         """
         fig, ax = plt.subplots(figsize=figsize)
         ax.imshow(self.labels, cmap=self.cmap)
-
-

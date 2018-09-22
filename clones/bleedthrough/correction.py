@@ -18,16 +18,25 @@ class LayerCorrection(GLM):
     Linear correction for background correlation between fluorescence channels within an individual layer.
 
     Attributes:
-    layer (Layer) - layer RGB image
+
+        layer (Layer) - layer RGB image
 
     Parameters:
-    xvar (str) - name of independent variable attribute in measurement data
-    yvar (str) - name of dependent variable attribute in measurement data
-    niters (int) - number of binary dilations applied to foreground mask
-    remove_zeros (bool) - if True, remove all zero-valued pixels.
-    resample (bool) - if True, uniformly resample pixels in X
-    resample_size (int) - number of uniform samples
-    resample_cutoff (int) - upper bound for samples (quantile, 0 to 100)
+
+        xvar (str) - name of independent variable attribute in measurement data
+
+        yvar (str) - name of dependent variable attribute in measurement data
+
+        niters (int) - number of binary dilations applied to foreground mask
+
+        remove_zeros (bool) - if True, remove all zero-valued pixels.
+
+        resample (bool) - if True, uniformly resample pixels in X
+
+        resample_size (int) - number of uniform samples
+
+        resample_cutoff (int) - upper bound for samples (quantile, 0 to 100)
+
     """
 
     def __init__(self, layer,
@@ -39,6 +48,28 @@ class LayerCorrection(GLM):
                  resample_size=None,
                  resample_cutoff=None,
                  **fit_kw):
+        """
+        Instantiate bleedthrough correction for an RGB image layer.
+
+        Args:
+
+            layer (Layer) - layer RGB image
+
+            xvar (str) - independent variable attribute in measurement data
+
+            yvar (str) - dependent variable attribute in measurement data
+
+            niters (int) - number of binary dilations applied to foreground
+
+            remove_zeros (bool) - if True, remove all zero-valued pixels.
+
+            resample (bool) - if True, uniformly resample pixels in X
+
+            resample_size (int) - number of uniform samples
+
+            resample_cutoff (int) - upper bound for samples (quantile, 0-100)
+
+        """
 
         # store layer
         self.layer = layer
@@ -80,10 +111,13 @@ class LayerCorrection(GLM):
         Load linear model from file.
 
         Args:
-        path (str) - path to correction directory
+
+            path (str) - path to correction directory
 
         Returns:
-        correction (LayerCorrection)
+
+            correction (LayerCorrection)
+
         """
 
         path = layer.subdirs['correction']
@@ -158,8 +192,11 @@ class LayerCorrection(GLM):
         Show cell measurements before and after correction.
 
         Args:
-        figsize (tuple) - figure size
-        selected_only (bool) - if True, exclude cells outside selection bounds
+
+            figsize (tuple) - figure size
+
+            selected_only (bool) - if True, exclude cells outside selection bounds
+
         """
 
         # instantiate figure
@@ -206,7 +243,9 @@ class LayerCorrection(GLM):
         Save linear model and corrected levels.
 
         Args:
-        images (bool) - if True, save model fit and corrected measurement figs
+
+            images (bool) - if True, save model fit and corrected measurement figs
+
         """
 
         # add subdirectory to layer
@@ -244,8 +283,11 @@ class LayerCorrection(GLM):
         Save all figures.
 
         Args:
-        dpi (int) - resolution
-        fmt (str) - image format
+
+            dpi (int) - resolution
+
+            fmt (str) - image format
+
         """
 
         # get correction path

@@ -16,20 +16,48 @@ class KM:
     K-means classifier.
 
     Attributes:
-    values (array like) - basis for clustering
-    log (bool) - indicates whether clustering performed on log values
-    n (int) - number of clusters
-    groups (dict) - {cluster_id: group_id} pairs for merging clusters
-    cluster_to_groups (vectorized func) - maps cluster_id to group_id
-    km (sklearn.cluster.KMeans) - kmeans object
-    classifier (vectorized func) - maps value to group_id
-    labels (np.ndarray[int]) - group_id labels assigned to fitted values
-    cmap (matplotlib.colors.ColorMap) - colormap for group_id
-    parameters (dict) - {param name: param value} pairs
-    fig (matplotlib.figures.Figure) - histogram figure
+
+        values (array like) - basis for clustering
+
+        log (bool) - indicates whether clustering performed on log values
+
+        n (int) - number of clusters
+
+        groups (dict) - {cluster_id: group_id} pairs for merging clusters
+
+        cluster_to_groups (vectorized func) - maps cluster_id to group_id
+
+        km (sklearn.cluster.KMeans) - kmeans object
+
+        classifier (vectorized func) - maps value to group_id
+
+        labels (np.ndarray[int]) - group_id labels assigned to fitted values
+
+        cmap (matplotlib.colors.ColorMap) - colormap for group_id
+
+        parameters (dict) - {param name: param value} pairs
+
+        fig (matplotlib.figures.Figure) - histogram figure
+
     """
 
     def __init__(self, values, n=3, groups=None, log=False, cmap=None):
+        """
+        Instantiate k-means classifier.
+
+        Args:
+
+            values (array like) - basis for clustering
+
+            n (int) - number of clusters
+
+            groups (dict) - {cluster_id: group_id} pairs for merging clusters
+
+            log (bool) - indicates whether clustering performed on log values
+
+            cmap (matplotlib.colors.ColorMap) - colormap for group_id
+
+        """
 
         # set values and whether to log transform them
         self.values = values
@@ -61,6 +89,7 @@ class KM:
         self.fig = None
 
     def __call__(self, x):
+        """ Return class assignments. """
         return self.classifier(x)
 
     @staticmethod
@@ -128,20 +157,33 @@ class CellClassifier(KM):
     K-means based classifier for assigning labels to individual cells.
 
     Attributes:
-    classify_on (str) - cell attribute on which clustering occurs
+
+        classify_on (str) - cell attribute on which clustering occurs
 
     Inherited attributes:
-    values (array like) - basis for clustering
-    log (bool) - indicates whether clustering performed on log values
-    n (int) - number of clusters
-    groups (dict) - {cluster_id: group_id} pairs for merging clusters
-    cluster_to_groups (vectorized func) - maps cluster_id to group_id
-    km (sklearn.cluster.KMeans) - kmeans object
-    classifier (vectorized func) - maps value to group_id
-    labels (np.ndarray[int]) - group_id labels assigned to fitted values
-    cmap (matplotlib.colors.ColorMap) - colormap for group_id
-    parameters (dict) - {param name: param value} pairs
-    fig (matplotlib.figures.Figure) - histogram figure
+
+        values (array like) - basis for clustering
+
+        log (bool) - indicates whether clustering performed on log values
+
+        n (int) - number of clusters
+
+        groups (dict) - {cluster_id: group_id} pairs for merging clusters
+
+        cluster_to_groups (vectorized func) - maps cluster_id to group_id
+
+        km (sklearn.cluster.KMeans) - kmeans object
+
+        classifier (vectorized func) - maps value to group_id
+
+        labels (np.ndarray[int]) - group_id labels assigned to fitted values
+
+        cmap (matplotlib.colors.ColorMap) - colormap for group_id
+
+        parameters (dict) - {param name: param value} pairs
+
+        fig (matplotlib.figures.Figure) - histogram figure
+
     """
 
     def __init__(self, values, classify_on='r_normalized', **kwargs):
@@ -149,18 +191,24 @@ class CellClassifier(KM):
         Fit a cell classifier to an array of values.
 
         Args:
-        values (np.ndarray[float]) - 1-D vector of measured values
-        classify_on (str) - cell measurement attribute from which values came
-        kwargs: keyword arguments for k-means classifier
+
+            values (np.ndarray[float]) - 1-D vector of measured values
+
+            classify_on (str) - cell measurement attribute from which values came
+
+            kwargs: keyword arguments for k-means classifier
 
         Returns:
-        classifier (CellClassifier)
+
+            classifier (CellClassifier)
+
         """
         super().__init__(values, **kwargs)
         self.classify_on = classify_on
         self.parameters['classify_on'] = classify_on
 
     def __call__(self, df):
+        """ Assign class labels to measurement data. """
         x =  df[self.classify_on].values.reshape(-1, 1)
         if self.log:
             x = np.log10(x)
@@ -172,12 +220,17 @@ class CellClassifier(KM):
         Fit a cell classifier to measurement data.
 
         Args:
-        measurements (pd.DataFrame) - cell measurement data
-        classify_on (str) - cell measurement attribute on which to cluster
-        kwargs: keyword arguments for k-means classifier
+
+            measurements (pd.DataFrame) - cell measurement data
+
+            classify_on (str) - cell measurement attribute on which to cluster
+
+            kwargs: keyword arguments for k-means classifier
 
         Returns:
-        classifier (CellClassifier)
+
+            classifier (CellClassifier)
+
         """
         values = measurements[classify_on].values
         return CellClassifier(values, classify_on, **kwargs)
@@ -197,8 +250,11 @@ class CellClassifier(KM):
         Save classifier to specified path.
 
         Args:
-        dirpath (str) - directory in which classifier is to be saved
-        image (bool) - if True, save labeled histogram image
+
+            dirpath (str) - directory in which classifier is to be saved
+
+            image (bool) - if True, save labeled histogram image
+
         """
 
         # create directory for classifier
@@ -232,10 +288,13 @@ class CellClassifier(KM):
         Load classifier from file.
 
         Args:
-        path (str) - path to classifier directory
+
+            path (str) - path to classifier directory
 
         Returns:
-        classifier (CellClassifier)
+
+            classifier (CellClassifier)
+
         """
         io = IO()
         values = io.read_npy(join(path, 'values.npy'))
@@ -256,7 +315,9 @@ class CommunityClassifier:
     Classifier for assigning labels to communities.
 
     Attributes:
-    classifier (CellClassifier) - individual cell classifier
+
+        classifier (CellClassifier) - individual cell classifier
+
     """
 
     def __init__(self, cells, cell_classifier):
@@ -284,8 +345,11 @@ class CommunityClassifier:
         Build classifier assigning genotypes to graph communities.
 
         Args:
-        cells (pd.DataFrame) - cell data including community labels
-        cell_classifier (CellClassifier) - assigns genotype to individual cell
+
+            cells (pd.DataFrame) - cell data including community labels
+
+            cell_classifier (CellClassifier) - assigns genotype to individual cell
+
         """
         majority_vote = lambda x: cls.get_mode(cell_classifier(x))
         community_to_genotype = cells.groupby('community').apply(majority_vote).to_dict()

@@ -12,13 +12,19 @@ class CommunityBasedGenotype(AttributeLabeler):
     Object for assigning genotypes to cells based on their local community.
 
     Attributes:
-    graph (Graph) - graph connecting adjacent cells
-    cell_classifier (CellClassifier) - callable object
-    labeler (CommunityClassifier) - callable object
+
+        graph (Graph) - graph connecting adjacent cells
+
+        cell_classifier (CellClassifier) - callable object
+
+        labeler (CommunityClassifier) - callable object
 
     Inherited attributes:
-    label (str) - name of label field to be added
-    attribute (str) - existing cell attribute used to determine labels
+
+        label (str) - name of label field to be added
+
+        attribute (str) - existing cell attribute used to determine labels
+
     """
 
     def __init__(self, graph, cell_classifier,
@@ -28,10 +34,15 @@ class CommunityBasedGenotype(AttributeLabeler):
         Instantiate community-based genotype annotation object.
 
         Args:
-        graph (Graph) - graph connecting adjacent cells
-        cell_classifier (CellClassifier) - callable object
-        label (str) - name of <genotype> attribute to be added
-        attribute (str) - name of attribute defining community affiliation
+
+            graph (Graph) - graph connecting adjacent cells
+
+            cell_classifier (CellClassifier) - callable object
+
+            label (str) - name of <genotype> attribute to be added
+
+            attribute (str) - name of attribute defining community affiliation
+
         """
 
         # store label and attribute field names
@@ -54,10 +65,13 @@ class CommunityBasedGenotype(AttributeLabeler):
         Instantiate from layer.
 
         Args:
-        layer (Layer)
+
+            layer (Layer)
 
         Returns:
-        labeler (CommunityBasedGenotype)
+
+            labeler (CommunityBasedGenotype)
+
         """
         return CommunityBasedGenotype(layer.graph, layer.classifier)
 
@@ -66,7 +80,9 @@ class CommunityBasedGenotype(AttributeLabeler):
         Build community classifier.
 
         Returns:
-        classifier (func) - maps communities to labels
+
+            classifier (func) - maps communities to labels
+
         """
 
         # assign community labels
@@ -92,8 +108,6 @@ class Tessellation:
         self.set_region_mask(q=q)
         self.region_labels = self.label_regions(labels)
         self.verts = self.vor.regions[self.mask]
-
-        #self.labels = labels
         self.set_cmap(colors)
 
     def label_regions(self, labels):
@@ -134,10 +148,13 @@ class Tessellation:
         Mask regions with pixel areas larger than a specified quantile.
 
         Args:
-        q (float) - maximum region area quantile, 0 to 100
+
+            q (float) - maximum region area quantile, 0 to 100
 
         Returns:
-        mask (np.ndarray[bool]) - True for regions smaller than maximum area
+
+            mask (np.ndarray[bool]) - True for regions smaller than maximum area
+
         """
         evaluate_area = np.vectorize(lambda x: self.evaluate_region_area(x))
         areas = evaluate_area(self.vor.regions)

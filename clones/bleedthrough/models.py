@@ -5,10 +5,18 @@ import warnings
 
 class OLS:
     """
-    OLS model fit to X and Y data.
+    Ordinary least squares model fit to X and Y data.
+
+    Attributes:
+
+        x, y (array like) - data
+
+        model (sm.OLS) - fitted OLS model
+
     """
 
     def __init__(self, x, y, **fit_kw):
+        """ Instantiate ordinary least squared model. """
         self.x = x
         self.y = y
         self.fit(**fit_kw)
@@ -31,7 +39,18 @@ class OLS:
 
 class GLM(OLS):
     """
-    GLM with identity link function fit to X and Y data.
+    Generalized linear model with gamma distributed residuals and an identity link function fit to X and Y data.
+
+    Attributes:
+
+        model (sm.genmod.GLM) - generalized linear model
+
+        domain (np.ndarray[float]) - regularly spaced x-domain
+
+    Inherited attributes:
+
+        x, y (array like) - data
+
     """
 
     def fit(self, N=100000, maxiter=500, shift=0):
@@ -39,9 +58,13 @@ class GLM(OLS):
         Fit Gamma GLM with identity link function.
 
         Args:
-        N (int) - numebr of samples used
-        maxiter (int) - maximum number of iterations for optimization
-        shift (float) - offset used to keep values positive
+
+            N (int) - numebr of samples used
+
+            maxiter (int) - maximum number of iterations for optimization
+
+            shift (float) - offset used to keep values positive
+
         """
 
         self.domain = np.linspace(0, self.x.max(), 10)
