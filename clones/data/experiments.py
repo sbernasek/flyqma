@@ -74,9 +74,17 @@ class Experiment:
             stack.load_image()
         return stack
 
-    def aggregate_measurements(self):
+    def aggregate_measurements(self,
+                               selected_only=False,
+                               exclude_boundary=False,
+                               raw=False):
         """
         Aggregate measurements from each stack.
+
+        Args:
+        selected_only (bool) - if True, exclude cells not marked for inclusion
+        exclude_boundary (bool) - if True, exclude cells on clone boundaries
+        raw (bool) - if True, aggregate raw measurements from included discs
 
         Returns:
         measurements (pd.Dataframe) - curated cell measurement data
@@ -86,11 +94,19 @@ class Experiment:
         measurements = []
         for stack_ind in range(self.size):
             stack = self.load_stack(stack_ind, full=False)
-            df = stack.aggregate_measurements()
+            df = stack.aggregate_measurements(raw=raw)
             df['stack'] = stack._id
             measurements.append(df)
 
         # aggregate measurements
         measurements = pd.concat(measurements, join='inner')
+
+        # exclude cells that were not marked for inclusion
+        if selected_only:
+            measurements = measurements[measurements.selected]
+
+        # exclude cells on clone boundaries
+        if exclude_boundary:
+            measurements = measurements[~measurements.boundary]
 
         return measurements

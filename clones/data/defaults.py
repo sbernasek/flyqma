@@ -13,6 +13,9 @@ class Defaults:
     """
 
     def __init__(self):
+        """
+        Instantiate object with default parameter dictionaries as attributes
+        """
 
         self.parameters = {
 
@@ -84,16 +87,3 @@ class Defaults:
             else:
                 parameters[k] = v
         return parameters
-
-
-# "fg_kw":
-
-#     {"bandwidth": 100,
-#      "n": 5},
-
-# "annotation_kw": {},
-
-# "graph_kw":
-
-#     {"q": 95,
-#      "weighted_by": "r_normalized"}}

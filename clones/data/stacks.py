@@ -95,8 +95,11 @@ class Stack:
         metadata = dict(bits=bits, depth=stack.shape[0], params={})
         io.write_json(join(self.path, 'metadata.json'), metadata)
 
+        # load image
+        if self.stack is None:
+            self.load_image()
+
         # initialize layers
-        self.load()
         for layer_id in range(self.depth):
             layer_path = join(self.layers_path, '{:d}'.format(layer_id))
             layer = Layer(layer_path)
@@ -179,9 +182,12 @@ class Stack:
         io = IO()
         io.write_json(join(self.path, 'metadata.json'), self.metadata)
 
-    def aggregate_measurements(self):
+    def aggregate_measurements(self, raw=False):
         """
         Aggregate measurements from each layer.
+
+        Args:
+        raw (bool) - if True, aggregate raw measurements from included discs
 
         Returns:
         measurements (pd.Dataframe) - curated cell measurement data
@@ -192,8 +198,15 @@ class Stack:
         for layer_id in range(self.depth):
             layer = self.load_layer(layer_id, full=False)
             if layer.include == True:
-                layer.df['layer'] = layer._id
-                measurements.append(layer.df)
+
+                # get raw or processed measurements
+                if raw:
+                    df = layer.measurements
+                else:
+                    df = layer.df
+
+                df['layer'] = layer._id
+                measurements.append(df)
 
         # aggregate measurements
         measurements = pd.concat(measurements, join='inner')

@@ -19,7 +19,6 @@ class LayerCorrection(GLM):
 
     Attributes:
     layer (Layer) - layer RGB image
-    path (str) - path to correction directory for layer
 
     Parameters:
     xvar (str) - name of independent variable attribute in measurement data
@@ -36,13 +35,10 @@ class LayerCorrection(GLM):
                  yvar='g',
                  niters=50,
                  remove_zeros=False,
-                 resample=False,
+                 resample=True,
                  resample_size=None,
                  resample_cutoff=None,
                  **fit_kw):
-
-        # set correction path
-        self.path = layer.subdirs['correction']
 
         # store layer
         self.layer = layer
@@ -215,6 +211,7 @@ class LayerCorrection(GLM):
 
         # add subdirectory to layer
         self.layer.make_subdir('correction')
+        path = self.layer.subdirs['correction']
 
         # instantiate IO
         io = IO()
@@ -234,7 +231,7 @@ class LayerCorrection(GLM):
                     coefficients=self.model.params.tolist())
 
         # write metadata to file
-        io.write_json(join(self.path, 'data.json'), data)
+        io.write_json(join(path, 'data.json'), data)
 
         # save figures
         if images:
@@ -251,64 +248,19 @@ class LayerCorrection(GLM):
         fmt (str) - image format
         """
 
+        # get correction path
+        dirpath = self.layer.subdirs['correction']
+
         # keyword arguments for savefig
         kw = dict(dpi=dpi, format=fmt, transparent=True, rasterized=True)
 
         for name, fig in self.figs.items():
 
             # save figure
-            path = join(self.path, name+'.png')
+            path = join(dirpath, name+'.png')
             fig.savefig(path, **kw)
 
             # close figure
             fig.clf()
             plt.close(fig)
             gc.collect()
-
-
-# class StackCorrection:
-#     """
-#     Linear correction for background correlation between fluorescence channels, applied to entire image stack.
-
-#     Attributes:
-#     stack (Stack) - 3D RGB image stack
-#     seg_params
-
-#     """
-
-#     def __init__(self, stack, **kw):
-
-#         # load segmentation params
-#         self.stack = stack
-#         self.seg_params = stack.load_metadata()['params']['segmentation_kw']
-
-#         # instantiate corrections
-#         self.corrections = {}
-#         self.correct(**kw)
-
-#     @staticmethod
-#     def load(path):
-#         """ USE STORED PARAMETERS TO AVOID OVERWRITING *TO DO* """
-#         pass
-
-#     def correct(self, **kw):
-#         """ Correct all included layers in stack. """
-#         for layer in self.stack:
-#             if layer.include:
-#                 self.correct_layer(layer, **kw)
-
-#     def correct_layer(self, layer, **kw):
-#         """ Correct individual layer. """
-#         correction = LayerCorrection(layer, seg_params=self.seg, **kw)
-#         correction.correct_measurements()
-#         self.corrections[layer_id] = correction
-
-#     def show(self):
-#         """ Show all corrections. """
-#         for layer_id, correction in self.corrections.items():
-#             correction.show_correction()
-
-#     def save(self):
-#         """ Save all corrections. """
-#         for correction in self.corrections.values():
-#             correction.save()

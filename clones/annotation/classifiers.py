@@ -1,8 +1,10 @@
 from os.path import join, exists
 from os import mkdir
+import gc
 import numpy as np
 from sklearn.cluster import KMeans
 from collections import Counter
+import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap, Normalize
 
 from ..utilities.io import IO
@@ -38,7 +40,7 @@ class KM:
             groups = {k: k for k in range(n)}
         else:
             groups = {int(k): v for k, v in groups.items()}
-            assert n == len(groups), 'Wrong number of groups.'
+            n = len(groups)
         self.n = n
         self.groups = groups
         self.cluster_to_group = np.vectorize(groups.get)
@@ -142,8 +144,19 @@ class CellClassifier(KM):
     fig (matplotlib.figures.Figure) - histogram figure
     """
 
-    def __init__(self, values, classify_on='r_normalized', **kw):
-        super().__init__(values, **kw)
+    def __init__(self, values, classify_on='r_normalized', **kwargs):
+        """
+        Fit a cell classifier to an array of values.
+
+        Args:
+        values (np.ndarray[float]) - 1-D vector of measured values
+        classify_on (str) - cell measurement attribute from which values came
+        kwargs: keyword arguments for k-means classifier
+
+        Returns:
+        classifier (CellClassifier)
+        """
+        super().__init__(values, **kwargs)
         self.classify_on = classify_on
         self.parameters['classify_on'] = classify_on
 
@@ -154,22 +167,42 @@ class CellClassifier(KM):
         return self.classifier(x)
 
     @staticmethod
-    def from_cells(df, classify_on='r_normalized', **kw):
-        values = df[classify_on].values
-        return CellClassifier(values, classify_on, **kw)
+    def from_measurements(measurements, classify_on='r_normalized', **kwargs):
+        """
+        Fit a cell classifier to measurement data.
+
+        Args:
+        measurements (pd.DataFrame) - cell measurement data
+        classify_on (str) - cell measurement attribute on which to cluster
+        kwargs: keyword arguments for k-means classifier
+
+        Returns:
+        classifier (CellClassifier)
+        """
+        values = measurements[classify_on].values
+        return CellClassifier(values, classify_on, **kwargs)
 
     @staticmethod
-    def from_im_clusters(df, by=None, classify_on='r_normalized', **kw):
+    def from_im_clusters(df,
+                         by=None,
+                         classify_on='r_normalized',
+                         **kwargs):
         if by is None:
             by = ('disc_genotype', 'disc_id', 'layer', 'im_label')
         values = df.groupby(by=by)[classify_on].mean().values
-        return CellClassifier(values, classify_on, **kw)
+        return CellClassifier(values, classify_on, **kwargs)
 
-    def save(self, stack_path, image=True):
-        """ Save classifier to specified path. """
+    def save(self, dirpath, image=True):
+        """
+        Save classifier to specified path.
+
+        Args:
+        dirpath (str) - directory in which classifier is to be saved
+        image (bool) - if True, save labeled histogram image
+        """
 
         # create directory for classifier
-        path = join(stack_path, 'cell_classifier')
+        path = join(dirpath, 'cell_classifier')
         if not exists(path):
             mkdir(path)
 
@@ -181,9 +214,17 @@ class CellClassifier(KM):
         io.write_json(join(path, 'parameters.json'), self.parameters)
 
         # save image
-        if image and (self.fig is not None):
-            kw = dict(dpi=300, format='pdf', transparent=True, rasterized=True)
+        if image:
+
+            # plot histogram
+            self.show()
+
+            # save image
+            kw = dict(dpi=100, format='pdf', transparent=True, rasterized=True)
             self.fig.savefig(join(path, 'classifier.pdf'), **kw)
+            self.fig.clf()
+            plt.close(self.fig)
+            gc.collect()
 
     @classmethod
     def load(cls, path):

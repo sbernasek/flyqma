@@ -64,6 +64,12 @@ class Layer(ImageRGB):
         self.path = path
         self.find_subdirs()
 
+        # load inclusion; defaults to True
+        if 'selection' in self.subdirs.keys():
+            self.load_inclusion()
+        else:
+            self.include = True
+
         # set classifier
         self.classifier = classifier
 
@@ -273,7 +279,8 @@ class Layer(ImageRGB):
         # apply correction
         trend = b + m * df[xvar].values
         df[yvar+'_predicted'] = trend
-        df[yvar+'_corrected'] = df[yvar] - trend
+        df[yvar+'c'] = df[yvar] - trend
+        df[yvar+'c_normalized'] = df[yvar+'c'] / df[self.metadata['bg']]
 
     def build_graph(self, df, **graph_kw):
         """
