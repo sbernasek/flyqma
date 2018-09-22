@@ -28,7 +28,7 @@ class Layer(ImageRGB):
 
     Attributes:
     measurements (pd.DataFrame) - raw cell measurement data
-    df (pd.DataFrame) - processed cell measurement data
+    data (pd.DataFrame) - processed cell measurement data
     path (str) - path to layer directory
     _id (int) - layer ID
     subdirs (dict) - {name: path} pairs for all subdirectories
@@ -134,7 +134,7 @@ class Layer(ImageRGB):
             self.load_measurements()
 
             # process raw measurement data
-            self.df = self.process_measurements(self.measurements)
+            self.data = self.process_measurements(self.measurements)
 
     def load_metadata(self):
         """ Load metadata. """
@@ -188,42 +188,42 @@ class Layer(ImageRGB):
         measurements (pd.DataFrame) - raw cell measurement data
 
         Returns:
-        df (pd.DataFrame) - processed cell measurement data
+        data (pd.DataFrame) - processed cell measurement data
         """
 
         # copy raw measurements
-        df = deepcopy(self.measurements)
+        data = deepcopy(self.measurements)
 
         # assign layer id
-        df['layer'] = self._id
+        data['layer'] = self._id
 
         # apply normalization
-        self.apply_normalization(df)
+        self.apply_normalization(data)
 
         # load and apply selection
         if 'selection' in self.subdirs.keys():
             self.load_inclusion()
-            self.apply_selection(df)
+            self.apply_selection(data)
 
         # load and apply correction
         if 'correction' in self.subdirs.keys():
-            self.apply_correction(df)
+            self.apply_correction(data)
 
         # annotate measurements
         if self.classifier is not None:
-            self.apply_annotation(df)
-            self.build_graph(df, **self.metadata['params']['graph_kw'])
-            self.mark_boundaries(df, basis='genotype', max_edges=1)
-            self.apply_concurrency(df)
+            self.apply_annotation(data)
+            self.build_graph(data, **self.metadata['params']['graph_kw'])
+            self.mark_boundaries(data, basis='genotype', max_edges=1)
+            self.apply_concurrency(data)
 
-        return df
+        return data
 
-    def apply_normalization(self, df):
+    def apply_normalization(self, data):
         """
         Normalize fluorescence intensity measurements by measured background channel intensity.
 
         Args:
-        df (pd.DataFrame) - cell measurement data
+        data (pd.DataFrame) - processed cell measurement data
         """
 
         # get background channel from metadata
@@ -231,14 +231,14 @@ class Layer(ImageRGB):
 
         # apply normalization to each foreground channel
         for fg in 'rgb'.strip(bg):
-            df[fg+'_normalized'] = df[fg] / df[bg]
+            data[fg+'_normalized'] = data[fg] / data[bg]
 
-    def apply_selection(self, df):
+    def apply_selection(self, data):
         """
         Adds a "selected" attribute to the measurements dataframe. The attribute is true for cells that fall within the selection boundary.
 
         Args:
-        df (pd.DataFrame) - cell measurement data
+        data (pd.DataFrame) - processed cell measurement data
         """
 
         # load selection boundary
@@ -246,7 +246,7 @@ class Layer(ImageRGB):
         bounds = io.read_npy(join(self.subdirs['selection'], 'selection.npy'))
 
         # add selected attribute to cell measurement data
-        df['selected'] = False
+        data['selected'] = False
 
         if self.include:
 
@@ -254,95 +254,95 @@ class Layer(ImageRGB):
             path = Path(bounds, closed=False)
 
             # mark cells as within or outside the selection boundary
-            cell_positions = df[['centroid_x', 'centroid_y']].values
-            df['selected'] = path.contains_points(cell_positions)
+            cell_positions = data[['centroid_x', 'centroid_y']].values
+            data['selected'] = path.contains_points(cell_positions)
 
-    def apply_correction(self, df):
+    def apply_correction(self, data):
         """
         Adds a "selected" attribute to the measurements dataframe. The attribute is true for cells that fall within the selection boundary.
 
         Args:
-        df (pd.DataFrame) - cell measurement data
+        data (pd.DataFrame) - processed cell measurement data
         """
 
         # load correction coefficients and X/Y variables
         io = IO()
-        data = io.read_json(join(self.subdirs['correction'], 'data.json'))
+        cdata = io.read_json(join(self.subdirs['correction'], 'data.json'))
 
         # get independent/dependent variables
-        xvar = data['params']['xvar']
-        yvar = data['params']['yvar']
+        xvar = cdata['params']['xvar']
+        yvar = cdata['params']['yvar']
 
         # get linear model coefficients
-        b, m = data['coefficients']
+        b, m = cdata['coefficients']
 
         # apply correction
-        trend = b + m * df[xvar].values
-        df[yvar+'_predicted'] = trend
-        df[yvar+'c'] = df[yvar] - trend
-        df[yvar+'c_normalized'] = df[yvar+'c'] / df[self.metadata['bg']]
+        trend = b + m * data[xvar].values
+        data[yvar+'_predicted'] = trend
+        data[yvar+'c'] = data[yvar] - trend
+        data[yvar+'c_normalized'] = data[yvar+'c'] / data[self.metadata['bg']]
 
-    def build_graph(self, df, **graph_kw):
+    def build_graph(self, data, **graph_kw):
         """
         Compile weighted graph connecting adjacent cells.
 
         Args:
-        df (pd.DataFrame) - cell measurement data
+        data (pd.DataFrame) - processed cell measurement data
 
         Keyword Args:
         q (float) - edge length quantile above which edges are pruned
         weighted_by (str) - quantity used to weight edges
         """
         self.metadata['params']['graph_kw'] = graph_kw
-        self.graph = WeightedGraph(df, **graph_kw)
+        self.graph = WeightedGraph(data, **graph_kw)
 
-    def apply_annotation(self, df, cluster=False):
+    def apply_annotation(self, data, cluster=False):
         """
         Assign genotype and celltype labels to cell measurements.
 
         Args:
-        df (pd.DataFrame) - cell measurement data
+        data (pd.DataFrame) - processed cell measurement data
         cluster (bool) - if True, add community and community genotype labels
         """
 
         # assign single-cell classifier label
-        df['genotype'] = self.classifier(df)
+        data['genotype'] = self.classifier(data)
 
         # assign cluster labels
         if cluster:
             assign_genotypes = CommunityBasedGenotype.from_layer(self)
-            assign_genotypes(df)
+            assign_genotypes(data)
 
         # assign celltype labels
         celltype_labels = {0:'m', 1:'h', 2:'w', -1:'none'}
         assign_celltypes = CelltypeLabeler(labels=celltype_labels)
-        assign_celltypes(df)
+        assign_celltypes(data)
 
-    def apply_concurrency(self, df, min_pop=5, max_distance=10):
+    def apply_concurrency(self, data, min_pop=5, max_distance=10):
         """
         Add boolean 'concurrent_<cell type>' field to cell measurement data for each unique cell type.
 
         Args:
-        df (pd.DataFrame) - cell measurement data
+        data (pd.DataFrame) - processed cell measurement data
         min_pop (int) - minimum population size for inclusion of cell type
         max_distance (float) - maximum distance threshold for inclusion
         """
         assign_concurrency = ConcurrencyLabeler(min_pop=min_pop,
                                                 max_distance=max_distance)
-        assign_concurrency(df)
+        assign_concurrency(data)
 
-    def mark_boundaries(self, df, basis='genotype', max_edges=0):
+    def mark_boundaries(self, data, basis='genotype', max_edges=0):
         """
         Mark clone boundaries by assigning a boundary label to all cells that share an edge with another cell from a different clone.
 
         Args:
-        df (pd.DataFrame) - cell measurement data
+        data (pd.DataFrame) - processed cell measurement data
         basis (str) - labels used to identify clones
         max_edges (int) - maximum number of edges for interior cells
         """
 
         # assign genotype to edges
-        assign_genotype = np.vectorize(dict(df[basis]).get)
+        assign_genotype = np.vectorize(dict(data[basis]).get)
         edge_genotypes = assign_genotype(self.graph.edges)
 
         # find edges traversing clones
@@ -354,8 +354,8 @@ class Layer(ImageRGB):
 
         # assign boundary label to nodes with too many clone-traversing edges
         boundary_nodes = [n for n, c in edge_counts.items() if c>max_edges]
-        df['boundary'] = False
-        df.loc[boundary_nodes, 'boundary'] = True
+        data['boundary'] = False
+        data.loc[boundary_nodes, 'boundary'] = True
 
     def segment(self,
                 bg='b',
@@ -405,7 +405,7 @@ class Layer(ImageRGB):
 
     def measure(self):
         """
-        Measure properties of cell segments. Raw measurements are stored under in the 'measurements' attribute, while processed measurements are stored in the 'df' attribute.
+        Measure properties of cell segments. Raw measurements are stored under in the 'measurements' attribute, while processed measurements are stored in the 'data' attribute.
         """
 
         # measure segment properties
@@ -413,7 +413,7 @@ class Layer(ImageRGB):
         self.measurements = measurements.build_dataframe()
 
         # process raw measurement data
-        self.df = self.process_measurements(self.measurements)
+        self.data = self.process_measurements(self.measurements)
 
     def plot_graph(self,
                    channel='r',

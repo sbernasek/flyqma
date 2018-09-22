@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.stats import ks_2samp, ttest_ind, mannwhitneyu
 
+from ..vis.settings import *
+
 
 class PairwiseComparison:
     """
@@ -94,18 +96,108 @@ class CloneComparison(PairwiseComparison):
         # instantiate comparison
         super().__init__(x, y, basis=basis)
 
-    def plot(self, **kwargs):
+    def plot(self,
+             ax=None,
+             mode='violin',
+             ylabel=None,
+             **kwargs):
         """
-        Visualize comparison.
+        Visualize comparison using seaborn box or violinplot.
 
-        kwargs: keyword arguments for sns.boxplot
+        Args:
+        ax (matplotlib.axes.AxesSubplot)
+        mode (str) - type of comparison, either 'box', 'violin', or 'strip'
+        ylabel (str) - label for yaxis
+        kwargs: keyword arguments for seaborn plotting function
         """
-        sns.boxplot(x='celltype',
+
+        # create figure if none provided
+        if ax is None:
+            fig, ax = plt.subplots(figsize=(1.25, 1.5))
+
+        # plot boxplot
+        if mode == 'box':
+            sns.boxplot(ax=ax,
+                    x='celltype',
                     y=self.basis,
                     data=pd.concat((self.x, self.y)),
                     order=(self.type1, self.type2),
                     notch=True,
+                    width=0.8,
                     **kwargs)
+
+        # plot violinplot
+        elif mode == 'violin':
+            sns.violinplot(ax=ax,
+                    x='celltype',
+                    y=self.basis,
+                    data=pd.concat((self.x, self.y)),
+                    order=(self.type1, self.type2),
+                    scale='width',
+                    linewidth=0.5,
+                    **kwargs)
+
+        # plot stripplot
+        elif mode == 'strip':
+            sns.stripplot(ax=ax,
+                    x='celltype',
+                    y=self.basis,
+                    data=pd.concat((self.x, self.y)),
+                    order=(self.type1, self.type2),
+                    dodge=True,
+                    **kwargs)
+
+        # format axis
+        self.format_axis(ax, ylabel=ylabel, mode=mode)
+
+    def format_axis(self, ax, mode='violin', ylabel=None):
+        """
+        Format axis.
+
+        Args:
+        ax (matplotlib.axes.AxesSubplot)
+        mode (str) - type of comparison, either 'box', 'violin', or 'strip'
+        ylabel (str) - label for y axis
+        """
+
+        # define labels and corresponding fill colors
+        labels = dict(m='−/−', h='−/+', w='+/+')
+        colors = dict(m='y', h='c', w='m')
+
+        # format axes
+        ax.grid(False)
+        ax.yaxis.set_ticks_position('left')
+        ax.xaxis.set_ticks_position('bottom')
+        _ = ax.spines['top'].set_visible(False)
+        _ = ax.spines['right'].set_visible(False)
+
+        # get violin artists
+        if mode == 'violin':
+            is_poly = lambda x: x.__class__.__name__ == 'PolyCollection'
+            polys = [c for c in ax.collections if is_poly(c)]
+
+        # format xticks
+        ticklabels = []
+        for i, label in enumerate(ax.get_xticklabels()):
+
+            # set violin/box color
+            color = colors[label.get_text()[0]]
+            if mode == 'violin':
+                polys[i].set_color(color)
+            else:
+                ax.artists[i].set_facecolor(color)
+
+            # set tick label as genotype
+            label.set_text(labels[label.get_text()[0]])
+            ticklabels.append(label)
+
+        # format xlabels
+        ax.set_xlabel('')
+        _ = ax.set_xticklabels(ticklabels, ha='center')
+
+        # set ylabel
+        if ylabel is not None:
+            ax.set_ylabel(ylabel)
 
 
 class SummaryStatistics:

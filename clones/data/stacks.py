@@ -190,25 +190,25 @@ class Stack:
         raw (bool) - if True, aggregate raw measurements from included discs
 
         Returns:
-        measurements (pd.Dataframe) - curated cell measurement data
+        data (pd.Dataframe) - processed cell measurement data
         """
 
         # load measurements from each included layer
-        measurements = []
+        data = []
         for layer_id in range(self.depth):
             layer = self.load_layer(layer_id, full=False)
             if layer.include == True:
 
                 # get raw or processed measurements
                 if raw:
-                    df = layer.measurements
+                    layer_data = layer.measurements
                 else:
-                    df = layer.df
+                    layer_data = layer.data
 
-                df['layer'] = layer._id
-                measurements.append(df)
+                layer_data['layer'] = layer._id
+                data.append(layer_data)
 
-        # aggregate measurements
-        measurements = pd.concat(measurements, join='inner')
+        # aggregate measurement data
+        data = pd.concat(data, join='inner')
 
-        return measurements
+        return data

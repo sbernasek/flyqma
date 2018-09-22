@@ -270,7 +270,7 @@ class CommunityClassifier:
     @staticmethod
     def from_layer(layer, cell_classifier):
         """ Instantiate community classifier from a layer. """
-        return CommunityClassifier(layer.df, cell_classifier)
+        return CommunityClassifier(layer.data, cell_classifier)
 
     @staticmethod
     def get_mode(x):

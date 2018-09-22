@@ -1,38 +1,71 @@
-import os
+from os.path import join
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib.colors import ListedColormap
-from modules.paths import Experiment
-from modules.figure_settings import *
+
+from .vis.settings import *
 
 
 class Figure:
+    """
+    Base class for figures providing some common methods.
+
+    Attributes:
+    name (str) - figure name
+    directory (str) - default path for saving figure
+    fig (matplotlib.figure.Figure)
+    axes (matplotlib.axes.AxesSubplots)
+    """
 
     def __init__(self, name='unnamed', directory='../graphics'):
         self.name = name
         self.directory = directory
         self.fig = None
 
-    def compile(self):
-        """ Compile figure. """
-        pass
-
     @staticmethod
     def create_figure(figsize=(3, 3)):
+        """
+        Create blank figure.
+
+        Args:
+        figsize (tuple) - figure dimensions
+        """
         fig = plt.figure(figsize=figsize)
         return fig
 
     def add_axes(self, nrows=1, ncols=1):
-        axes = self.fig.subplots(nrows=nrows, ncols=ncols)
+        """
+        Add axes to figure.
+
+        Args:
+        nrows, ncols (int) - number of rows and columns
+        """
+        self.axes = self.fig.subplots(nrows=nrows, ncols=ncols)
 
     def save(self, fmt='pdf', dpi=300, transparent=True, rasterized=True):
-        path = os.path.join(self.directory, self.name + '.{}'.format(fmt))
+        """
+        Save figure.
+
+        Args:
+        fmt (str) - file format
+        dpi (int) - resolution
+        transparent (bool) - if True, remove background
+        rasterized (bool) - if True, save rasterized version
+        """
+        path = join(self.directory, self.name + '.{}'.format(fmt))
         kw = dict(dpi=dpi, transparent=transparent, rasterized=rasterized)
         self.fig.savefig(path, format=fmt, **kw)
 
     def _add_markers(self, x, y, c, **kw):
-        """ Add markers to axis. """
+        """
+        Add markers to axis.
+
+        Args:
+        x, y (array like) - marker x and y positions
+        c (array like) - marker colors
+        kwargs: keyword arguments for matplotlib.pyplot.scatter
+        """
 
         if len(self.fig.axes) == 0:
             ax = self.fig.subplots()
@@ -42,89 +75,171 @@ class Figure:
         ax.scatter(x, y, c=c, **kw)
 
     def format(self, **kw):
+        """ Format all figure axes. """
         for ax in self.fig.axes:
             self.format_axis(ax, **kw)
 
     def format_axis(self, ax):
+        """ Format individual axis. """
         pass
 
 
 class CellSelection(Figure):
+    """
+    Visualize cell selection by overlaying cell position markers on top of an image of a single RGB layer.
 
-    def __init__(self, layer, cells, **kw):
+    Inherited attributes:
+    name (str) - figure name ('selection')
+    directory (str) - default path for saving figure
+    fig (matplotlib.figure.Figure)
+    axes (matplotlib.axes.AxesSubplots)
+    """
+
+    def __init__(self, layer, data, channel='r', **kwargs):
+        """
+        Instantiate cell selection figure.
+
+        Args:
+        layer (Layer) - RGB image layer
+        data (pd.DataFrame) - selected cell measurement data
+        channel (str) - color channel to be added
+        kwargs: keyword arguments for render
+        """
         Figure.__init__(self, name='selection')
-        self.compile(layer, cells, **kw)
+        self.render(layer, data, **kwargs)
 
-    def compile(self, layer, cells, channel='r', figsize=(3, 3)):
-        """ Compile figure """
+    def render(self, layer, data, channel='r', figsize=(3, 3)):
+        """
+        Render figure.
+
+        Args:
+        layer (Layer) - RGB image layer
+        data (pd.DataFrame) - selected cell measurement data
+        channel (str) - color channel to be added
+        figsize (tuple) - figure dimensions
+        """
 
         # create figure
         self.fig = self.create_figure(figsize)
         self.add_axes()
 
-        # add data
+        # add image
         self.add_image(layer, channel=channel)
-        self.add_markers(cells)
+
+        # add cell position markers
+        self.add_markers(data)
 
     def add_image(self, layer, channel='r'):
-        """ Add image to figure. """
+        """
+        Add scalar image to figure.
+
+        Args:
+        layer (Layer) - RGB image layer
+        channel (str) - color channel to be added
+        """
         _ = layer.get_channel(channel).show(ax=ax, segments=False, cmap=None)
         _ = ax.axis('off')
 
-    def add_markers(self, cells, color_by='genotype', **kw):
-        """ Add markers to axis. """
+    def add_markers(self, data, color_by='genotype', **kwargs):
+        """
+        Add cell position markers to axis.
+
+        Args:
+        data (pd.DataFrame) - selected cell measurement data
+        color_by (str) - cell measurement attribute used to color markers
+        kwargs: keyword arguments for markers
+        """
 
         # get cell coordinates and color vector
-        x, y = cells.centroid_x, cells.centroid_y
+        x, y = data.centroid_x, data.centroid_y
 
-        # define colors
-        c = cells[color_by]
+        # get color vector and colormap
+        c = data[color_by]
         cmap = ListedColormap(['y', 'c', 'm'], 'indexed', 3)
 
         # add markers to plot
-        self._add_markers(x, y, c, cmap=cmap, vmin=0, vmax=2, **kw)
+        self._add_markers(x, y, c, cmap=cmap, vmin=0, vmax=2, **kwargs)
 
 
 class Scatterplot(Figure):
-    """ Scatter points in XY plane. """
+    """
+    Scatter points in XY plane.
+    """
 
-    def __init__(self, cells, x, y, name, **kw):
+    def __init__(self, data, xvar, yvar, name, **kwargs):
+        """
+        Instantiate scatter plot.
+
+        Args:
+        data (pd.DataFrame) - selected cell measurement data
+        xvar, yvar (str) - cell measurement features to be scattered
+        name (str) - figure name
+        kwargs: keyword arguments for
+        """
         Figure.__init__(self, name=name)
-        self.x, self.y = x, y
-        self.compile(cells, **kw)
+        self.xvar, self.yvar = xvar, yvar
+        self.render(data, **kwargs)
 
-    def compile(self, cells, figsize=(2, 2), **kw):
-        """ Compile figure. """
+    def render(self, data, figsize=(2, 2)):
+        """
+        Render figure.
+
+        data (pd.DataFrame) - selected cell measurement data
+        figsize (tuple) - figure dimensions
+        """
 
         # create figure
         self.fig = self.create_figure(figsize)
         self.add_axes()
 
         # add data
-        self._add_markers(cells[self.x], cells[self.y], c='k', s=1)
+        self._add_markers(data[self.xvar], data[self.yvar], c='k', s=1)
 
         # format axes
         self.format()
 
-    def format_axis(self, ax, labelsize=7):
+    def format_axis(self, ax):
+        """
+        Format axis.
+
+        Args:
+        ax (matplotlib.axes.AxesSubplot)
+        """
         _ = ax.spines['top'].set_visible(False)
         _ = ax.spines['right'].set_visible(False)
-        _ = ax.set_xlabel(self.x, fontsize=labelsize)
-        _ = ax.set_ylabel(self.y, fontsize=labelsize)
+        _ = ax.set_xlabel(self.x)
+        _ = ax.set_ylabel(self.y)
 
 
 class BackgroundCorrelation(Scatterplot):
+    """
+    Plot correlated expression between red and green fluorescence channels.
+    """
 
-    def __init__(self, cells, name, figsize=(2, 2)):
-        Scatterplot.__init__(self, cells, 'r', 'g', name, figsize=figsize)
+    def __init__(self, data, name, figsize=(2, 2)):
+        """
+        Instantiate background correlation plot.
 
-    def format_axis(self, ax, labelsize=7):
+        Args:
+        data (pd.DataFrame) - selected cell measurement data
+        name (str) - figure name
+        figsize (tuple) - figure size
+        """
+        Scatterplot.__init__(self, data, 'r', 'g', name, figsize=figsize)
+
+    def format_axis(self, ax):
+        """
+        Format axis.
+
+        Args:
+        ax (matplotlib.axes.AxesSubplot)
+        """
         _ = ax.spines['top'].set_visible(False)
         _ = ax.spines['right'].set_visible(False)
         _ = ax.set_xticks(np.arange(0, .95, .2))
         _ = ax.set_yticks(np.arange(0, .95, .2))
-        _ = ax.set_xlabel('Nuclear RFP level', fontsize=labelsize)
-        _ = ax.set_ylabel('Nuclear GFP level', fontsize=labelsize)
+        _ = ax.set_xlabel('Nuclear RFP level')
+        _ = ax.set_ylabel('Nuclear GFP level')
 
 
 class ComparisonFigure(Figure):

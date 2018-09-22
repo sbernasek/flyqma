@@ -21,12 +21,12 @@ class Graph:
     tri (matplotlib.tri.Triangulation) - triangulation of node positions
     """
 
-    def __init__(self, df):
-        self.df = df
-        self.nodes = df.index.values
+    def __init__(self, data):
+        self.df = data
+        self.nodes = data.index.values
 
         # define mapping from position to node index
-        position_to_node = dict(enumerate(df.index))
+        position_to_node = dict(enumerate(data.index))
         self.node_map = np.vectorize(position_to_node.get)
 
         # define reverse map
@@ -34,7 +34,7 @@ class Graph:
         self.position_map = np.vectorize(node_to_position.get)
 
         # triangulate
-        self.tri = self._construct_triangulation(df)
+        self.tri = self._construct_triangulation(data)
         self.update_graph()
 
     def get_networkx(self):
@@ -167,8 +167,8 @@ class WeightedGraph(Graph):
     """
 
 
-    def __init__(self, df, weighted_by='r_normalized', q=95):
-        Graph.__init__(self, df)
+    def __init__(self, data, weighted_by='r_normalized', q=95):
+        Graph.__init__(self, data)
         self.q = q
         self.apply_distance_filter(q)
         self.update_graph()

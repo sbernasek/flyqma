@@ -98,8 +98,8 @@ class LayerCorrection(GLM):
         """ Apply correction to measurements. """
 
         # store measurement values (test data)
-        self.xt = self.layer.df[self.xvar].values
-        self.yt = self.layer.df[self.yvar].values
+        self.xt = self.layer.data[self.xvar].values
+        self.yt = self.layer.data[self.yvar].values
         self.xtdomain = np.linspace(0, self.xt.max(), 10)
 
         # store model prediction and corrected measurements
@@ -170,7 +170,7 @@ class LayerCorrection(GLM):
 
         # add data to plots
         if selected_only:
-            mask = self.layer.df.selected.values
+            mask = self.layer.data.selected.values
         else:
             mask = np.ones(self.xt.size, dtype=bool)
 

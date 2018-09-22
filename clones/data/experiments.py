@@ -13,8 +13,9 @@ class Experiment:
     Attributes:
     path (str) - path to experiment directory
     _id (int) - experiment ID
+    stacks (list) - paths to stack directories
     size (int) - number of stacks in experiment
-    df (pd.DataFrame) - curated cell contour measurements
+    count (int) - counter for stack iteration
     """
 
     def __init__(self, path):
@@ -87,26 +88,26 @@ class Experiment:
         raw (bool) - if True, aggregate raw measurements from included discs
 
         Returns:
-        measurements (pd.Dataframe) - curated cell measurement data
+        data (pd.Dataframe) - curated cell measurement data
         """
 
         # load measurements from each stack in the experiment
-        measurements = []
+        data = []
         for stack_ind in range(self.size):
             stack = self.load_stack(stack_ind, full=False)
-            df = stack.aggregate_measurements(raw=raw)
-            df['stack'] = stack._id
-            measurements.append(df)
+            measurements = stack.aggregate_measurements(raw=raw)
+            measurements['stack'] = stack._id
+            data.append(measurements)
 
         # aggregate measurements
-        measurements = pd.concat(measurements, join='inner')
+        data = pd.concat(data, join='inner')
 
         # exclude cells that were not marked for inclusion
         if selected_only:
-            measurements = measurements[measurements.selected]
+            data = data[data.selected]
 
         # exclude cells on clone boundaries
         if exclude_boundary:
-            measurements = measurements[~measurements.boundary]
+            data = data[~data.boundary]
 
-        return measurements
+        return data

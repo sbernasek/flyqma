@@ -27,23 +27,23 @@ class AttributeLabeler:
         # vectorize labeling function
         self.labeler = np.vectorize(labels.get)
 
-    def __call__(self, df):
+    def __call__(self, data):
         """
         Assign labels by adding <label> field to cell measurement data.
 
         Args:
-        df (pd.DataFrame) - cells measurement data with <attribute> field
+        data (pd.DataFrame) - cells measurement data with <attribute> field
         """
-        return self.assign_labels(df)
+        return self.assign_labels(data)
 
-    def assign_labels(self, df):
+    def assign_labels(self, data):
         """
         Assign labels by adding <label> field to cell measurement data.
 
         Args:
-        df (pd.DataFrame) - cells measurement data with <attribute> field
+        data (pd.DataFrame) - cells measurement data with <attribute> field
         """
-        df[self.label] = self.labeler(df[self.attribute])
+        data[self.label] = self.labeler(data[self.attribute])
 
 
 class CelltypeLabeler(AttributeLabeler):

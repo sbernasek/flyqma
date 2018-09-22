@@ -192,7 +192,7 @@ The objects that perform these operations all behave in a similar manner. They a
         ├── 1
         └── ... N
 
-The added subdirectories include all the files and metadata necessary to load and execute the data processing operations performed by the respective object. Saved operations are automatically applied to the raw measurement data each time a layer is loaded. Under this setup, only raw measurements are ever stored long term. Processed measurements are only accessible via the ``layer.df`` attribute when a layer exists in local memory. They may be aggregated across layers via ``stack.aggregate_measurements()`` and across all stacks in an experiment via ``experiment.aggregate_measurements()``.
+The added subdirectories include all the files and metadata necessary to load and execute the data processing operations performed by the respective object. Saved operations are automatically applied to the raw measurement data each time a layer is loaded. Under this setup, only raw measurements are ever stored long term. Processed measurements are only accessible via the ``layer.data`` attribute when a layer exists in local memory. They may be aggregated across layers via ``stack.aggregate_measurements()`` and across all stacks in an experiment via ``experiment.aggregate_measurements()``.
 
 Note that cell-based classifiers are fit to an entire stack, rather than to each of its individual layers. Consequently, these classifiers are stored in their own subdirectory below the stack header:
 
