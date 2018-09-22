@@ -10,3 +10,7 @@ notebooks/.ipynb_checkpoints/*
 *.log
 *.csv
 *.json
+docs/Makefile
+docs/build/
+docs/source/.doctrees/
+notebooks/development/

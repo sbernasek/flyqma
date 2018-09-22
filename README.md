@@ -47,7 +47,7 @@ Clones is organized into several submodules:
 
   3. ``Experiment`` instances contain a collection of eye discs obtained under similar conditions.
 
-* ``clones.measure`` provides methods for identifying cells and quantifying their expression levels.
+* ``clones.measurement`` provides methods for identifying cells and quantifying their expression levels.
 
 * ``clones.spatial`` provides methods for analyzing the spatial arrangement of identified cells.
 

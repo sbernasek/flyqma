@@ -6,7 +6,7 @@ MODULES
    :caption: Contents:
 
    Data <modules/data>
-   Measure <modules/measure>
+   Measure <modules/measurement>
    Annotation <modules/annotation>
    Bleedthrough <modules/bleedthrough>
    Selection <modules/selection>
