@@ -21,21 +21,24 @@ class Scoring:
 
     """
 
-    def __init__(self, records):
+    def __init__(self, measured, predicted):
         """
         Instantiate scoring prediction.
 
         Args:
 
-            records (array like) - measured and predicted labels, shaped (n, 2)
+            measured (array like) - manually assigned class labels
+
+            predicted (array like) - predicted class labels
 
         """
-        self.df = pd.DataFrame(records, columns=('measured', 'predicted'))
-        self.n = len(self.df)
+        data = (measured, predicted)
+        self.data = pd.DataFrame(data, columns=('measured', 'predicted'))
+        self.n = len(self.data)
 
     def __add__(self, x):
         """ Combine additively with another scoring matrix. """
-        merged = pd.concat([self.df, x.df])
+        merged = pd.concat([self.data, x.data])
         return Scoring(merged[['measured', 'predicted']])
 
     def score(self, **kwargs):
@@ -49,9 +52,9 @@ class Scoring:
 
     def compare(self):
         """ Evaluate frequency of correct classification. """
-        self.df['difference'] = abs(self.df.measured-self.df.predicted)
-        self.df['correct'] = (self.df.difference==0)
-        self.percent_correct = self.df.correct.sum() / self.n
+        self.data['difference'] = abs(self.data.measured-self.data.predicted)
+        self.data['correct'] = (self.data.difference==0)
+        self.percent_correct = self.data.correct.sum() / self.n
 
     def plot_matrix(self, **kwargs):
         """
@@ -59,8 +62,8 @@ class Scoring:
 
         kwargs: keyword arguments for adjacency matrix
         """
-        measured = self.df.measured.values.astype(int)
-        predicted = self.df.predicted.values.astype(int)
+        measured = self.data.measured.values.astype(int)
+        predicted = self.data.predicted.values.astype(int)
         self.matrix = AdjacencyMatrix(measured, predicted, **kwargs)
 
 
@@ -70,7 +73,7 @@ class AdjacencyMatrix(Figure):
 
     Attributes:
 
-        counts (np.ndarray[int]) - pairwise overlap between measured/predicted classes
+        counts (np.ndarray[int]) - pairwise overlap between manually assigned and predicted class labels
 
         fig (matplotlib.figures.Figure) - adjacency matrix figure
 
@@ -107,28 +110,28 @@ class AdjacencyMatrix(Figure):
         self.plot_matrix(self.axes, text=text, **kw)
 
     def save(self, name, dirpath='./', **kwargs):
-            """
-            Save figure to file.
+        """
+        Save figure to file.
 
-            Args:
+        Args:
 
-                name (str) - file name without format extension
+            name (str) - file name without format extension
 
-                dirpath (str) - directory in which to save file
+            dirpath (str) - directory in which to save file
 
-            Keyword arguments:
+        Keyword arguments:
 
-                fmt (str) - file format, eg 'pdf'
+            fmt (str) - file format, eg 'pdf'
 
-                dpi (int) - resolution
+            dpi (int) - resolution
 
-                transparent (bool) - if True, remove background
+            transparent (bool) - if True, remove background
 
-                rasterized (bool) - if True, rasterize figure data
+            rasterized (bool) - if True, rasterize figure data
 
-                kwargs: keyword arguments for plt.savefig
+            kwargs: keyword arguments for plt.savefig
 
-            """
+        """
         self._save(self.fig, name, dirpath, **kwargs)
 
     @staticmethod

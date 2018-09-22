@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from matplotlib.colors import ListedColormap
 
-from .vis.settings import *
+from .settings import *
 
 
 class Figure:
@@ -74,7 +74,7 @@ class Figure:
     @staticmethod
     def _save(fig,
              name,
-             dirpath='./'
+             dirpath='./',
              fmt='pdf',
              dpi=300,
              transparent=True,

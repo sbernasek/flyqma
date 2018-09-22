@@ -16,7 +16,9 @@ class Experiment:
 
         _id (int) - experiment ID
 
-        stacks (list) - paths to stack directories
+        stack_ids (list) - unique stack ids within experiment
+
+        stack_dirs (dict) - {stack_id: stack_directory} tuples
 
         size (int) - number of stacks in experiment
 
@@ -41,7 +43,10 @@ class Experiment:
         self._id = path.split('/')[-1]
 
         # set stack paths
-        self.stacks = [p for p in glob(join(self.path, '*[0-9]')) if isdir(p)]
+        stack_paths = [p for p in glob(join(self.path, '*[0-9]')) if isdir(p)]
+        get_stack_id = lambda x: int(x.rsplit('/', maxsplit=1)[-1])
+        self.stack_dirs = {get_stack_id(p): p for p in stack_paths}
+        self.stack_ids = sorted(self.stack_dirs.keys())
 
         # set experiment size
         self.size = len(self.stacks)
@@ -49,9 +54,9 @@ class Experiment:
         # reset stack iterator count
         self.count = 0
 
-    def __getitem__(self, stack_ind):
+    def __getitem__(self, stack_id):
         """ Load stack. """
-        return self.load_stack(stack_ind, full=False)
+        return self.load_stack(stack_id, full=False)
 
     def __iter__(self):
         """ Iterate across stacks. """
@@ -61,19 +66,20 @@ class Experiment:
     def __next__(self):
         """ Return next stack. """
         if self.count < self.size:
-            stack = self.__getitem__(self.count)
+            stack_id = self.stack_ids[self.count]
+            stack = self.__getitem__(stack_id)
             self.count += 1
             return stack
         else:
             raise StopIteration
 
-    def load_stack(self, stack_ind, full=False):
+    def load_stack(self, stack_id, full=False):
         """
         Load 3D RGB image stack.
 
         Args:
 
-            stack_ind (int) - stack index in list of paths
+            stack_id (int) - stack to be loaded
 
             full (bool) - if True, load full 3D image from tif file
 
@@ -82,7 +88,7 @@ class Experiment:
             stack (Stack)
 
         """
-        stack = Stack(self.stacks[stack_ind])
+        stack = Stack(self.stack_dirs[stack_id])
         if full:
             stack.load_image()
         return stack
@@ -110,11 +116,12 @@ class Experiment:
 
         # load measurements from each stack in the experiment
         data = []
-        for stack_ind in range(self.size):
-            stack = self.load_stack(stack_ind, full=False)
+        for stack_id in self.stack_ids:
+            stack = self.load_stack(stack_id, full=False)
             measurements = stack.aggregate_measurements(raw=raw)
             measurements['stack'] = stack._id
             data.append(measurements)
+            assert stack_id == stack._id, 'Stack IDs do not match.'
 
         # aggregate measurements
         data = pd.concat(data, join='inner')
