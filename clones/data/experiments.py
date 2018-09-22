@@ -20,8 +20,6 @@ class Experiment:
 
         stack_dirs (dict) - {stack_id: stack_directory} tuples
 
-        size (int) - number of stacks in experiment
-
         count (int) - counter for stack iteration
 
     """
@@ -48,9 +46,6 @@ class Experiment:
         self.stack_dirs = {get_stack_id(p): p for p in stack_paths}
         self.stack_ids = sorted(self.stack_dirs.keys())
 
-        # set experiment size
-        self.size = len(self.stacks)
-
         # reset stack iterator count
         self.count = 0
 
@@ -65,7 +60,7 @@ class Experiment:
 
     def __next__(self):
         """ Return next stack. """
-        if self.count < self.size:
+        if self.count < len(self.stacks):
             stack_id = self.stack_ids[self.count]
             stack = self.__getitem__(stack_id)
             self.count += 1
