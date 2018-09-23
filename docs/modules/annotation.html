@@ -1,0 +1,413 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>ANNOTATION &#8212; clones v0.1-beta documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="BLEEDTHROUGH CONTROL" href="bleedthrough.html" />
+    <link rel="prev" title="MEASUREMENT" href="measurement.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="annotation">
+<h1>ANNOTATION<a class="headerlink" href="#annotation" title="Permalink to this headline">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">clones.annotation</span></code> provides several tools for assigning labels to individual cell measurements.</p>
+<span class="target" id="module-clones"></span><span class="target" id="module-clones.annotation"></span><div class="section" id="measurement-labeling">
+<h2>Measurement Labeling<a class="headerlink" href="#measurement-labeling" title="Permalink to this headline">¶</a></h2>
+<p>General tools for assigning labels to cell measurements.</p>
+<span class="target" id="module-clones.annotation.labelers"></span><dl class="class">
+<dt id="clones.annotation.labelers.AttributeLabeler">
+<em class="property">class </em><code class="descclassname">clones.annotation.labelers.</code><code class="descname">AttributeLabeler</code><span class="sig-paren">(</span><em>label</em>, <em>attribute</em>, <em>labels</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clones/annotation/labelers.html#AttributeLabeler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clones.annotation.labelers.AttributeLabeler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assigns label to cell measurement data based on an existing attribute.</p>
+<p>Attributes:</p>
+<blockquote>
+<div><p>label (str) - name of label field to be added</p>
+<p>attribute (str) - existing cell attribute used to determine labels</p>
+<p>labeler (vectorized func) - callable that maps attribute values to labels</p>
+</div></blockquote>
+<dl class="method">
+<dt id="clones.annotation.labelers.AttributeLabeler.assign_labels">
+<code class="descname">assign_labels</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clones/annotation/labelers.html#AttributeLabeler.assign_labels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clones.annotation.labelers.AttributeLabeler.assign_labels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assign labels by adding &lt;label&gt; field to cell measurement data.</p>
+<p>Args:</p>
+<blockquote>
+<div>data (pd.DataFrame) - cells measurement data with &lt;attribute&gt; field</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="clones.annotation.labelers.CelltypeLabeler">
+<em class="property">class </em><code class="descclassname">clones.annotation.labelers.</code><code class="descname">CelltypeLabeler</code><span class="sig-paren">(</span><em>labels=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clones/annotation/labelers.html#CelltypeLabeler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clones.annotation.labelers.CelltypeLabeler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assigns &lt;celltype&gt; to cell measurement data based on &lt;genotype&gt; attribute.</p>
+<p>Attributes:</p>
+<blockquote>
+<div><p>label (str) - name of label field to be added</p>
+<p>attribute (str) - existing cell attribute used to determine labels</p>
+<p>labeler (vectorized func) - callable that maps attribute values to labels</p>
+</div></blockquote>
+</dd></dl>
+
+</div>
+<div class="section" id="individual-cell-classifiers">
+<h2>Individual Cell Classifiers<a class="headerlink" href="#individual-cell-classifiers" title="Permalink to this headline">¶</a></h2>
+<p>Tools for classifying individual cell measurements.</p>
+<span class="target" id="module-clones.annotation.classifiers"></span><dl class="class">
+<dt id="clones.annotation.classifiers.CellClassifier">
+<em class="property">class </em><code class="descclassname">clones.annotation.classifiers.</code><code class="descname">CellClassifier</code><span class="sig-paren">(</span><em>values</em>, <em>classify_on='r_normalized'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clones/annotation/classifiers.html#CellClassifier"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clones.annotation.classifiers.CellClassifier" title="Permalink to this definition">¶</a></dt>
+<dd><p>K-means based classifier for assigning labels to individual cells.</p>
+<p>Attributes:</p>
+<blockquote>
+<div>classify_on (str) - cell attribute on which clustering occurs</div></blockquote>
+<p>Inherited attributes:</p>
+<blockquote>
+<div><p>values (array like) - basis for clustering</p>
+<p>log (bool) - indicates whether clustering performed on log values</p>
+<p>n (int) - number of clusters</p>
+<p>groups (dict) - {cluster_id: group_id} pairs for merging clusters</p>
+<p>cluster_to_groups (vectorized func) - maps cluster_id to group_id</p>
+<p>km (sklearn.cluster.KMeans) - kmeans object</p>
+<p>classifier (vectorized func) - maps value to group_id</p>
+<p>labels (np.ndarray[int]) - group_id labels assigned to fitted values</p>
+<p>cmap (matplotlib.colors.ColorMap) - colormap for group_id</p>
+<p>parameters (dict) - {param name: param value} pairs</p>
+<p>fig (matplotlib.figures.Figure) - histogram figure</p>
+</div></blockquote>
+<dl class="staticmethod">
+<dt id="clones.annotation.classifiers.CellClassifier.from_measurements">
+<em class="property">static </em><code class="descname">from_measurements</code><span class="sig-paren">(</span><em>measurements</em>, <em>classify_on='r_normalized'</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clones/annotation/classifiers.html#CellClassifier.from_measurements"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clones.annotation.classifiers.CellClassifier.from_measurements" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit a cell classifier to measurement data.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>measurements (pd.DataFrame) - cell measurement data</p>
+<p>classify_on (str) - cell measurement attribute on which to cluster</p>
+<p>kwargs: keyword arguments for k-means classifier</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div>classifier (CellClassifier)</div></blockquote>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="clones.annotation.classifiers.CellClassifier.load">
+<em class="property">classmethod </em><code class="descname">load</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clones/annotation/classifiers.html#CellClassifier.load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clones.annotation.classifiers.CellClassifier.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load classifier from file.</p>
+<p>Args:</p>
+<blockquote>
+<div>path (str) - path to classifier directory</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div>classifier (CellClassifier)</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="clones.annotation.classifiers.CellClassifier.save">
+<code class="descname">save</code><span class="sig-paren">(</span><em>dirpath</em>, <em>image=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clones/annotation/classifiers.html#CellClassifier.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clones.annotation.classifiers.CellClassifier.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save classifier to specified path.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>dirpath (str) - directory in which classifier is to be saved</p>
+<p>image (bool) - if True, save labeled histogram image</p>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="clones.annotation.classifiers.CommunityClassifier">
+<em class="property">class </em><code class="descclassname">clones.annotation.classifiers.</code><code class="descname">CommunityClassifier</code><span class="sig-paren">(</span><em>cells</em>, <em>cell_classifier</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clones/annotation/classifiers.html#CommunityClassifier"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clones.annotation.classifiers.CommunityClassifier" title="Permalink to this definition">¶</a></dt>
+<dd><p>Classifier for assigning labels to communities.</p>
+<p>Attributes:</p>
+<blockquote>
+<div>classifier (CellClassifier) - individual cell classifier</div></blockquote>
+<dl class="classmethod">
+<dt id="clones.annotation.classifiers.CommunityClassifier.build_classifier">
+<em class="property">classmethod </em><code class="descname">build_classifier</code><span class="sig-paren">(</span><em>cells</em>, <em>cell_classifier</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clones/annotation/classifiers.html#CommunityClassifier.build_classifier"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clones.annotation.classifiers.CommunityClassifier.build_classifier" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build classifier assigning genotypes to graph communities.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>cells (pd.DataFrame) - cell data including community labels</p>
+<p>cell_classifier (CellClassifier) - assigns genotype to individual cell</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="clones.annotation.classifiers.CommunityClassifier.from_layer">
+<em class="property">static </em><code class="descname">from_layer</code><span class="sig-paren">(</span><em>layer</em>, <em>cell_classifier</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clones/annotation/classifiers.html#CommunityClassifier.from_layer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clones.annotation.classifiers.CommunityClassifier.from_layer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instantiate community classifier from a layer.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="clones.annotation.classifiers.CommunityClassifier.get_mode">
+<em class="property">static </em><code class="descname">get_mode</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clones/annotation/classifiers.html#CommunityClassifier.get_mode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clones.annotation.classifiers.CommunityClassifier.get_mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns most common value in an array.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="clones.annotation.classifiers.KM">
+<em class="property">class </em><code class="descclassname">clones.annotation.classifiers.</code><code class="descname">KM</code><span class="sig-paren">(</span><em>values</em>, <em>n=3</em>, <em>groups=None</em>, <em>log=False</em>, <em>cmap=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clones/annotation/classifiers.html#KM"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clones.annotation.classifiers.KM" title="Permalink to this definition">¶</a></dt>
+<dd><p>K-means classifier.</p>
+<p>Attributes:</p>
+<blockquote>
+<div><p>values (array like) - basis for clustering</p>
+<p>log (bool) - indicates whether clustering performed on log values</p>
+<p>n (int) - number of clusters</p>
+<p>groups (dict) - {cluster_id: group_id} pairs for merging clusters</p>
+<p>cluster_to_groups (vectorized func) - maps cluster_id to group_id</p>
+<p>km (sklearn.cluster.KMeans) - kmeans object</p>
+<p>classifier (vectorized func) - maps value to group_id</p>
+<p>labels (np.ndarray[int]) - group_id labels assigned to fitted values</p>
+<p>cmap (matplotlib.colors.ColorMap) - colormap for group_id</p>
+<p>parameters (dict) - {param name: param value} pairs</p>
+<p>fig (matplotlib.figures.Figure) - histogram figure</p>
+</div></blockquote>
+<dl class="method">
+<dt id="clones.annotation.classifiers.KM.get_values">
+<code class="descname">get_values</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clones/annotation/classifiers.html#KM.get_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clones.annotation.classifiers.KM.get_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get values for classifier.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="clones.annotation.classifiers.KM.set_cmap">
+<code class="descname">set_cmap</code><span class="sig-paren">(</span><em>cmap=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clones/annotation/classifiers.html#KM.set_cmap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clones.annotation.classifiers.KM.set_cmap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set colormap for class labels.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="clones.annotation.classifiers.KM.show">
+<code class="descname">show</code><span class="sig-paren">(</span><em>**kw</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clones/annotation/classifiers.html#KM.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clones.annotation.classifiers.KM.show" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot histogram.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="genotype-annotation">
+<h2>Genotype Annotation<a class="headerlink" href="#genotype-annotation" title="Permalink to this headline">¶</a></h2>
+<p>Tools for automated cell genotype classification.</p>
+<span class="target" id="module-clones.annotation.genotype"></span><dl class="class">
+<dt id="clones.annotation.genotype.CloneVisualization">
+<em class="property">class </em><code class="descclassname">clones.annotation.genotype.</code><code class="descname">CloneVisualization</code><span class="sig-paren">(</span><em>df</em>, <em>label='genotype'</em>, <em>**kw</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clones/annotation/genotype.html#CloneVisualization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clones.annotation.genotype.CloneVisualization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Object for visualizing clones by shading Voronoi cells.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="clones.annotation.genotype.CommunityBasedGenotype">
+<em class="property">class </em><code class="descclassname">clones.annotation.genotype.</code><code class="descname">CommunityBasedGenotype</code><span class="sig-paren">(</span><em>graph</em>, <em>cell_classifier</em>, <em>label='community_genotype'</em>, <em>attribute='community'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clones/annotation/genotype.html#CommunityBasedGenotype"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clones.annotation.genotype.CommunityBasedGenotype" title="Permalink to this definition">¶</a></dt>
+<dd><p>Object for assigning genotypes to cells based on their local community.</p>
+<p>Attributes:</p>
+<blockquote>
+<div><p>graph (Graph) - graph connecting adjacent cells</p>
+<p>cell_classifier (CellClassifier) - callable object</p>
+<p>labeler (CommunityClassifier) - callable object</p>
+</div></blockquote>
+<p>Inherited attributes:</p>
+<blockquote>
+<div><p>label (str) - name of label field to be added</p>
+<p>attribute (str) - existing cell attribute used to determine labels</p>
+</div></blockquote>
+<dl class="method">
+<dt id="clones.annotation.genotype.CommunityBasedGenotype.build_classifier">
+<code class="descname">build_classifier</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clones/annotation/genotype.html#CommunityBasedGenotype.build_classifier"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clones.annotation.genotype.CommunityBasedGenotype.build_classifier" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build community classifier.</p>
+<p>Returns:</p>
+<blockquote>
+<div>classifier (func) - maps communities to labels</div></blockquote>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="clones.annotation.genotype.CommunityBasedGenotype.from_layer">
+<em class="property">static </em><code class="descname">from_layer</code><span class="sig-paren">(</span><em>layer</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clones/annotation/genotype.html#CommunityBasedGenotype.from_layer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clones.annotation.genotype.CommunityBasedGenotype.from_layer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instantiate from layer.</p>
+<p>Args:</p>
+<blockquote>
+<div>layer (Layer)</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div>labeler (CommunityBasedGenotype)</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="clones.annotation.genotype.Tessellation">
+<em class="property">class </em><code class="descclassname">clones.annotation.genotype.</code><code class="descname">Tessellation</code><span class="sig-paren">(</span><em>xy</em>, <em>labels</em>, <em>q=90</em>, <em>colors=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clones/annotation/genotype.html#Tessellation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clones.annotation.genotype.Tessellation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Object for visualizing Voronoi tessellations.</p>
+<dl class="method">
+<dt id="clones.annotation.genotype.Tessellation.build_region_area_mask">
+<code class="descname">build_region_area_mask</code><span class="sig-paren">(</span><em>q=90</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clones/annotation/genotype.html#Tessellation.build_region_area_mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clones.annotation.genotype.Tessellation.build_region_area_mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mask regions with pixel areas larger than a specified quantile.</p>
+<p>Args:</p>
+<blockquote>
+<div>q (float) - maximum region area quantile, 0 to 100</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div>mask (np.ndarray[bool]) - True for regions smaller than maximum area</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="clones.annotation.genotype.Tessellation.evaluate_region_area">
+<code class="descname">evaluate_region_area</code><span class="sig-paren">(</span><em>region</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clones/annotation/genotype.html#Tessellation.evaluate_region_area"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clones.annotation.genotype.Tessellation.evaluate_region_area" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate pixel area enclosed by a region.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="clones.annotation.genotype.Tessellation.set_region_mask">
+<code class="descname">set_region_mask</code><span class="sig-paren">(</span><em>q=90</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clones/annotation/genotype.html#Tessellation.set_region_mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clones.annotation.genotype.Tessellation.set_region_mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mask regions with pixel areas larger than a specified quantile.</p>
+<p>Args:
+q (float) - maximum region area quantile, 0 to 100</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="clones.annotation.genotype.Tessellation.show">
+<code class="descname">show</code><span class="sig-paren">(</span><em>ax=None</em>, <em>**kw</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clones/annotation/genotype.html#Tessellation.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clones.annotation.genotype.Tessellation.show" title="Permalink to this definition">¶</a></dt>
+<dd><p>Visualize vertices.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="concurrency-labeling">
+<h2>Concurrency Labeling<a class="headerlink" href="#concurrency-labeling" title="Permalink to this headline">¶</a></h2>
+<p>Tools for labeling cell measurements based on spatio-temporal concurrency.</p>
+<span class="target" id="module-clones.annotation.concurrency"></span><dl class="class">
+<dt id="clones.annotation.concurrency.ConcurrencyLabeler">
+<em class="property">class </em><code class="descclassname">clones.annotation.concurrency.</code><code class="descname">ConcurrencyLabeler</code><span class="sig-paren">(</span><em>attribute='celltype'</em>, <em>min_pop=5</em>, <em>max_distance=10</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clones/annotation/concurrency.html#ConcurrencyLabeler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clones.annotation.concurrency.ConcurrencyLabeler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Object for labeling cell measurements as concurrent with other cell types.  Concurrency with each unique target cell type is determined by applying a maximum threshold on the x-distance between each cell and its nearest neighbor of the target type.</p>
+<p>Attributes:</p>
+<blockquote>
+<div><p>attribute (str) - measurement attribute used to denote cell type</p>
+<p>min_pop (int) - minimum population size for inclusion of cell type</p>
+<p>max_distance (float) - maximum distance threshold for inclusion</p>
+</div></blockquote>
+<dl class="method">
+<dt id="clones.annotation.concurrency.ConcurrencyLabeler.assign_labels">
+<code class="descname">assign_labels</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clones/annotation/concurrency.html#ConcurrencyLabeler.assign_labels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clones.annotation.concurrency.ConcurrencyLabeler.assign_labels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add boolean ‘concurrent_&lt;cell type&gt;’ field to cell measurement data for each unique cell type.</p>
+<p>Args:</p>
+<blockquote>
+<div>data (pd.DataFrame) - processed cell measurement data</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="clones.annotation.concurrency.ConcurrencyLabeler.evaluate_distance">
+<code class="descname">evaluate_distance</code><span class="sig-paren">(</span><em>data</em>, <em>target_type</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/clones/annotation/concurrency.html#ConcurrencyLabeler.evaluate_distance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#clones.annotation.concurrency.ConcurrencyLabeler.evaluate_distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate x-distance of all cells to nearest neighbor of target cell type.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>data (pd.DataFrame) - processed cell measurement data</p>
+<p>target_type (str) - target cell type</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div>distances (np.ndarray[float]) - distances to target cell type</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">clones</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">INSTALLATION</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../modules.html">API DOCUMENTATION</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="data.html">Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="measurement.html">Measure</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Annotation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bleedthrough.html">Bleedthrough</a></li>
+<li class="toctree-l2"><a class="reference internal" href="selection.html">Selection</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../gettingstarted.html">GETTING STARTED</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">EXAMPLE USAGE</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../modules.html">Clones Submodules</a><ul>
+      <li>Previous: <a href="measurement.html" title="previous chapter">MEASUREMENT</a></li>
+      <li>Next: <a href="bleedthrough.html" title="next chapter">BLEEDTHROUGH CONTROL</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Sebastian Bernasek.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.11</a>
+      
+      |
+      <a href="../_sources/modules/annotation.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
