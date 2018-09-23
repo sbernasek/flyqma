@@ -21,6 +21,8 @@ Given confocal microscopy data, clones facilitates:
   - **Comparison:** statistical comparison of subpopulations
 
 
+For a comprehensive overview of the clones package and all of its functions, please see the [clones documentation](/docs/build//html/index.html).
+
 The initial release is primarily limited to basic tools required to replicate [our study](https://github.com/sebastianbernasek/pnt_yan_ratio) of Pnt and Yan expression during retinal patterning in *Drosophila*. This functionality may be expanded in later releases.
 
 
@@ -280,4 +282,6 @@ Example Usage
 Further Examples
 -------------
 
-For detailed usage examples, please refer to the [code](https://github.com/sebastianbernasek/pnt_yan_ratio) used to generate the figures in our manuscript.
+See the [clones documentation](/docs/build//html/index.html).
+
+For additional usage examples, please refer to the [code](https://github.com/sebastianbernasek/pnt_yan_ratio) used to generate the figures in our manuscript.
