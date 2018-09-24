@@ -3,8 +3,6 @@ Clones Documentation
 ====================
 
 .. image:: graphics/header.png
-   :width: 750px
-   :height: 100px
    :width: 100%
    :align: center
    :alt: header
