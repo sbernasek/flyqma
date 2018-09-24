@@ -1,5 +1,5 @@
 .. image:: graphics/Northwestern_purple_RGB.png
-   :width: 35%
+   :width: 50%
    :align: right
    :alt: nulogo
 
