@@ -1,12 +1,13 @@
+====================
+Clones Documentation
+====================
+
 .. image:: graphics/header.png
    :width: 100%
    :align: center
    :alt: header
 
-
-Clones Documentation
-====================
-
+|
 |
 | Welcome to Clones!
 
