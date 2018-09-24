@@ -8,7 +8,6 @@ Clones Documentation
    :alt: header
 
 |
-|
 | Welcome to Clones!
 
 
