@@ -41,10 +41,3 @@ The initial release is primarily limited to basic tools required to replicate `o
    API DOCUMENTATION <modules>
    GETTING STARTED <gettingstarted>
    EXAMPLE USAGE <usage>
-
-
-Indices and tables
-------------------
-
-* :ref:`search`
-
