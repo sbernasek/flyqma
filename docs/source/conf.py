@@ -23,7 +23,7 @@ if '..' not in sys.path:
 
 # -- Project information -----------------------------------------------------
 
-project = 'FlyEye Clones'
+project = 'Clones'
 copyright = '2018, Sebastian Bernasek'
 author = 'Sebastian Bernasek'
 
