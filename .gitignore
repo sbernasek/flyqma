@@ -1,4 +1,3 @@
-docs/source/graphics
 clones.egg-info/
 notebooks/old
 data/*
@@ -7,10 +6,6 @@ data/*
 *.pyc
 notebooks/.ipynb_checkpoints/*
 *.xlsx
-*.log
-*.csv
-*.json
-docs/Makefile
 docs/build/
 docs/source/.doctrees/
 notebooks/development/
