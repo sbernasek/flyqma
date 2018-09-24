@@ -8,11 +8,11 @@ NU FlyEye Clones
    :alt: header
 
 
-FlyEye Clones is a python-based platform for analyzing protein expression patterns in the developing *Drosophila* eye. The package enables quantitative comparisons of expression between distinct clonal subpopulations within the eye epithelium.
+*FlyEye Clones* is a python-based platform for analyzing protein expression patterns in the developing *Drosophila* eye. The package enables quantitative comparisons of expression between distinct clonal subpopulations within the eye epithelium.
 
-Expression patterns are typically identified by comparing the fluorescence of target gene reporters between groups of cells. FlyEye Clones helps quantify these differences in reporter expression. Quantification entails measuring fluorescence intensities by analyzing experimentally collected images of fixed eye discs. Such measurements may then used to identify and compare distinct subpopulations within the eye field.
+Expression patterns are typically identified by comparing the fluorescence of target gene reporters between groups of cells. *FlyEye Clones* helps quantify these differences in reporter expression. Quantification entails measuring fluorescence intensities by analyzing experimentally collected images of fixed eye discs. Such measurements may then used to identify and compare distinct subpopulations within the eye field.
 
-Given confocal microscopy data, FlyEye Clones facilitates:
+Given confocal microscopy data, *FlyEye Clones* facilitates:
 
   - **Segmentation:** automated detection of cell nuclei
 

@@ -2,7 +2,7 @@
 Example Usage
 =============
 
-FlyEye Clones provides a wide range of functionality for measuring and analyzing gene expression in eye clones. A brief introduction to the major functionalities is provided here. For detailed usage instructions please see the :ref:`submodules <modules>` documentation.
+*FlyEye Clones* provides a wide range of functionality for measuring and analyzing gene expression in eye clones. A brief introduction to the major functionalities is provided here. For detailed usage instructions please see the :ref:`submodules <modules>` documentation.
 
 
 Loading image data
@@ -58,7 +58,7 @@ Perform bleedthrough correction:
 Cell Selection GUI
 ------------------
 
-FlyEye Clones includes a matplot-lib based GUI for selecting a particular region of interest within an image layer. The interface consists of a grid of images in which rows correspond to layers and columns correspond to each of the available fluorescence channels. To launch the GUI for an individual image stack:
+*FlyEye Clones* includes a matplot-lib based GUI for selecting a particular region of interest within an image layer. The interface consists of a grid of images in which rows correspond to layers and columns correspond to each of the available fluorescence channels. To launch the GUI for an individual image stack:
 
 .. code-block:: python
 
