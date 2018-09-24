@@ -7,6 +7,7 @@ Clones Documentation
    :height: 100px
    :scale: 50 %
    :align: left
+   :alt: header
 
 Welcome to Clones!
 
