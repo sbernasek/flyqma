@@ -1,6 +1,6 @@
-====================
-Clones Documentation
-====================
+==================
+Welcome to Clones!
+==================
 
 .. image:: graphics/header.png
    :width: 100%
@@ -8,10 +8,9 @@ Clones Documentation
    :alt: header
 
 |
-| Welcome to Clones!
+|
 
-
-Clones is a platform for analyzing protein expression patterns in the developing *Drosophila* eye. The package is particularly focused on comparing expression between distinct clonal subpopulations within the eye epithelium.
+Clones is a python-based platform for analyzing protein expression patterns in the developing *Drosophila* eye. The package is particularly focused on comparing expression between distinct clonal subpopulations within the eye epithelium.
 
 Expression patterns are typically identified by comparing the fluorescence of target gene reporters between groups of cells. Clones helps quantify these differences in reporter expression. Quantification entails measuring fluorescence intensities by analyzing experimentally collected images of fixed eye discs. Such measurements may then used to identify and compare distinct subpopulations within the eye field.
 

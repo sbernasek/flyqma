@@ -1,4 +1,4 @@
-
+=============
 Example Usage
 =============
 
@@ -123,6 +123,7 @@ Aggregate all measurement data for an experiment:
     data = experiment.aggregate_measurements()
 
 
-**Further Examples**
+Additional Examples
+-------------------
 
 For detailed usage examples, please refer to the `code <https://github.com/sebastianbernasek/pnt_yan_ratio>`_ used to generate the figures in our manuscript.
