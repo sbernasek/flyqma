@@ -1,10 +1,10 @@
-Contact Us
-==========
-
 .. image:: graphics/Northwestern_purple_RGB.png
-   :width: 50%
+   :width: 35%
    :align: right
    :alt: nulogo
+
+Contact Us
+==========
 
 
 *NU FlyEye Clones* is co-developed by the `Amaral <https://amaral.northwestern.edu/>`_ and `Bagheri <https://bagheri.northwestern.edu/>`_ labs in the Department of Chemical and Biological Engineering at Northwestern University.
