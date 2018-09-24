@@ -9,6 +9,8 @@ Clones Documentation
    :align: left
    :alt: header
 
+|
+|
 | Welcome to Clones!
 
 Clones is a platform for analyzing protein expression patterns in the developing *Drosophila* eye. The package is particularly focused on comparing expression between distinct clonal subpopulations within the eye epithelium.
