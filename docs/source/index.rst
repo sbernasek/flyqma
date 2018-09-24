@@ -41,6 +41,6 @@ The initial release is primarily limited to basic tools required to replicate `o
 
    INSTALLATION <installation>
    API DOCUMENTATION <modules>
-   GETTING STARTED <gettingstarted>
+   GETTING STARTED <start>
    EXAMPLE USAGE <usage>
    CONTACT US <contact>
