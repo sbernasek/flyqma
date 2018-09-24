@@ -3,7 +3,6 @@ clones.egg-info/
 notebooks/old
 data/*
 /modules/cmodules/*
-*.png
 *.pdf
 *.pyc
 notebooks/.ipynb_checkpoints/*
