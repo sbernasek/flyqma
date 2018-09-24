@@ -1,13 +1,13 @@
 .. _modules:
 
-Clones Submodules
-=================
+FlyEye Clones Submodules
+========================
 
-Clones is organized into several complementary submodules. Please follow the table of contents below for detailed descriptions of their respective functionalities.
+FlyEye Clones is organized into several complementary submodules. Please follow the table of contents below for detailed descriptions of their respective functionalities.
 
 .. toctree::
    :maxdepth: 2
-   :caption: Clones submodules:
+   :caption: FlyEye Clones submodules:
 
    Data <modules/data>
    Measure <modules/measurement>
