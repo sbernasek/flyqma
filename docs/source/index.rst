@@ -1,11 +1,11 @@
-================
-NU FlyEye Clones
-================
-
 .. image:: graphics/Northwestern_purple_RGB.png
    :width: 30%
    :align: right
    :alt: nulogo
+
+================
+NU FlyEye Clones
+================
 
 .. image:: graphics/header.png
    :width: 100%
