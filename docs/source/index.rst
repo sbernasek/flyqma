@@ -38,4 +38,4 @@ The initial release is primarily limited to basic tools required to replicate `o
    API DOCUMENTATION <modules>
    GETTING STARTED <gettingstarted>
    EXAMPLE USAGE <usage>
-   ABOUT US <aboutus>
+   CONTACT US <contactus>
