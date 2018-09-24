@@ -1,6 +1,6 @@
-=============
-FlyEye Clones
-=============
+================
+NU FlyEye Clones
+================
 
 .. image:: graphics/header.png
    :width: 100%
@@ -38,3 +38,4 @@ The initial release is primarily limited to basic tools required to replicate `o
    API DOCUMENTATION <modules>
    GETTING STARTED <gettingstarted>
    EXAMPLE USAGE <usage>
+   ABOUT US <aboutus>
