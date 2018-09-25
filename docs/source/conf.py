@@ -98,7 +98,6 @@ html_theme_options = {
     'logo_text_align': 'center',
 
     # sidebar
-    'sidebar_width': 50,
     'sidebar_collapse': False,
 
     # powered by note
