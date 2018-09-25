@@ -93,9 +93,9 @@ html_theme = 'alabaster'
 html_theme_options = {
 
     # logo
-    'logo': 'img/logo2-01.png',
-    'logo_name': True,
-    'logo_text_align': 'center',
+    'logo': 'img/logo3-01.png',
+    'logo_name': False,
+    #'logo_text_align': 'center',
 
     # sidebar
     'sidebar_collapse': False,
