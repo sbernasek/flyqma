@@ -115,7 +115,7 @@ Layers marked *neurons & cones* or *duplicate* will be masked by a transparent o
 A saved GUI may be reopened via the ``GUI.load`` method, at which point further adjustments may be made to each layer.
 
 
-.. figure:: graphics/example_gui.jpg
+.. figure:: graphics/example_gui.png
    :scale: 100 %
    :align: center
    :alt: example gui
