@@ -13,4 +13,4 @@ Contact Us
    :align: center
    :alt: header
 
-The **NU FlyEye** platform is co-developed by the `Amaral <https://amaral.northwestern.edu/>`_ and `Bagheri <http://bagheri.northwestern.edu/>`_ labs in the Department of Chemical and Biological Engineering at Northwestern University. Contact us via email with any questions regarding the platform and its applications.
+The **NU FlyEye** platform is co-developed by the `Amaral <https://amaral.northwestern.edu/>`_ and `Bagheri <https://bagheri.northwestern.edu/>`_ labs in the Department of Chemical and Biological Engineering at Northwestern University. Contact us via email with any questions regarding the platform and its applications.
