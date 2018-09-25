@@ -107,7 +107,6 @@ html_theme_options = {
 # remove default scaled image link
 html_scaled_image_link = False
 
-#html_logo = 'graphics/logo1-01.png'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
