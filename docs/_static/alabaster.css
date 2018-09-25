@@ -23,11 +23,11 @@ div.documentwrapper {
 }
 
 div.bodywrapper {
-    margin: 0 0 0 220px;
+    margin: 0 0 0 50;
 }
 
 div.sphinxsidebar {
-    width: 220px;
+    width: 50;
     font-size: 14px;
     line-height: 1.5;
 }
@@ -93,7 +93,7 @@ div.sphinxsidebarwrapper h1.logo {
     margin-top: -10px;
     text-align: center;
     margin-bottom: 5px;
-    text-align: left;
+    text-align: center;
 }
 
 div.sphinxsidebarwrapper h1.logo-name {

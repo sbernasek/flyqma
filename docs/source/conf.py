@@ -91,11 +91,17 @@ html_theme = 'alabaster'
 # documentation.
 #
 html_theme_options = {
+
+    # logo
     'logo': 'img/logo2-01.png',
     'logo_name': True,
-    'logo_text_align': 'left',
+    'logo_text_align': 'center',
 
-    'sidebar_collapse': True,
+    # sidebar
+    'sidebar_width': 50,
+    'sidebar_collapse': False,
+
+    # powered by note
     'show_powered_by': False,
 
 }
