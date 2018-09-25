@@ -99,6 +99,8 @@ html_theme_options = {
 
     'show_powered_by': False,
 
+    'head_font_family': 'helvetica',
+
 }
 
 
