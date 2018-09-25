@@ -8,7 +8,7 @@
 NU FlyEye: Clones
 =================
 
-.. image:: graphics/header3-01.png
+.. image:: graphics/header4-01.png
    :width: 100%
    :align: center
    :alt: header

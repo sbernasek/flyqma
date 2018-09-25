@@ -8,6 +8,11 @@
 Getting Started
 ===============
 
+.. image:: graphics/header4-01.png
+   :width: 100%
+   :align: center
+   :alt: header
+
 The fastest way to familiarize yourself with **NU FlyEye: Clones** is to start with a working example. Feel free to use the data from `our study <https://github.com/sebastianbernasek/pnt_yan_ratio>`_ of Pnt and Yan expression during eye development.
 
 To measure and analyze your own microscopy data, please read on!

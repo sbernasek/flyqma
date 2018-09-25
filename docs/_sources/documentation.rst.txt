@@ -10,6 +10,11 @@
 Documentation
 =============
 
+.. image:: graphics/header4-01.png
+   :width: 100%
+   :align: center
+   :alt: header
+
 **NU FlyEye: Clones** is organized into several complementary submodules. Please follow the table of contents below for detailed descriptions of their respective functionalities.
 
 .. toctree::
