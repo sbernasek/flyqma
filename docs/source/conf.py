@@ -92,7 +92,7 @@ html_theme = 'alabaster'
 #
 html_theme_options = {
     #'logo': '../graphics/logo1-01.png',
-    'logo_name': True,
+    'logo_name': False,
     'logo_text_align': 'left',
 
     'sidebar_collapse': False,
