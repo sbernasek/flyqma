@@ -7,6 +7,11 @@
 Example Usage
 =============
 
+.. image:: graphics/header4-01.png
+   :width: 100%
+   :align: center
+   :alt: header
+
 **NU FlyEye: Clones** provides a wide range of functionality for measuring and analyzing gene expression in eye clones. A brief introduction to some basic operations is provided below. For detailed usage instructions please see the :ref:`documentation <documentation>`.
 
 
