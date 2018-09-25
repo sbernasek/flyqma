@@ -94,11 +94,11 @@ html_theme_options = {
 
     # logo
     'logo': 'img/logo3-01.png',
-    'logo_name': False,
+    #'logo_name': False,
     #'logo_text_align': 'center',
 
     # sidebar
-    'sidebar_collapse': True,
+    'sidebar_collapse': False,
 
     # powered by note
     'show_powered_by': False,
