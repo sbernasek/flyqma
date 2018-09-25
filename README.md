@@ -1,4 +1,3 @@
-=================
 NU FlyEye: Clones
 =================
 
@@ -21,7 +20,8 @@ The initial release is primarily limited to basic tools required to replicate [o
   - **Comparison.** Compare expression levels between subpopulations
 
 
-Please refer to the [documentation](https://sebastianbernasek.github.io/clones/index.html#) for a complete description of all ``clones`` submodules and functions.
+Please refer to the [documentation](https://sebastianbernasek.github.io/clones/index.html#) page for tips on getting started with analyzing your data.
+
 
 
 Installation
@@ -30,12 +30,6 @@ Installation
 After downloading the [latest distribution](https://github.com/sebastianbernasek/clones/archive/v0.1-beta.tar.gz), the simplest method is to install via ``pip``:
 
     pip install clones-0.1.0-beta.tar.gz
-
-
-Using NU FlyEye: Clones
-=======================
-
-See our [documentation](https://sebastianbernasek.github.io/clones/index.html#) for tips on getting started with analyzing your data.
 
 
 
