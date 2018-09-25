@@ -4,7 +4,6 @@
    :alt: nulogo
    :target: https://amaral.northwestern.edu/
 
-
 Example Usage
 =============
 
