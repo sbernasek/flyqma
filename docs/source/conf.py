@@ -91,7 +91,7 @@ html_theme = 'alabaster'
 # documentation.
 #
 html_theme_options = {
-    #'logo': 'img/logo1-01.png',
+    'logo': 'img/logo1-01.png',
     'logo_name': False,
     'logo_text_align': 'left',
 
@@ -101,7 +101,7 @@ html_theme_options = {
 
 }
 
-html_logo = 'graphics/logo1-01.png'
+#html_logo = 'graphics/logo1-01.png'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
