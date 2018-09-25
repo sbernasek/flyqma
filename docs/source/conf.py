@@ -98,7 +98,7 @@ html_theme_options = {
     #'logo_text_align': 'center',
 
     # sidebar
-    'sidebar_collapse': False,
+    'sidebar_collapse': True,
 
     # powered by note
     'show_powered_by': False,
