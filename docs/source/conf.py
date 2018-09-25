@@ -91,7 +91,7 @@ html_theme = 'alabaster'
 # documentation.
 #
 html_theme_options = {
-    'logo': 'logo1-01.png',
+    'logo': 'graphics/logo1-01.png',
     'logo_name': True,
     'logo_text_align': 'left',
 
