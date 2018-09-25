@@ -5,8 +5,8 @@
    :target: https://amaral.northwestern.edu/
 
 
-SELECTION
-=========
+Selection Module
+================
 
 ``clones.selection`` provides a matplotlib-based GUI for manually curating cell measurement data.
 

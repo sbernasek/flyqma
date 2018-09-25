@@ -5,8 +5,8 @@
    :target: https://amaral.northwestern.edu/
 
 
-ANNOTATION
-==========
+Annotation Module
+=================
 
 ``clones.annotation`` provides several tools for assigning labels to individual cell measurements.
 

@@ -8,12 +8,7 @@
 Getting Started
 ===============
 
-.. image:: graphics/header-01.png
-   :width: 100%
-   :align: center
-   :alt: header
-
-The fastest way to familiarize yourself with **NU FlyEye: Clones** is to start with a working example. Feel free to use the data from `our study <https://github.com/sebastianbernasek/pnt_yan_ratio>`_ of Pnt and Yan expression during eye development.
+The fastest way to familiarize yourself with **FlyEye Clones** is to start with a working example. Feel free to use the data from `our study <https://github.com/sebastianbernasek/pnt_yan_ratio>`_ of Pnt and Yan expression during eye development.
 
 To measure and analyze your own microscopy data, please read on!
 
@@ -54,7 +49,7 @@ Loading an Image Stack
 
 All measurements and analyses are performed in place. This means that new subdirectories and files are added to a stack directory each time a new segmentation, measurement, annotation, bleedthrough correction, or cell selection is saved. Saving one of these operations will overwrite any existing files of the same type.
 
-To begin using **NU FlyEye: Clones**, create an ``Experiment`` instance by passing the ``/experiment`` path to the object constructor:
+To begin using **FlyEye Clones**, create an ``Experiment`` instance by passing the ``/experiment`` path to the object constructor:
 
 .. code-block:: python
 

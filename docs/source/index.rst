@@ -4,18 +4,18 @@
    :alt: nulogo
    :target: https://amaral.northwestern.edu/
 
-=================
-NU FlyEye: Clones
-=================
+=============
+FlyEye Clones
+=============
 
 .. image:: graphics/header-01.png
    :width: 100%
    :align: center
    :alt: header
 
-**NU FlyEye: Clones** is part of the **NU FlyEye** platform for studying gene expression in the developing *Drosophila* eye. The clones package enables quantitative comparisons of expression between distinct clonal subpopulations within the eye epithelium.
+**FlyEye Clones** is part of the **NU FlyEye** platform for studying gene expression in the developing *Drosophila* eye. The clones package enables quantitative comparisons of expression between distinct clonal subpopulations within the eye epithelium.
 
-Given confocal microscopy data, the clones package facilitates:
+Given confocal microscopy data, the package facilitates:
 
   - **Segmentation.** Detect cell nuclei within a microscope image
 

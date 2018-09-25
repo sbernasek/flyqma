@@ -5,8 +5,8 @@
    :target: https://amaral.northwestern.edu/
 
 
-MEASUREMENT
-===========
+Measurement Module
+==================
 
 ``clones.measurement`` provides tools for measuring protein expression by quantifying fluorescent reporter intensity in confocal images of developing *Drosophila* eyes.
 

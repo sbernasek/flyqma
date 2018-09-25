@@ -5,8 +5,8 @@
    :target: https://amaral.northwestern.edu/
 
 
-DATA
-====
+Data Module
+===========
 
 ``clones.data`` provides three levels of organization for managing cell measurement data:
 

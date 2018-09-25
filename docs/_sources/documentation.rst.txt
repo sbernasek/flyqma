@@ -4,24 +4,18 @@
    :alt: nulogo
    :target: https://amaral.northwestern.edu/
 
-
 .. _documentation:
 
 Documentation
 =============
 
-.. image:: graphics/header-01.png
-   :width: 100%
-   :align: center
-   :alt: header
-
-**NU FlyEye: Clones** is organized into several complementary submodules. Please follow the table of contents below for detailed descriptions of their respective functionalities.
+**FlyEye Clones** is organized into several complementary submodules. Please follow the table of contents below for detailed descriptions of their respective functionalities.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
-   Data <modules/data>
-   Measure <modules/measurement>
-   Annotation <modules/annotation>
-   Bleedthrough <modules/bleedthrough>
-   Selection <modules/selection>
+   Data Modules <modules/data>
+   Measure Module <modules/measurement>
+   Annotation Module <modules/annotation>
+   Bleedthrough Module <modules/bleedthrough>
+   Selection Module <modules/selection>
