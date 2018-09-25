@@ -18,17 +18,17 @@ Expression patterns are typically identified by comparing the fluorescence of ta
 
 Given confocal microscopy data, the clones package facilitates:
 
-  - **Segmentation.** Automated detection of cell nuclei
+  - **Segmentation.** Detect cell nuclei within a microscope image
 
-  - **Measurement.**  Quantification of reporter expression levels
+  - **Measurement.** Quantify reporter expression levels
 
-  - **Bleedthrough Control.** Correction of fluorescence bleedthrough
+  - **Bleedthrough Control.** Correct for fluorescence bleedthrough
 
-  - **Annotation.** Automated labeling of clonal subpopulations
+  - **Annotation.** Identify distinct subpopulations of cells
 
-  - **Cell Selection.** Manual selection of cells for comparison
+  - **Cell Selection.** Manually select cells for comparison
 
-  - **Comparison.** Statistical comparison of subpopulations
+  - **Comparison.** Compare expression levels between subpopulations
 
 
 The initial release is primarily limited to basic tools required to replicate `our study <https://github.com/sebastianbernasek/pnt_yan_ratio>`_ of Pnt and Yan expression during retinal patterning in *Drosophila*. We intend to expand this functionality in later releases.
