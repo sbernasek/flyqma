@@ -93,7 +93,7 @@ html_theme = 'alabaster'
 html_theme_options = {
 
     # logo
-    'logo': 'img/logo3-01.png',
+    'logo': 'img/logo-01.png',
     #'logo_name': False,
     #'logo_text_align': 'center',
 

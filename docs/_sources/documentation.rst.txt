@@ -10,7 +10,7 @@
 Documentation
 =============
 
-.. image:: graphics/header4-01.png
+.. image:: graphics/header-01.png
    :width: 100%
    :align: center
    :alt: header
