@@ -5,8 +5,8 @@
    :target: https://amaral.northwestern.edu/
 
 
-Bleedthrough Control Module
-===========================
+Bleedthrough Module
+===================
 
 ``clones.bleedthrough`` provides methods for managing fluorescence bleedthrough between color channels.
 

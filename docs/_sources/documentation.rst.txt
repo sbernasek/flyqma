@@ -14,7 +14,7 @@ Documentation
 .. toctree::
    :maxdepth: 1
 
-   Data Modules <modules/data>
+   Data Module <modules/data>
    Measure Module <modules/measurement>
    Annotation Module <modules/annotation>
    Bleedthrough Module <modules/bleedthrough>
