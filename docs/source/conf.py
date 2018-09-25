@@ -93,12 +93,13 @@ html_theme = 'alabaster'
 html_theme_options = {
 
     # logo
-    'logo': 'img/logo-01.png',
+    'logo': 'img/clones_logo.png',
     #'logo_name': False,
     #'logo_text_align': 'center',
 
     # sidebar
     'sidebar_collapse': True,
+    'page_width': '1000px',
 
     # powered by note
     'show_powered_by': False,
