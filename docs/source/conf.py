@@ -91,15 +91,13 @@ html_theme = 'alabaster'
 # documentation.
 #
 html_theme_options = {
-    'logo': 'graphics/logo1-01.png',
+    'logo': '../graphics/logo1-01.png',
     'logo_name': True,
     'logo_text_align': 'left',
 
     'sidebar_collapse': False,
 
     'show_powered_by': False,
-
-    'head_font_family': 'helvetica',
 
 }
 
