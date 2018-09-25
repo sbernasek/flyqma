@@ -7,7 +7,6 @@ Documentation
 
 .. toctree::
    :maxdepth: 2
-   :caption: FlyEye Clones submodules:
 
    Data <modules/data>
    Measure <modules/measurement>
