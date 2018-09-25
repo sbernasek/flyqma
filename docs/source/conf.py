@@ -102,8 +102,10 @@ html_theme_options = {
 
     # powered by note
     'show_powered_by': False,
-
 }
+
+# remove default scaled image link
+html_scaled_image_link = False
 
 #html_logo = 'graphics/logo1-01.png'
 
