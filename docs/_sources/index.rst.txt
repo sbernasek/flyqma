@@ -3,33 +3,32 @@
    :align: right
    :alt: nulogo
 
-================
-NU FlyEye Clones
-================
+=================
+NU FlyEye: Clones
+=================
 
 .. image:: graphics/header.png
    :width: 100%
    :align: center
    :alt: header
 
+**NU FlyEye: Clones** is part of the **NU FlyEye** platform for studying gene expression in the developing *Drosophila* eye. The clones package enables quantitative comparisons of expression between distinct clonal subpopulations within the eye epithelium.
 
-*FlyEye Clones* is a python-based platform for analyzing protein expression patterns in the developing *Drosophila* eye. The package enables quantitative comparisons of expression between distinct clonal subpopulations within the eye epithelium.
+Expression patterns are typically identified by comparing the fluorescence of target gene reporters between groups of cells. **NU FlyEye: Clones** helps quantify these differences in reporter expression. Quantification entails measuring fluorescence intensities by analyzing experimentally collected images of fixed eye discs. Measurements are then used to identify and compare distinct subpopulations within the eye field.
 
-Expression patterns are typically identified by comparing the fluorescence of target gene reporters between groups of cells. *FlyEye Clones* helps quantify these differences in reporter expression. Quantification entails measuring fluorescence intensities by analyzing experimentally collected images of fixed eye discs. Such measurements may then used to identify and compare distinct subpopulations within the eye field.
+Given confocal microscopy data, the clones package facilitates:
 
-Given confocal microscopy data, *FlyEye Clones* facilitates:
+  - **Segmentation.** Automated detection of cell nuclei
 
-  - **Segmentation:** automated detection of cell nuclei
+  - **Measurement.**  Quantification of reporter expression levels
 
-  - **Measurement:**  quantification of reporter expression levels
+  - **Bleedthrough Control.** Correction of fluorescence bleedthrough
 
-  - **Bleedthrough Control:** correction of fluorescence bleedthrough
+  - **Annotation.** Automated labeling of clonal subpopulations
 
-  - **Annotation:** automated labeling of clonal subpopulations
+  - **Cell Selection.** Manual selection of cells for comparison
 
-  - **Cell Selection:** manual selection of cells for comparison
-
-  - **Comparison:** statistical comparison of subpopulations
+  - **Comparison.** Statistical comparison of subpopulations
 
 
 The initial release is primarily limited to basic tools required to replicate `our study <https://github.com/sebastianbernasek/pnt_yan_ratio>`_ of Pnt and Yan expression during retinal patterning in *Drosophila*. We intend to expand this functionality in later releases.
@@ -40,7 +39,7 @@ The initial release is primarily limited to basic tools required to replicate `o
    :maxdepth: 2
 
    INSTALLATION <installation>
-   API DOCUMENTATION <modules>
+   DOCUMENTATION <documentation>
    GETTING STARTED <start>
    EXAMPLE USAGE <usage>
    CONTACT US <contact>

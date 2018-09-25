@@ -36,22 +36,23 @@
             
   <div class="section" id="example-usage">
 <h1>Example Usage<a class="headerlink" href="#example-usage" title="Permalink to this headline">¶</a></h1>
-<p><em>FlyEye Clones</em> provides a wide range of functionality for measuring and analyzing gene expression in eye clones. A brief introduction to the major functionalities is provided here. For detailed usage instructions please see the <a class="reference internal" href="modules.html#modules"><span class="std std-ref">submodules</span></a> documentation.</p>
+<p><strong>NU FlyEye: Clones</strong> provides a wide range of functionality for measuring and analyzing gene expression in eye clones. A brief introduction to some basic operations is provided below. For detailed usage instructions please see the <a class="reference internal" href="documentation.html#documentation"><span class="std std-ref">documentation</span></a>.</p>
 <div class="section" id="loading-image-data">
 <h2>Loading image data<a class="headerlink" href="#loading-image-data" title="Permalink to this headline">¶</a></h2>
-<p>Load an experiment, stack, or layer from a directory containing subdirectories of <code class="docutils literal notranslate"><span class="pre">.tif</span></code> files:</p>
+<p>Load an experiment from a directory containing subdirectories of <code class="docutils literal notranslate"><span class="pre">.tif</span></code> files:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">clones.data</span> <span class="kn">import</span> <span class="n">experiments</span>
 
-<span class="c1"># load a specific experiment</span>
-<span class="n">path</span> <span class="o">=</span> <span class="s1">&#39;./data/clones/yanE833&#39;</span>
+<span class="n">path</span> <span class="o">=</span> <span class="s1">&#39;./data&#39;</span>
 <span class="n">experiment</span> <span class="o">=</span> <span class="n">experiments</span><span class="o">.</span><span class="n">Experiment</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-
-<span class="c1"># load a specific stack</span>
-<span class="n">stack_id</span> <span class="o">=</span> <span class="mi">0</span>
+</pre></div>
+</div>
+<p>Select an individual image stack:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">stack_id</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="n">stack</span> <span class="o">=</span> <span class="n">experiment</span><span class="p">[</span><span class="n">stack_id</span><span class="p">]</span>
-
-<span class="c1"># load a specific layer</span>
-<span class="n">layer_id</span> <span class="o">=</span> <span class="mi">0</span>
+</pre></div>
+</div>
+<p>Select an individual layer:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">layer_id</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="n">layer</span> <span class="o">=</span> <span class="n">stack</span><span class="p">[</span><span class="n">layer_id</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -60,7 +61,6 @@
 <h2>Measuring expression<a class="headerlink" href="#measuring-expression" title="Permalink to this headline">¶</a></h2>
 <p>Segment an image layer, measure the segment properties, and save the results:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">layer</span><span class="o">.</span><span class="n">segment</span><span class="p">()</span>
-
 <span class="n">layer</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -78,7 +78,7 @@
 </div>
 <div class="section" id="cell-selection-gui">
 <h2>Cell Selection GUI<a class="headerlink" href="#cell-selection-gui" title="Permalink to this headline">¶</a></h2>
-<p><em>FlyEye Clones</em> includes a matplot-lib based GUI for selecting a particular region of interest within an image layer. The interface consists of a grid of images in which rows correspond to layers and columns correspond to each of the available fluorescence channels. To launch the GUI for an individual image stack:</p>
+<p>The clones package includes a matplot-lib based GUI for selecting a particular region of interest within an image layer. The interface consists of a grid of images in which rows correspond to layers and columns correspond to each of the available fluorescence channels. To launch the GUI for an individual image stack:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">clones.selection.gui</span> <span class="kn">import</span> <span class="n">GUI</span>
 
 <span class="c1"># load a stack, including its image</span>
@@ -147,7 +147,7 @@ D: mark layer as duplicate
 <h3>Navigation</h3>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">INSTALLATION</a></li>
-<li class="toctree-l1"><a class="reference internal" href="modules.html">API DOCUMENTATION</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation.html">DOCUMENTATION</a></li>
 <li class="toctree-l1"><a class="reference internal" href="start.html">GETTING STARTED</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">EXAMPLE USAGE</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#loading-image-data">Loading image data</a></li>
