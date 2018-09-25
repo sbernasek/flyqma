@@ -95,7 +95,7 @@ html_theme_options = {
 #    'logo_name': False,
     #'logo_text_align': 'left',
 
-    'sidebar_collapse': False,
+    'sidebar_collapse': True,
 
     'show_powered_by': False,
 
