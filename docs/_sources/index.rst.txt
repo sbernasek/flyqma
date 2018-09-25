@@ -14,8 +14,6 @@ NU FlyEye: Clones
 
 **NU FlyEye: Clones** is part of the **NU FlyEye** platform for studying gene expression in the developing *Drosophila* eye. The clones package enables quantitative comparisons of expression between distinct clonal subpopulations within the eye epithelium.
 
-Expression patterns are typically identified by comparing the fluorescence of target gene reporters between groups of cells. **NU FlyEye: Clones** helps quantify these differences in reporter expression. Quantification entails measuring fluorescence intensities by analyzing experimentally collected images of fixed eye discs. Measurements are then used to identify and compare distinct subpopulations within the eye field.
-
 Given confocal microscopy data, the clones package facilitates:
 
   - **Segmentation.** Detect cell nuclei within a microscope image
@@ -39,7 +37,7 @@ The initial release is primarily limited to basic tools required to replicate `o
    :maxdepth: 2
 
    INSTALLATION <installation>
-   DOCUMENTATION <documentation>
    GETTING STARTED <start>
+   DOCUMENTATION <documentation>
    EXAMPLE USAGE <usage>
-   CONTACT US <contact>
+   CONTACT <contact>
