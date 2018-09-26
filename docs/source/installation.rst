@@ -22,14 +22,15 @@ Dependencies
 
 Required:
 
- - [TiffFile](https://pypi.org/project/tifffile/)
- - [Pandas](https://pandas.pydata.org/)
- - [Scipy](https://www.scipy.org/)
- - [Scikit-Learn](http://scikit-learn.org/stable/)
- - [Scikit-Image](https://scikit-image.org/)
- - [Statsmodels](https://www.statsmodels.org/stable/index.html)
- - [PIL](https://pillow.readthedocs.io/en/5.2.x/)
- - [PyTables](https://www.pytables.org/usersguide/installation.html)
- - [Seaborn](https://seaborn.pydata.org/)
- - [NetworkX](https://networkx.github.io/)
- - [Infomap](https://mapequation.github.io/infomap/)
+ - `PyTables <https://www.pytables.org/usersguide/installation.html>`_
+ - `Scipy <https://www.scipy.org/>`_
+ - `Pandas <https://pandas.pydata.org/>`_
+ - `PIL <https://pillow.readthedocs.io/en/5.2.x/>`_
+ - `TiffFile <https://pypi.org/project/tifffile/>`_
+ - `Matplotlib <https://matplotlib.org/>`_
+ - `Seaborn <https://seaborn.pydata.org/>`_
+ - `Scikit Image <https://scikit-image.org/>`_
+ - `Scikit Learn <http://scikit-learn.org/stable/>`_
+ - `Statsmodels <https://www.statsmodels.org/stable/index.html>`_
+ - `NetworkX <https://networkx.github.io/>`_
+ - `Infomap <https://mapequation.github.io/infomap/>`_
