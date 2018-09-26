@@ -36,11 +36,23 @@
             
   <a class="reference external image-reference" href="https://amaral.northwestern.edu/"><img alt="nulogo" class="align-right" src="_images/Northwestern_purple_RGB.png" style="width: 30%;" /></a>
 <div class="section" id="getting-started">
-<h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+<span id="start"></span><h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
 <p>The fastest way to familiarize yourself with <strong>FlyEye Clones</strong> is to start with a working example. Feel free to use the data from <a class="reference external" href="https://github.com/sebastianbernasek/pnt_yan_ratio">our study</a> of Pnt and Yan expression during eye development.</p>
-<p>To measure and analyze your own microscopy data, please read on!</p>
-<div class="section" id="input-file-structure">
-<h2>Input File Structure<a class="headerlink" href="#input-file-structure" title="Permalink to this headline">¶</a></h2>
+<p>We recommend reading the sections below before working with your own microscopy data.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The initial release of the <strong>NU FlyEye</strong> platform only supports three-channel RGB microscopy data. The available reporter colors are thus nominally limited to red, green, and blue. One of these reporter colors must be reserved for a nuclear marker in order to facilitate segmentation. This leaves at most two reporter colors available for measuring target gene expression in any one experiment.</p>
+</div>
+<div class="section" id="data-format">
+<h2>Data Format<a class="headerlink" href="#data-format" title="Permalink to this headline">¶</a></h2>
+<p><strong>FlyEye Clones</strong> requires one or more 2-D cross-sectional images of each eye disc. These images may be supplied in 3-D <code class="docutils literal notranslate"><span class="pre">.tif</span></code> format, but individual layers must be spaced far enough apart to avoid capturing the same cells twice. Regulary spacing between layers is not required. To analyze full 3-D RGB image stacks, please see our accompanying package <strong>FlyEye Analysis</strong>.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last"><strong>FlyEye Clones</strong> prioritizes high-throughput data collection by circumventing the time-intensive process of manually labeling individual cell contours. Because cells often span several adjacent layers in a confocal z-stack, and image segmentation is performed on a layer-by-layer basis, users must supply non-overlapping cross-sectional images of the eye field in order to avoid making duplicate measurements of the same cell. Alternatively, overlapping layers may be manually excluded using the included <a class="reference internal" href="usage.html#gui"><span class="std std-ref">cell selection tool</span></a>.</p>
+</div>
+</div>
+<div class="section" id="data-management">
+<h2>Data Management<a class="headerlink" href="#data-management" title="Permalink to this headline">¶</a></h2>
 <p>We recommend a standardized input file structure. Microscopy data should be arranged into a collection of sequentially numbered “stack directories” that reside within a directory unique to a particular set of experimental conditions:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>experiment
 │
@@ -64,8 +76,8 @@
 </div>
 <p>Images may be regularly-spaced 3D z-stacks or irregularly-spaced 3D collections of one or more layers. The current implementation is limited to RGB color format. Extension to higher dimensionality would not be difficult should additional fluorescence channels become necessary.</p>
 </div>
-<div class="section" id="loading-an-image-stack">
-<h2>Loading an Image Stack<a class="headerlink" href="#loading-an-image-stack" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="loading-data">
+<h2>Loading Data<a class="headerlink" href="#loading-data" title="Permalink to this headline">¶</a></h2>
 <p>All measurements and analyses are performed in place. This means that new subdirectories and files are added to a stack directory each time a new segmentation, measurement, annotation, bleedthrough correction, or cell selection is saved. Saving one of these operations will overwrite any existing files of the same type.</p>
 <p>To begin using <strong>FlyEye Clones</strong>, create an <code class="docutils literal notranslate"><span class="pre">Experiment</span></code> instance by passing the <code class="docutils literal notranslate"><span class="pre">/experiment</span></code> path to the object constructor:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">experiment</span> <span class="o">=</span> <span class="n">Experiment</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s1">&#39;/experiment&#39;</span><span class="p">)</span>
@@ -106,8 +118,8 @@
 </pre></div>
 </div>
 </div>
-<div class="section" id="expression-measurement">
-<h2>Expression Measurement<a class="headerlink" href="#expression-measurement" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="measuring-expression">
+<h2>Measuring Expression<a class="headerlink" href="#measuring-expression" title="Permalink to this headline">¶</a></h2>
 <p>For a given layer, segmentation and expression quantification are performed by calling the <code class="docutils literal notranslate"><span class="pre">layer.segment</span></code> method.
 See the <code class="docutils literal notranslate"><span class="pre">layer.segment</span></code> documentation for an overview of customizable image preprocessing, seed detection, or segmentation parameters. Upon completion, the results may be saved by calling <code class="docutils literal notranslate"><span class="pre">layer.save()</span></code>. This saves the segmentation parameters within a layer metadata file and creates a <code class="docutils literal notranslate"><span class="pre">segmentation</span></code> subdirectory containing a segment labels mask and the corresponding raw expression measurement data:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>experiment
@@ -135,8 +147,8 @@ See the <code class="docutils literal notranslate"><span class="pre">layer.segme
 <blockquote>
 <div><ul class="simple">
 <li>Annotation: automated assignment of cell types to each contour</li>
-<li>Bleedthrough correction: correction for bleedthrough effects between fluorescence channels</li>
-<li>Cell selection: manual curation of layers or regions of layers to be included in the dataset, e.g. exclusion of overlapping layers</li>
+<li>Bleedthrough correction: correction for fluorescence bleedthrough between reporters</li>
+<li>Cell selection: manual exclusion of layers or regions of layers from the dataset</li>
 </ul>
 </div></blockquote>
 <p>The objects that perform these operations all behave in a similar manner. They are manually defined for each disc (see Jupyter notebooks for examples), but may then be saved for repeated use. When saved, each object creates its own subdirectory within the corresponding layer directory:</p>
@@ -206,9 +218,10 @@ See the <code class="docutils literal notranslate"><span class="pre">layer.segme
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">INSTALLATION</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">GETTING STARTED</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#input-file-structure">Input File Structure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#loading-an-image-stack">Loading an Image Stack</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#expression-measurement">Expression Measurement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-format">Data Format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-management">Data Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#loading-data">Loading Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#measuring-expression">Measuring Expression</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#data-processing">Data Processing</a></li>
 </ul>
 </li>

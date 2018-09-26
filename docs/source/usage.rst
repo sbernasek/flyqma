@@ -17,26 +17,25 @@ Load an experiment from a directory containing subdirectories of ``.tif`` files:
 
 .. code-block:: python
 
-    from clones.data import experiments
-
-    path = './data'
-    experiment = experiments.Experiment(path)
+   >>> from clones.data import experiments
+   >>> path = './data'
+   >>> experiment = experiments.Experiment(path)
 
 
 Select an individual image stack:
 
 .. code-block:: python
 
-    stack_id = 0
-    stack = experiment[stack_id]
+   >>> stack_id = 0
+   >>> stack = experiment[stack_id]
 
 
 Select an individual layer:
 
 .. code-block:: python
 
-    layer_id = 0
-    layer = stack[layer_id]
+   >>> layer_id = 0
+   >>> layer = stack[layer_id]
 
 
 
@@ -47,8 +46,8 @@ Segment an image layer, measure the segment properties, and save the results:
 
 .. code-block:: python
 
-    layer.segment()
-    layer.save()
+   >>> layer.segment()
+   >>> layer.save()
 
 
 Bleedthrough Correction
@@ -58,12 +57,13 @@ Perform bleedthrough correction:
 
 .. code-block:: python
 
-    from clones.bleedthrough.correction import LayerCorrection
+   >>> from clones.bleedthrough.correction import LayerCorrection
+   >>> correction = LayerCorrection(layer, niters=50)
+   >>> correction.show_correction()
+   >>> correction.save()
 
-    correction = LayerCorrection(layer, niters=50)
-    correction.show_correction()
-    correction.save()
 
+.. _gui:
 
 Cell Selection GUI
 ------------------
@@ -72,16 +72,16 @@ The clones package includes a matplot-lib based GUI for selecting a particular r
 
 .. code-block:: python
 
-    from clones.selection.gui import GUI
+   >>> from clones.selection.gui import GUI
 
-    # load a stack, including its image
-    stack = experiment.load_stack(stack_ind, full=True)
+   >>> # load a stack, including its image
+   >>> stack = experiment.load_stack(stack_ind, full=True)
 
-    # this creates the GUI interface (just a still image)
-    gui = GUI.load(stack)
+   >>> # create the GUI interface (a still image)
+   >>> gui = GUI.load(stack)
 
-    # connect interface to user input
-    gui.connect()
+   >>> # connect interface to user input
+   >>> gui.connect()
 
 
 Regions of a layer are selected by drawing a selection boundary that encloses them. A selection boundary is defined by a series of sequentially-added points. Click on a layer image to add a point to that layer's selection boundary. Points may be added to any of a layer's fluorescence channels, and will automatically appear withing all other fluorescence channels for that layer. The most recently added point appears as a large red dot, while all other points appear as small yellow dots. Once three or more dots are present in an image layer, the current selection boundary is displayed with a yellow line. Once completed, a given layer might look like:
@@ -130,7 +130,9 @@ Aggregate all measurement data for an experiment:
 
 .. code-block:: python
 
-    data = experiment.aggregate_measurements()
+   >>> data = experiment.aggregate_measurements()
+
+**The processed cell measurement data are now ready for analysis!**
 
 
 Additional Examples

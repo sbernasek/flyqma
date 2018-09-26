@@ -41,55 +41,53 @@
 <div class="section" id="loading-image-data">
 <h2>Loading image data<a class="headerlink" href="#loading-image-data" title="Permalink to this headline">¶</a></h2>
 <p>Load an experiment from a directory containing subdirectories of <code class="docutils literal notranslate"><span class="pre">.tif</span></code> files:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">clones.data</span> <span class="kn">import</span> <span class="n">experiments</span>
-
-<span class="n">path</span> <span class="o">=</span> <span class="s1">&#39;./data&#39;</span>
-<span class="n">experiment</span> <span class="o">=</span> <span class="n">experiments</span><span class="o">.</span><span class="n">Experiment</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">clones.data</span> <span class="kn">import</span> <span class="n">experiments</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="s1">&#39;./data&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">experiment</span> <span class="o">=</span> <span class="n">experiments</span><span class="o">.</span><span class="n">Experiment</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Select an individual image stack:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">stack_id</span> <span class="o">=</span> <span class="mi">0</span>
-<span class="n">stack</span> <span class="o">=</span> <span class="n">experiment</span><span class="p">[</span><span class="n">stack_id</span><span class="p">]</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">stack_id</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stack</span> <span class="o">=</span> <span class="n">experiment</span><span class="p">[</span><span class="n">stack_id</span><span class="p">]</span>
 </pre></div>
 </div>
 <p>Select an individual layer:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">layer_id</span> <span class="o">=</span> <span class="mi">0</span>
-<span class="n">layer</span> <span class="o">=</span> <span class="n">stack</span><span class="p">[</span><span class="n">layer_id</span><span class="p">]</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">layer_id</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">layer</span> <span class="o">=</span> <span class="n">stack</span><span class="p">[</span><span class="n">layer_id</span><span class="p">]</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="measuring-expression">
 <h2>Measuring expression<a class="headerlink" href="#measuring-expression" title="Permalink to this headline">¶</a></h2>
 <p>Segment an image layer, measure the segment properties, and save the results:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">layer</span><span class="o">.</span><span class="n">segment</span><span class="p">()</span>
-<span class="n">layer</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">layer</span><span class="o">.</span><span class="n">segment</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">layer</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="bleedthrough-correction">
 <h2>Bleedthrough Correction<a class="headerlink" href="#bleedthrough-correction" title="Permalink to this headline">¶</a></h2>
 <p>Perform bleedthrough correction:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">clones.bleedthrough.correction</span> <span class="kn">import</span> <span class="n">LayerCorrection</span>
-
-<span class="n">correction</span> <span class="o">=</span> <span class="n">LayerCorrection</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">niters</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
-<span class="n">correction</span><span class="o">.</span><span class="n">show_correction</span><span class="p">()</span>
-<span class="n">correction</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">clones.bleedthrough.correction</span> <span class="kn">import</span> <span class="n">LayerCorrection</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">correction</span> <span class="o">=</span> <span class="n">LayerCorrection</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">niters</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">correction</span><span class="o">.</span><span class="n">show_correction</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">correction</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="cell-selection-gui">
-<h2>Cell Selection GUI<a class="headerlink" href="#cell-selection-gui" title="Permalink to this headline">¶</a></h2>
+<span id="gui"></span><h2>Cell Selection GUI<a class="headerlink" href="#cell-selection-gui" title="Permalink to this headline">¶</a></h2>
 <p>The clones package includes a matplot-lib based GUI for selecting a particular region of interest within an image layer. The interface consists of a grid of images in which rows correspond to layers and columns correspond to each of the available fluorescence channels. To launch the GUI for an individual image stack:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">clones.selection.gui</span> <span class="kn">import</span> <span class="n">GUI</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">clones.selection.gui</span> <span class="kn">import</span> <span class="n">GUI</span>
 
-<span class="c1"># load a stack, including its image</span>
-<span class="n">stack</span> <span class="o">=</span> <span class="n">experiment</span><span class="o">.</span><span class="n">load_stack</span><span class="p">(</span><span class="n">stack_ind</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># load a stack, including its image</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stack</span> <span class="o">=</span> <span class="n">experiment</span><span class="o">.</span><span class="n">load_stack</span><span class="p">(</span><span class="n">stack_ind</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
-<span class="c1"># this creates the GUI interface (just a still image)</span>
-<span class="n">gui</span> <span class="o">=</span> <span class="n">GUI</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">stack</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># create the GUI interface (a still image)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gui</span> <span class="o">=</span> <span class="n">GUI</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">stack</span><span class="p">)</span>
 
-<span class="c1"># connect interface to user input</span>
-<span class="n">gui</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># connect interface to user input</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gui</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
 </pre></div>
 </div>
 <p>Regions of a layer are selected by drawing a selection boundary that encloses them. A selection boundary is defined by a series of sequentially-added points. Click on a layer image to add a point to that layer’s selection boundary. Points may be added to any of a layer’s fluorescence channels, and will automatically appear withing all other fluorescence channels for that layer. The most recently added point appears as a large red dot, while all other points appear as small yellow dots. Once three or more dots are present in an image layer, the current selection boundary is displayed with a yellow line. Once completed, a given layer might look like:</p>
@@ -119,9 +117,10 @@ D: mark layer as duplicate
 <div class="section" id="data-aggregation">
 <h2>Data Aggregation<a class="headerlink" href="#data-aggregation" title="Permalink to this headline">¶</a></h2>
 <p>Aggregate all measurement data for an experiment:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">experiment</span><span class="o">.</span><span class="n">aggregate_measurements</span><span class="p">()</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">experiment</span><span class="o">.</span><span class="n">aggregate_measurements</span><span class="p">()</span>
 </pre></div>
 </div>
+<p><strong>The processed cell measurement data are now ready for analysis!</strong></p>
 </div>
 <div class="section" id="additional-examples">
 <h2>Additional Examples<a class="headerlink" href="#additional-examples" title="Permalink to this headline">¶</a></h2>
