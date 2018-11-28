@@ -11,9 +11,9 @@ from ..utilities.io import IO
 from ..vis.settings import *
 
 
-class KM:
+class Classifier:
     """
-    K-means classifier.
+    Classifier base class.
 
     Attributes:
 
@@ -23,15 +23,124 @@ class KM:
 
         n (int) - number of clusters
 
+        classifier (vectorized func) - maps value to group_id
+
+        labels (np.ndarray[int]) - predicted labels
+
+        cmap (matplotlib.colors.ColorMap) - colormap for group_id
+
+        parameters (dict) - {param name: param value} pairs
+
+        fig (matplotlib.figures.Figure) - histogram figure
+
+    """
+
+    def __init__(self, values, n=3, log=False, cmap=None):
+        """
+        Instantiate k-means classifier.
+
+        Args:
+
+            values (array like) - basis for clustering
+
+            n (int) - number of clusters
+
+            log (bool) - indicates whether clustering performed on log values
+
+            cmap (matplotlib.colors.ColorMap) - colormap for cell labels
+
+        """
+
+        # set values, whether to log transform them, and number of clusters
+        self._values = values
+        self.log = log
+        self.n = n
+
+        # set colormap
+        self.set_cmap(cmap=cmap)
+
+        # store parameters
+        self.parameters = dict(n=self.n, log=self.log)
+        self.fig = None
+
+    def __call__(self, x):
+        """ Return class assignments. """
+        return self.classifier(x)
+
+    @property
+    def values(self):
+        """ Values for classifier. """
+        if self.log:
+            return np.log10(self._values)
+        else:
+            return self._values
+
+    def set_cmap(self, cmap=None):
+        """
+        Set colormap for class labels.
+
+        Args:
+
+            cmap (matplotlib.colormap)
+
+        """
+
+        # select colormap
+        if cmap is None:
+            cmap = plt.cm.viridis
+
+        # normalize
+        norm = Normalize(vmin=0, vmax=self.n-1)
+        self.cmap = lambda x: cmap(norm(x))
+
+    def show(self, **kw):
+        """ Plot histogram. """
+        self.fig = self._show(self.values, self.labels, self.cmap, **kw)
+
+    @staticmethod
+    def _show(x, labels, cmap, ax=None):
+        """ Plot histogram. """
+        if ax is None:
+            fig, ax = plt.subplots(figsize=(3, 2))
+        else:
+            fig = plt.gcf()
+        bins = np.linspace(x.min(), x.max(), 50)
+        for label in set(labels):
+            xi = x[(labels==label)]
+            ax.hist(xi, bins=bins, facecolor=cmap(label))
+
+        # format axis
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.set_xlabel('Values', fontsize=8)
+        ax.set_ylabel('Frequency', fontsize=8)
+
+        return fig
+
+
+class KM(Classifier):
+    """
+    K-means classifier.
+
+    Attributes:
+
         groups (dict) - {cluster_id: group_id} pairs for merging clusters
 
         cluster_to_groups (vectorized func) - maps cluster_id to group_id
 
         km (sklearn.cluster.KMeans) - kmeans object
 
+    Inherited attributes:
+
+        values (array like) - basis for clustering
+
+        log (bool) - indicates whether clustering performed on log values
+
+        n (int) - number of clusters
+
         classifier (vectorized func) - maps value to group_id
 
-        labels (np.ndarray[int]) - group_id labels assigned to fitted values
+        labels (np.ndarray[int]) - predicted labels
 
         cmap (matplotlib.colors.ColorMap) - colormap for group_id
 
@@ -59,38 +168,27 @@ class KM:
 
         """
 
-        # set values and whether to log transform them
-        self.values = values
-        self.log = log
-
         # set groups and number of clusters
         if groups is None:
             groups = {k: k for k in range(n)}
         else:
             groups = {int(k): v for k, v in groups.items()}
             n = len(groups)
-        self.n = n
+
+        # instantiate classifier
+        super().__init__(values, n=n, log=log, cmap=cmap)
         self.groups = groups
         self.cluster_to_group = np.vectorize(groups.get)
 
         # build classifiers
-        x = self.get_values()
-        self.km = self._kmeans(x, self.n)
+        self.km = self._kmeans(self.values, self.n)
         self.classifier = self._build_value_to_groups_classifier()
 
         # assign group labels
-        self.labels = self.classifier(x.reshape(-1, 1))
-
-        # set colormap
-        self.set_cmap(cmap)
+        self.labels = self.classifier(self.values.reshape(-1, 1))
 
         # store parameters
-        self.parameters = dict(n=self.n, groups=self.groups, log=self.log)
-        self.fig = None
-
-    def __call__(self, x):
-        """ Return class assignments. """
-        return self.classifier(x)
+        self.parameters.update(dict(groups=self.groups))
 
     @staticmethod
     def _kmeans(x, n):
@@ -112,44 +210,6 @@ class KM:
         value_to_cluster = self._build_value_to_cluster_classifier(self.km)
         classifier = lambda x: self.cluster_to_group(value_to_cluster(x))
         return classifier
-
-    def get_values(self):
-        """ Get values for classifier. """
-        values = self.values
-        if self.log:
-            values = np.log10(values)
-        return values
-
-    def set_cmap(self, cmap=None):
-        """ Set colormap for class labels. """
-        if cmap is None:
-            self.cmap = ListedColormap(['y', 'c', 'm'], 'indexed', N=3)
-        else:
-            self.cmap = cmap
-
-    def show(self, **kw):
-        """ Plot histogram. """
-        self.fig = self._show(self.get_values(), self.labels, self.cmap, **kw)
-
-    @staticmethod
-    def _show(x, labels, cmap, ax=None):
-        """ Plot histogram. """
-        if ax is None:
-            fig, ax = plt.subplots(figsize=(3, 2))
-        else:
-            fig = plt.gcf()
-        bins = np.linspace(x.min(), x.max(), 50)
-        for label in set(labels):
-            xi = x[(labels==label)]
-            ax.hist(xi, bins=bins, facecolor=cmap(label))
-
-        # format axis
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-        ax.set_xlabel('Values', fontsize=8)
-        ax.set_ylabel('Frequency', fontsize=8)
-
-        return fig
 
 
 class CellClassifier(KM):
@@ -263,7 +323,7 @@ class CellClassifier(KM):
             mkdir(path)
 
         # save values
-        np.save(join(path, 'values.npy'), self.values)
+        np.save(join(path, 'values.npy'), self._values)
 
         # save parameters
         io = IO()
@@ -352,6 +412,7 @@ class CommunityClassifier:
 
         """
         majority_vote = lambda x: cls.get_mode(cell_classifier(x))
-        community_to_genotype = cells.groupby('community').apply(majority_vote).to_dict()
+        communities = cells.groupby('community')
+        community_to_genotype = communities.apply(majority_vote).to_dict()
         community_to_genotype[-1] = -1
         return np.vectorize(community_to_genotype.get)

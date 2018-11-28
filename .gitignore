@@ -1,3 +1,5 @@
+build/
+pomegranate/
 doctrees/
 art/
 clones.egg-info/

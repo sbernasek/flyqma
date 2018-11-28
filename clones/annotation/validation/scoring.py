@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
-
-from ..vis.figures import Figure
-from ..vis.settings import *
+from sklearn.metrics import f1_score
+from ...vis.figures import Figure
+from ...vis.settings import *
 
 
 class Scoring:
@@ -32,29 +32,41 @@ class Scoring:
             predicted (array like) - predicted class labels
 
         """
-        data = (measured, predicted)
+        data = np.vstack((measured, predicted)).T
         self.data = pd.DataFrame(data, columns=('measured', 'predicted'))
         self.n = len(self.data)
+        self.compare()
 
     def __add__(self, x):
         """ Combine additively with another scoring matrix. """
         merged = pd.concat([self.data, x.data])
         return Scoring(merged[['measured', 'predicted']])
 
-    def score(self, **kwargs):
-        """
-        Evaluate classification accuracy and plot adjacency matrix.
+    @property
+    def error(self):
+        """ Normalized total classification error. """
+        return self.data.difference.sum() / (2*self.n)
 
-        kwargs: keyword arguments for adjacency matrix
-        """
-        self.compare()
-        self.plot_matrix(**kwargs)
+    @property
+    def percent_correct(self):
+        """ Fraction of measurements with correct annotation. """
+        return self._foo
+
+    @property
+    def f1(self):
+        """ F1 score. """
+        values = self.data[['measured', 'predicted']].values
+        return f1_score(*values.T, average='weighted')
+
+    @property
+    def MAE(self):
+        """ Mean absolute error averaged to correct for imbalance. """
+        return self.data.groupby('measured')['difference'].mean().mean() / 2
 
     def compare(self):
         """ Evaluate frequency of correct classification. """
         self.data['difference'] = abs(self.data.measured-self.data.predicted)
         self.data['correct'] = (self.data.difference==0)
-        self.percent_correct = self.data.correct.sum() / self.n
 
     def plot_matrix(self, **kwargs):
         """
@@ -80,6 +92,7 @@ class AdjacencyMatrix(Figure):
     """
 
     def __init__(self, measured, predicted,
+                 ax=None,
                  text=None,
                  figsize=(2, 2),
                  **kwargs):
@@ -92,6 +105,8 @@ class AdjacencyMatrix(Figure):
 
             predicted (array like) - predicted class labels
 
+            ax (matplotlib.axes.AxesSubplot) - if None, create figure
+
             text (str) - indicates whether 'counts' or 'rates' labels are added
 
             figsize (tuple) - figure dimensions
@@ -103,11 +118,16 @@ class AdjacencyMatrix(Figure):
         self.counts = self.build_matrix(measured, predicted)
 
         # create figue and add single axis
-        self.fig = self.create_figure(figsize=figsize)
-        self.add_axes()
+        if ax is None:
+            self.fig = self.create_figure(figsize=figsize)
+            self.add_axes()
+
+        else:
+            self.fig = plt.gcf()
+            self.axes = ax
 
         # plot classifier adjacency matrix
-        self.plot_matrix(self.axes, text=text, **kw)
+        self.plot_matrix(self.axes, text=text, **kwargs)
 
     def save(self, name, dirpath='./', **kwargs):
         """
@@ -189,13 +209,13 @@ class AdjacencyMatrix(Figure):
                     continue
 
         # format axes
-        self.format_axis(ax, fontsize=fontsize)
+        self.format_axis(ax)
 
     @staticmethod
     def format_axis(ax):
         """ Format individual axis. """
-        ax.set_xlabel('Human label')
-        ax.set_ylabel('Automated label')
+        ax.set_xlabel('True label')
+        ax.set_ylabel('Assigned label')
         ax.set_xticks(np.arange(2.5))
         ax.set_xticklabels(['0x', '1x', '2x'])
         ax.set_yticks(np.arange(2.5))
