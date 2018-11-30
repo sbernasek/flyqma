@@ -3,8 +3,9 @@ from os import mkdir, chmod, pardir
 import shutil
 
 import numpy as np
-from growth.sweep.sweep import Sweep
 from dill import pickle
+
+from growth.sweep.sweep import Sweep
 from .batch import BatchBenchmark
 from .io import Pickler
 
@@ -187,7 +188,7 @@ class SweepBenchmark(Pickler):
 
         # load python module and clones virtual environment
         job_script.write('module load python/anaconda3.6\n')
-        job_script.write('source activate clones\n\n')
+        job_script.write('source activate ~/pythonenvs/clones_env\n\n')
 
         # move to job directory
         job_script.write('cd {:s} \n\n'.format(path))
