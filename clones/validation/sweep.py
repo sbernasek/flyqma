@@ -194,7 +194,7 @@ class SweepBenchmark(Pickler):
         job_script.write('cd {:s} \n\n'.format(path))
 
         # run script
-        job_script.write('python ./scripts/{:s}\n'.format(script_name)+' ${P} ')
+        job_script.write('python ./scripts/{:s}'.format(script_name)+' ${P} \n')
         job_script.write('EOJ\n')
         job_script.write('`\n\n')
         # ============= end submission script for individual job --============
