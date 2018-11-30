@@ -105,7 +105,7 @@ class SweepBenchmark(Pickler):
         job_script.write('while read P; do\n')
         job_script.write('echo "Processing batch ${P}"\n')
         job_script.write('python ./scripts/{:s}'.format(script_name)+' ${P} ')
-        job_script.write('done < ./batches/index.txt \n')
+        job_script.write('done < ./jobs/index.txt \n')
         job_script.write('echo "Job completed at `date`"\n')
         job_script.write('exit\n')
 
@@ -200,7 +200,7 @@ class SweepBenchmark(Pickler):
         # ============= end submission script for individual job --============
 
         # print job id
-        job_script.write('done < ./batches/index.txt \n')
+        job_script.write('done < ./jobs/index.txt \n')
         job_script.write('echo "All jobs submitted as of `date`"\n')
         job_script.write('exit\n')
 
