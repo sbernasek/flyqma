@@ -8,7 +8,7 @@ from setuptools import find_packages
 def _post_install(dir):
     """ Install pomegranate without dependencies (due to networkx conflict) """
     prefix = [sys.executable, '-m']
-    cmd = "pip install pomegranate==0.10.0 --no-deps".split()
+    cmd = "pip install --user pomegranate==0.10.0 --no-deps".split()
     call(prefix+cmd, cwd=os.path.join(dir, 'clones'))
 
 
