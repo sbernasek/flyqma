@@ -3,7 +3,7 @@ from os import mkdir, chmod, pardir
 import shutil
 
 import numpy as np
-from dill import pickle
+import dill as pickle
 
 from growth.sweep.sweep import Sweep
 from .batch import BatchBenchmark
@@ -357,7 +357,7 @@ class SweepBenchmark(Pickler):
         benchmark = BatchBenchmark(batch, scale, num_replicates, **kwargs)
 
         # save benchmark
-        benchmark.save(path+'.pkl')
+        benchmark.save(path)
 
     def load_benchmark(self, batch_id, scale_id):
         """
