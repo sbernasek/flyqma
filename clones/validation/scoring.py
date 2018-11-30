@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 from sklearn.metrics import f1_score
-from ...vis.figures import Figure
-from ...vis.settings import *
+from ..vis.figures import Figure
+from ..vis.settings import *
 
 
 class Scoring:

@@ -1,35 +1,84 @@
-from os.path import join
+from os.path import join, abspath, relpath, isdir
+from os import mkdir, chmod, pardir
+import shutil
+
+from growth.sweep.sweep import Sweep
 from dill import pickle
-from .batch import BatchBenchmark, Pickler
+from .batch import BatchBenchmark
+from .io import Pickler
 
 
 class SweepBenchmark(Pickler):
 
-    def __init__(self, sweep):
-        self.sweep = sweep
+    """
+    Attributes:
+
+        sweep_path (str) - path to parent growth.sweep.Sweep directory
+
+        path (str) - path to benchmark subdirectory
+
+        batches (2D np.ndarray[growth.Batch]) - batches of growth replicates
+
+        scales (np.ndarray[float]) - fluorescence scales
+
+        num_replicates (int) - number of fluorescence replicates
+
+        script_name (str) - name of run script
+
+    """
+
+    def __init__(self, sweep_path,
+                 num_scales=9,
+                 num_replicates=10,
+                 script_name='run_benchmark'):
+
+        # load and set growth sweep
+        self.sweep_path = sweep_path
+        self.batches = Sweep.load(sweep_path).batches
+
+        # set fluorescence scales
+        self.scales = np.linspace(2, 10, num_scales_)
+
+        # set number of fluorescence replicates
+        self.num_replicates = num_replicates
+
+        # instantiate dictionary of paths to each BatchBenchmark object
+        self.benchmark_paths = {}
+
+        # set script name
+        self.script_name = script_name
 
     @staticmethod
-    def load(path):
-        """ Load job from target <path>. """
+    def load(sweep_path):
+        """
+        Load job.
+
+        Args:
+
+            sweep_path (str) - path to growth.Sweep directory
+
+        """
+        path = join(sweep_path, 'benchmark')
         with open(join(path, 'benchmark.pkl'), 'rb') as file:
             job = pickle.load(file)
-        job.sweep.path = path
+        job.path = path
         return job
 
-
+    @property
+    def num_scales(self):
+        """ Number of fluorescence scales. """
+        return self.scales.size
 
     @staticmethod
-    def build_run_script(path, script_name, save_history):
+    def build_run_script(path, script_name):
         """
         Writes bash run script for local use.
 
         Args:
 
-            path (str) - path to simulation top directory
+            path (str) - path to benchmarking top directory
 
             script_name (str) - name of run script
-
-            save_history (bool) - if True, save simulation history
 
         """
 
@@ -38,8 +87,8 @@ class SweepBenchmark(Pickler):
         job_script_path = join(path, 'scripts', 'run.sh')
 
         # copy run script to scripts directory
-        run_script = abspath(__file__).rsplit('/', maxsplit=2)[0]
-        run_script = join(run_script, 'scripts', script_name)
+        scripts_path = abspath(__file__).rsplit('/', maxsplit=2)
+        run_script = join(scripts_path, 'scripts', script_name)
         shutil.copy(run_script, join(path, 'scripts'))
 
         # declare outer script that reads PATH from file
@@ -54,8 +103,6 @@ class SweepBenchmark(Pickler):
         job_script.write('while read P; do\n')
         job_script.write('echo "Processing batch ${P}"\n')
         job_script.write('python ./scripts/{:s}'.format(script_name)+' ${P} ')
-        args = (save_history,)
-        job_script.write('-s {:d}\n'.format(*args))
         job_script.write('done < ./batches/index.txt \n')
         job_script.write('echo "Job completed at `date`"\n')
         job_script.write('exit\n')
@@ -69,7 +116,6 @@ class SweepBenchmark(Pickler):
     @staticmethod
     def build_submission_script(path,
                                 script_name,
-                                save_history=True,
                                 walltime=10,
                                 allocation='p30653',
                                 cores=1,
@@ -79,7 +125,7 @@ class SweepBenchmark(Pickler):
 
         Args:
 
-            path (str) - path to simulation top directory
+            path (str) - path to benchmarking top directory
 
             script_name (str) - name of run script
 
@@ -100,8 +146,8 @@ class SweepBenchmark(Pickler):
         job_script_path = join(path, 'scripts', 'submit.sh')
 
         # copy run script to scripts directory
-        run_script = abspath(__file__).rsplit('/', maxsplit=2)[0]
-        run_script = join(run_script, 'scripts', script_name)
+        scripts_path = abspath(__file__).rsplit('/', maxsplit=2)
+        run_script = join(scripts_path, 'scripts', script_name)
         shutil.copy(run_script, join(path, 'scripts'))
 
         # determine queue
@@ -116,7 +162,7 @@ class SweepBenchmark(Pickler):
         job_script = open(job_script_path, 'w')
         job_script.write('#!/bin/bash\n')
 
-        # move to job directory
+        # move to benchmarking directory
         job_script.write('cd {:s} \n\n'.format(path))
 
         # begin outer script for processing job
@@ -125,7 +171,7 @@ class SweepBenchmark(Pickler):
         job_script.write('b_id=$(echo $(basename ${P}) | cut -f 1 -d \'.\')\n')
         job_script.write('   JOB=`msub - << EOJ\n\n')
 
-        # =========== begin submission script for individual batch ============
+        # =========== begin submission script for individual job ==============
         job_script.write('#! /bin/bash\n')
         job_script.write('#MSUB -A {:s} \n'.format(allocation))
         job_script.write('#MSUB -q {:s} \n'.format(queue))
@@ -138,25 +184,22 @@ class SweepBenchmark(Pickler):
         job_script.write('#MSUB -l nodes=1:ppn={:d} \n'.format(cores))
         job_script.write('#MSUB -l mem={:d}gb \n\n'.format(memory))
 
-        # load python module and metabolism virtual environment
+        # load python module and clones virtual environment
         job_script.write('module load python/anaconda3.6\n')
-        job_script.write('source activate growth\n\n')
+        job_script.write('source activate clones\n\n')
 
         # move to job directory
         job_script.write('cd {:s} \n\n'.format(path))
 
         # run script
-        job_script.write('python ./scripts/{:s}'.format(script_name)+' ${P} ')
-        args = (save_history,)
-        job_script.write('-s {:d}\n'.format(*args))
+        job_script.write('python ./scripts/{:s}\n'.format(script_name)+' ${P} ')
         job_script.write('EOJ\n')
         job_script.write('`\n\n')
-        # ============= end submission script for individual batch ============
+        # ============= end submission script for individual job --============
 
         # print job id
-        #job_script.write('echo "JobID = ${JOB} submitted on `date`"\n')
         job_script.write('done < ./batches/index.txt \n')
-        job_script.write('echo "All batches submitted as of `date`"\n')
+        job_script.write('echo "All jobs submitted as of `date`"\n')
         job_script.write('exit\n')
 
         # close the file
@@ -165,91 +208,69 @@ class SweepBenchmark(Pickler):
         # change the permissions
         chmod(job_script_path, 0o755)
 
-
-
-
-
     def build_batches(self):
-        """
-        Creates directory and writes simulation paths for each batch.
-
-        Args:
-
-            batch_size (int) - number of simulations per batch
-
-        """
+        """ Writes benchmark paths for each batch. """
 
         # get directories for all batches and logs
         batches_dir = join(self.path, 'batches')
+        jobs_dir = join(self.path, 'jobs')
         logs_dir = join(self.path, 'log')
 
         # create index file for batches
-        index_path = join(batches_dir, 'index.txt')
+        index_path = join(jobs_dir, 'index.txt')
         index = open(index_path, 'w')
 
-        # write file containing simulation paths for each batch
-        for i, simulation_path in self.simulation_paths.items():
+        # write file containing benchmark paths for each batch
+        for batch_id, batch in enumerate(self.batches.ravel()):
 
-            # determine batch ID
-            batch_id = i // self.batch_size
+            # append job file to index
+            job_path = join(jobs_dir, '{:d}.txt'.format(batch_id))
+            index.write('{:s}\n'.format(relpath(job_path, self.path)))
 
-            # process new batch
-            if i % self.batch_size == 0:
+            # open job file
+            job_file = open(job_path, 'w')
 
-                # open batch file and append to index
-                batch_path = join(batches_dir, '{:d}.txt'.format(batch_id))
-                index.write('{:s}\n'.format(relpath(batch_path, self.path)))
-                batch_file = open(batch_path, 'w')
+            # write batch benchmark paths to job file
+            for scale_id in range(self.num_scales):
+                benchmark_path = self.benchmark_paths[batch_id][scale_id]
+                job_file.write('{:s}\n'.format(benchmark_path))
 
-                # create log directory for batch
-                mkdir(join(logs_dir, '{:d}'.format(batch_id)))
-
-            # write paths to batch file
-            batch_file.write('{:s}\n'.format(simulation_path))
+            # create log directory for job
+            mkdir(join(logs_dir, '{:d}'.format(batch_id)))
 
             # close batch file
-            if i % self.batch_size == (self.batch_size - 1):
-                batch_file.close()
-                chmod(batch_path, 0o755)
+            job_file.close()
+            chmod(job_file, 0o755)
 
+        # close index file
         index.close()
-
         chmod(index_path, 0o755)
 
-    def make_directory(self):
+    def make_subdirectory(self):
         """ Create job subdirectory. """
 
         # create directory (overwrite existing one)
-        path = join(self.sweep.path, 'benchmark')
+        path = join(self.sweep_path, 'benchmark')
         if not isdir(path):
             mkdir(path)
+        self.path = path
 
         # make subdirectories for simulations and scripts
         mkdir(join(path, 'scripts'))
         mkdir(join(path, 'batches'))
+        mkdir(join(path, 'jobs'))
         mkdir(join(path, 'log'))
 
-
-
-
-
-
     def build(self,
-              directory='./',
-              save_history=True,
               walltime=10,
               allocation='p30653',
               cores=1,
               memory=4,
-              **sim_kw):
+              **kwargs):
         """
         Build job directory tree. Instantiates and saves a simulation instance for each parameter set, then generates a single shell script to submit each simulation as a separate job.
 
         Args:
-
-            directory (str) - destination path
-
-            save_history (bool) - if True, save simulation history
 
             walltime (int) - estimated job run time
 
@@ -259,86 +280,96 @@ class SweepBenchmark(Pickler):
 
             memory (int) - memory per batch, GB
 
-            sim_kw (dict) - keyword arguments for simulation
+            kwargs (dict) - keyword arguments for benchmarking
 
         """
 
-        # create job directory
-        self.make_directory(directory)
+        # create benchmarking subdirectory
+        self.make_subdirectory()
 
         # store parameters (e.g. pulse conditions)
-        self.sim_kw = sim_kw
+        self.kwargs = kwargs
 
-        # build simulations
-        for i, parameters in enumerate(self.parameters):
-            simulation_path = join(self.path, 'simulations', '{:d}'.format(i))
-            self.simulation_paths[i] = relpath(simulation_path, self.path)
-            self.build_simulation(parameters, simulation_path, **sim_kw)
+        # build batch benchmarks
+        for batch_id, batch in enumerate(self.batches.ravel()):
+
+            # make batch directory
+            batch_path = join(self.path, 'batches', '{:d}'.format(batch_id))
+            mkdir(batch_path)
+            benchmark_paths = {}
+
+            # make benchmarks for each scale of batch
+            for scale_id, scale in enumerate(self.scales):
+
+                # store benchmark path
+                benchmark_path = join(batch_path, '{:d}'.format(scale_id))
+                benchmark_path = relpath(benchmark_path, self.path)
+                benchmark_paths[scale_id] = benchmark_path
+
+                # build benchmark for current scale
+                benchmark_arg = (benchmark_path, batch, scale, self.num_replicates)
+                self.build_benchmark(*benchmark_arg, **kwargs)
+
+            # store scale paths
+            self.benchmark_paths[batch_id] = benchmark_paths
 
         # save serialized job
-        with open(join(self.path, 'job.pkl'), 'wb') as file:
+        with open(join(self.path, 'benchmark_job.pkl'), 'wb') as file:
             pickle.dump(self, file, protocol=-1)
 
         # build parameter file for each batch
         self.build_batches()
 
         # build job run script
-        self.build_run_script(self.path,
-                              self.script_name,
-                              save_history)
+        self.build_run_script(self.path, self.script_name)
 
         # build job submission script
         self.build_submission_script(self.path,
                                      self.script_name,
-                                     save_history,
                                      walltime=walltime,
                                      allocation=allocation,
                                      cores=cores,
                                      memory=memory)
 
     @classmethod
-    def build_simulation(cls, parameters, simulation_path, **kwargs):
+    def build_benchmark(cls, path, batch, scale, num_replicates, **kwargs):
         """
-        Builds and saves a simulation instance for a set of parameters.
+        Builds and saves a BatchBenchmark instance for a given batch and scale.
 
         Args:
 
-            parameters (iterable) - parameter sets
+            path (str) - path to benchmark object
 
-            simulation_path (str) - simulation path
+            batch (growth.sweep.Batch) - batch of growth replicates
 
-            kwargs: keyword arguments for GrowthSimulation
+            scale (float) - fluorescence scale
+
+            num_replicates (int) - number of fluorescence replicates
+
+            kwargs: keyword arguments for BatchBenchmark
 
         """
 
-        # instantiate simulation
-        simulation = GrowthSimulation(*parameters, **kwargs)
+        # instantiate benchmark
+        benchmark = BatchBenchmark(batch, scale, num_replicates, **kwargs)
 
-        # create simulation directory
-        if not isdir(simulation_path):
-            mkdir(simulation_path)
+        # save benchmark
+        benchmark.save(path+'.pkl')
 
-        # save simulation
-        simulation.save(simulation_path)
-
-    def load_simulation(self, index):
+    def load_benchmark(self, batch_id, scale_id):
         """
         Load simulation instance from file.
 
         Args:
 
-            index (int) - simulation index
+            batch_id (int) - batch index
+
+            scale_id (int) - scale index
 
         Returns:
 
-            simulation (GrowthSimulation)
+            benchmark (BatchBenchmark)
 
         """
-        simulation_path = join(self.path, self.simulation_paths[index])
-        return GrowthSimulation.load(simulation_path)
-
-
-
-
-
-
+        path = join(self.path, self.benchmark_paths[batch_id][scale_id])
+        return BatchBenchmark.load(path+'.pkl')

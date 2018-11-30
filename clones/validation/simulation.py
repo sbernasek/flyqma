@@ -1,8 +1,9 @@
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
-from ..bayesian import BayesianClassifier
-from ..genotype import CommunityBasedGenotype
-from ...spatial.graphs import WeightedGraph
+
+from ..annotation.bayesian import BayesianClassifier
+from ..annotation.genotype import CommunityBasedGenotype
+from ..spatial.graphs import WeightedGraph
 from .scoring import Scoring
 
 # import warnings
