@@ -63,6 +63,7 @@ class SweepBenchmark(Pickler):
         path = join(sweep_path, 'benchmark')
         with open(join(path, 'benchmark_job.pkl'), 'rb') as file:
             job = pickle.load(file)
+        job.sweep_path = sweep_path
         job.path = path
         return job
 
