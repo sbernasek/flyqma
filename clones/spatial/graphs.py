@@ -5,6 +5,8 @@ from matplotlib.tri import Triangulation
 import networkx as nx
 from collections import Counter
 
+from growth.spatial.triangulation import LocalTriangulation
+#from .triangulation import LocalTriangulation
 from .infomap import InfoMap
 
 
@@ -30,7 +32,6 @@ class Graph:
 
     def __init__(self, data):
         self.df = data
-        self.nodes = data.index.values
 
         # define mapping from position to node index
         position_to_node = dict(enumerate(data.index))
@@ -42,7 +43,16 @@ class Graph:
 
         # triangulate
         self.tri = self._construct_triangulation(data)
-        self.update_graph()
+
+    @property
+    def nodes(self):
+        """ Uniqe nodes in graph. """
+        return np.array(sorted(np.unique(self.edges)), dtype=int)
+
+    @property
+    def edges(self):
+        """ Distance-filtered edges. """
+        return self.node_map(self.tri.edges)
 
     def get_networkx(self):
         """ Returns networkx instance of graph. """
@@ -55,36 +65,19 @@ class Graph:
         return Graph(self.df.loc[ind])
 
     @staticmethod
-    def _construct_triangulation(df):
-        """ Construct Delaunay triangulation. """
-        pts = df[['centroid_x', 'centroid_y']].values
-        return Triangulation(*pts.T)
-
-    @staticmethod
-    def _evaluate_max_edge_lengths(tri):
-        """ Returns max edge length per triangle. """
-        merge = lambda x: np.hstack((x, x.sum(axis=1).reshape(-1, 1)))
-        dx = np.diff(tri.x[tri.triangles], axis=1)
-        dy = np.diff(tri.y[tri.triangles], axis=1)
-        return np.sqrt((merge(dx)**2) + (merge(dy)**2)).max(axis=1)
-
-    def apply_distance_filter(self, q=95):
+    def _construct_triangulation(df, **kwargs):
         """
-        Mask edges with lengths exceeding specified quantile.
+        Construct Delaunay triangulation with edge filter.
 
         Args:
 
-            q (float) - length quantile, 0 to 100
+            df (pd.DataFrame) - edge data
+
+            kwargs: keyword arguments for triangulation
 
         """
-        max_lengths = self._evaluate_max_edge_lengths(self.tri)
-        mask = max_lengths > np.percentile(max_lengths, q=q)
-        self.tri.set_mask(mask)
-
-    def update_graph(self):
-        """ Update node list based on included edges. """
-        self.edges = self.node_map(self.tri.edges)
-        self.nodes = np.array(sorted(np.unique(self.edges)), dtype=int)
+        pts = df[['centroid_x', 'centroid_y']].values
+        return LocalTriangulation(*pts.T, **kwargs)
 
     def plot_edges(self, ax=None, **kwargs):
         """
@@ -119,7 +112,11 @@ class Graph:
         vertices = self.node_map(self.tri.triangles)
 
         # get value of each node
-        get_level = lambda node_id: self.df[label_by].loc[node_id]
+        if label_by == 'community':
+            get_level = lambda node_id: self.community_labels[node_id]
+        else:
+            get_level = lambda node_id: self.df[label_by].loc[node_id]
+
         levels = np.apply_along_axis(get_level, axis=1, arr=vertices)
 
         # aggregate within triangles
@@ -160,6 +157,7 @@ class Graph:
         # plot triangle faces
         ax.tripcolor(self.tri,
                      facecolors=colors,
+                     cmap=cmap,
                      lw=0,
                      edgecolor='none',
                      antialiased=True,
@@ -169,6 +167,17 @@ class Graph:
         """ Visualize graph. """
         vis = GraphVisualization.from_graph(self)
         vis.draw(ax=ax, **kw)
+
+    def build_links(self):
+        """
+        Construct list of weighted edges.
+
+        Returns:
+
+            links (list) - series of (node_from, node_to, [weight]) tuples
+
+        """
+        return self.edges
 
 
 class WeightedGraph(Graph):
@@ -197,7 +206,7 @@ class WeightedGraph(Graph):
 
     """
 
-    def __init__(self, data, weighted_by='r_normalized', q=95):
+    def __init__(self, data, weighted_by='r'):
         """
         Instantiate weighted graph.
 
@@ -211,26 +220,9 @@ class WeightedGraph(Graph):
 
         """
 
-        Graph.__init__(self, data)
-        self.q = q
-        self.apply_distance_filter(q)
-        self.update_graph()
-        self.excluded = self.get_excluded_nodes()
+        super().__init__(data)
         self.weighted_by = weighted_by
         self.community_labels = None
-
-    def get_excluded_nodes(self):
-        """
-        Determine indices of nodes excluded by the distance filter.
-
-        Returns:
-
-            excluded (np.ndarray[int]) - indices of excluded nodes
-
-        """
-        before = self.df.index.values
-        after = self.nodes
-        return before[~np.isin(before, after)]
 
     def evaluate_edge_weights(self, weighted_by='r'):
         """
@@ -264,7 +256,7 @@ class WeightedGraph(Graph):
             links = [(int(e[0]), int(e[1])) for e in self.edges]
         return links
 
-    def find_communities(self, **kw):
+    def find_communities(self, **kwargs):
         """
         Assign communities using InfoMap clustering.
 
@@ -272,7 +264,7 @@ class WeightedGraph(Graph):
 
         """
         edges = self.build_links()
-        community_detector = InfoMap(edges, **kw)
+        community_detector = InfoMap(edges, **kwargs)
         self.community_labels = community_detector(self.nodes)
 
 

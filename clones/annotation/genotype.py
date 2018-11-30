@@ -4,7 +4,7 @@ from matplotlib.colors import ListedColormap
 from scipy.spatial import Voronoi
 
 from .labelers import AttributeLabeler
-from .classifiers import CommunityClassifier
+from .community import CommunityClassifier
 
 
 class CommunityBasedGenotype(AttributeLabeler):
@@ -29,7 +29,9 @@ class CommunityBasedGenotype(AttributeLabeler):
 
     def __init__(self, graph, cell_classifier,
                  label='community_genotype',
-                 attribute='community'):
+                 attribute='community',
+                 twolevel=False,
+                 **kwargs):
         """
         Instantiate community-based genotype annotation object.
 
@@ -43,6 +45,10 @@ class CommunityBasedGenotype(AttributeLabeler):
 
             attribute (str) - name of attribute defining community affiliation
 
+            twolevel (bool) - if True, perform two-level clustering
+
+            kwargs: keyword arguments for CommunityClassifier
+
         """
 
         # store label and attribute field names
@@ -50,14 +56,14 @@ class CommunityBasedGenotype(AttributeLabeler):
         self.attribute = attribute
 
         # run community detection and store graph
-        graph.find_communities()
+        graph.find_communities(twolevel=twolevel)
         self.graph = graph
 
         # store cell classifier
         self.cell_classifier = cell_classifier
 
         # build genotype labeler based on community classifier
-        self.labeler = self.build_classifier()
+        self.labeler = self.build_classifier(**kwargs)
 
     @staticmethod
     def from_layer(layer):
@@ -75,9 +81,13 @@ class CommunityBasedGenotype(AttributeLabeler):
         """
         return CommunityBasedGenotype(layer.graph, layer.classifier)
 
-    def build_classifier(self):
+    def build_classifier(self, **kwargs):
         """
         Build community classifier.
+
+        Args:
+
+            kwargs: keyword arguments for community classifier
 
         Returns:
 
@@ -91,7 +101,9 @@ class CommunityBasedGenotype(AttributeLabeler):
         self.graph.df.loc[ind, 'community'] = self.graph.community_labels
 
         # build community classifier
-        classifier = CommunityClassifier(self.graph.df, self.cell_classifier)
+        classifier = CommunityClassifier(self.graph.df,
+                                         self.cell_classifier,
+                                         **kwargs)
 
         return classifier
 

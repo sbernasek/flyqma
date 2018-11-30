@@ -65,8 +65,9 @@ class BayesianClassifier(Classifier):
         self.model = self._fit(self.values, self.n)
         self.weights = np.exp(self.model.weights)
 
-        # build classifier
+        # build classifier and posterior
         self.classifier = self.build_classifier()
+        self.posterior = self.build_posterior()
 
         # assign group labels
         self.labels = self.classifier(self.values)
@@ -77,10 +78,27 @@ class BayesianClassifier(Classifier):
 
     def __call__(self, df):
         """ Assign class labels to measurements <df>. """
+        return self.evaluate_classifier(df)
+
+    def evaluate_classifier(self, df):
+        """ Assign class labels to measurements <df>. """
         x =  df[self.classify_on].values.reshape(-1, 1)
         if self.log:
             x = np.log10(x)
         return self.classifier(x)
+
+    def evaluate_posterior(self, df):
+        """ Evaluate normalized posterior probability for samples in <df>. """
+        x =  df[self.classify_on].values.reshape(-1, 1)
+        if self.log:
+            x = np.log10(x)
+        return self.posterior(x)
+
+    @property
+    def order(self):
+        """ Ordered distribution indices (low to high). """
+        dist_to_gen = self.distribution_to_genotype
+        return sorted(dist_to_gen, key=dist_to_gen.__getitem__)
 
     @staticmethod
     def _fit(values, n=3):
@@ -99,7 +117,9 @@ class BayesianClassifier(Classifier):
 
         """
         x = values.reshape(-1, 1)
-        return GeneralMixtureModel.from_samples(LogNormalDistribution, n, x)
+        args = (LogNormalDistribution, n, x)
+        kwargs = dict(n_init=1000)
+        return GeneralMixtureModel.from_samples(*args, **kwargs)
 
     @property
     def distribution_to_genotype(self):
@@ -120,6 +140,18 @@ class BayesianClassifier(Classifier):
             return dist_to_genotype(self.model.predict(values.reshape(-1, 1)))
 
         return classifier
+
+    def build_posterior(self):
+        """ Build posterior probability function. """
+
+        # get distribution order
+        order = np.array(self.order)
+
+        def posterior(values):
+            """ Returns probabilities of each label for <values>.  """
+            return self.model.predict_proba(values.reshape(-1, 1))[:, order]
+
+        return posterior
 
     def show_pdf(self, ax=None, density=1000):
         """

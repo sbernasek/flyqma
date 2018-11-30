@@ -3,7 +3,6 @@ from os import mkdir
 import gc
 import numpy as np
 from sklearn.cluster import KMeans
-from collections import Counter
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap, Normalize
 
@@ -368,51 +367,3 @@ class CellClassifier(KM):
         ax.set_xlabel('RFP level', fontsize=8)
         ax.set_ylabel('Number of nuclei', fontsize=8)
         return fig
-
-
-class CommunityClassifier:
-    """
-    Classifier for assigning labels to communities.
-
-    Attributes:
-
-        classifier (CellClassifier) - individual cell classifier
-
-    """
-
-    def __init__(self, cells, cell_classifier):
-        """ Instantiate community classifier. """
-        self.classifier = self.build_classifier(cells, cell_classifier)
-
-    def __call__(self, communities):
-        """ Classify communities. """
-        return self.classifier(communities)
-
-    @staticmethod
-    def from_layer(layer, cell_classifier):
-        """ Instantiate community classifier from a layer. """
-        return CommunityClassifier(layer.data, cell_classifier)
-
-    @staticmethod
-    def get_mode(x):
-        """ Returns most common value in an array. """
-        mode, count = Counter(x).most_common(1)[0]
-        return mode
-
-    @classmethod
-    def build_classifier(cls, cells, cell_classifier):
-        """
-        Build classifier assigning genotypes to graph communities.
-
-        Args:
-
-            cells (pd.DataFrame) - cell data including community labels
-
-            cell_classifier (CellClassifier) - assigns genotype to individual cell
-
-        """
-        majority_vote = lambda x: cls.get_mode(cell_classifier(x))
-        communities = cells.groupby('community')
-        community_to_genotype = communities.apply(majority_vote).to_dict()
-        community_to_genotype[-1] = -1
-        return np.vectorize(community_to_genotype.get)

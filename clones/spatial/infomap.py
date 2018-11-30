@@ -16,7 +16,7 @@ class InfoMap:
 
     """
 
-    def __init__(self, edges):
+    def __init__(self, edges, **kwargs):
         """
         Instantiate infomap community detection. Two-level community detection is used by default.
 
@@ -24,9 +24,11 @@ class InfoMap:
 
             edges (list) - (i, j, weight) tuple for each edge
 
+            kwargs: keyword arguments for build_network method
+
         """
 
-        self.infomap = self.build_network(edges)
+        self.infomap = self.build_network(edges, **kwargs)
         self.run()
         node_to_module, classifier = self.build_classifier()
         self.node_to_module = node_to_module
@@ -37,11 +39,23 @@ class InfoMap:
         return self.classifier(x)
 
     @staticmethod
-    def build_network(edges):
-        """  Compile InfoMap object from graph edges. """
+    def build_network(edges, twolevel=False):
+        """
+        Compile InfoMap object from graph edges.
+
+        Args:
+
+            twolevel (bool) - if True, perform two-level clustering
+
+        """
+
+        # define arguments
+        args = '--undirected'
+        if twolevel:
+            args = '--two-level ' + args
 
         # instantiate infomap
-        infomap_obj = infomap.Infomap("--two-level --undirected")
+        infomap_obj = infomap.Infomap(args)
         network = infomap_obj.network()
 
         # add edges
@@ -74,7 +88,6 @@ class InfoMap:
 
         """
         node_to_module = {}
-        for node in self.infomap.iterTree():
-            if node.isLeaf():
-                node_to_module[node.physicalId] = node.moduleIndex()
+        for node in self.infomap.iterLeafNodes():
+            node_to_module[node.physicalId] = node.moduleIndex()
         return node_to_module, np.vectorize(node_to_module.get)
