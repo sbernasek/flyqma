@@ -2,6 +2,7 @@ from os.path import join, abspath, relpath, isdir
 from os import mkdir, chmod, pardir
 import shutil
 
+import numpy as np
 from growth.sweep.sweep import Sweep
 from dill import pickle
 from .batch import BatchBenchmark
@@ -30,14 +31,14 @@ class SweepBenchmark(Pickler):
     def __init__(self, sweep_path,
                  num_scales=9,
                  num_replicates=10,
-                 script_name='run_benchmark'):
+                 script_name='run_benchmark.py'):
 
         # load and set growth sweep
         self.sweep_path = sweep_path
         self.batches = Sweep.load(sweep_path).batches
 
         # set fluorescence scales
-        self.scales = np.linspace(2, 10, num_scales_)
+        self.scales = np.linspace(2, 10, num_scales)
 
         # set number of fluorescence replicates
         self.num_replicates = num_replicates
@@ -87,7 +88,7 @@ class SweepBenchmark(Pickler):
         job_script_path = join(path, 'scripts', 'run.sh')
 
         # copy run script to scripts directory
-        scripts_path = abspath(__file__).rsplit('/', maxsplit=2)
+        scripts_path = abspath(__file__).rsplit('/', maxsplit=2)[0]
         run_script = join(scripts_path, 'scripts', script_name)
         shutil.copy(run_script, join(path, 'scripts'))
 
@@ -146,7 +147,7 @@ class SweepBenchmark(Pickler):
         job_script_path = join(path, 'scripts', 'submit.sh')
 
         # copy run script to scripts directory
-        scripts_path = abspath(__file__).rsplit('/', maxsplit=2)
+        scripts_path = abspath(__file__).rsplit('/', maxsplit=2)[0]
         run_script = join(scripts_path, 'scripts', script_name)
         shutil.copy(run_script, join(path, 'scripts'))
 
@@ -238,9 +239,9 @@ class SweepBenchmark(Pickler):
             # create log directory for job
             mkdir(join(logs_dir, '{:d}'.format(batch_id)))
 
-            # close batch file
+            # close job file
             job_file.close()
-            chmod(job_file, 0o755)
+            chmod(job_path, 0o755)
 
         # close index file
         index.close()
@@ -251,8 +252,9 @@ class SweepBenchmark(Pickler):
 
         # create directory (overwrite existing one)
         path = join(self.sweep_path, 'benchmark')
-        if not isdir(path):
-            mkdir(path)
+        if isdir(path):
+            shutil.rmtree(path)
+        mkdir(path)
         self.path = path
 
         # make subdirectories for simulations and scripts
@@ -303,8 +305,7 @@ class SweepBenchmark(Pickler):
 
                 # store benchmark path
                 benchmark_path = join(batch_path, '{:d}'.format(scale_id))
-                benchmark_path = relpath(benchmark_path, self.path)
-                benchmark_paths[scale_id] = benchmark_path
+                benchmark_paths[scale_id] = relpath(benchmark_path, self.path)
 
                 # build benchmark for current scale
                 benchmark_arg = (benchmark_path, batch, scale, self.num_replicates)
@@ -314,8 +315,9 @@ class SweepBenchmark(Pickler):
             self.benchmark_paths[batch_id] = benchmark_paths
 
         # save serialized job
-        with open(join(self.path, 'benchmark_job.pkl'), 'wb') as file:
-            pickle.dump(self, file, protocol=-1)
+        #with open(join(self.path, 'benchmark_job.pkl'), 'wb') as file:
+        #    pickle.dump(self, file, protocol=-1)
+        self.save(join(self.path, 'benchmark_job.pkl'))
 
         # build parameter file for each batch
         self.build_batches()

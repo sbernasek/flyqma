@@ -1,5 +1,22 @@
+import sys, os
+from subprocess import call
 from distutils.core import setup
+from distutils.command.install import install as _install
 from setuptools import find_packages
+
+
+def _post_install(dir):
+    """ Install pomegranate without dependencies (due to networkx conflict) """
+    prefix = [sys.executable, '-m']
+    cmd = "pip install pomegranate==0.10.0 --no-deps".split()
+    call(prefix+cmd, cwd=os.path.join(dir, 'clones'))
+
+
+class install(_install):
+    def run(self):
+        _install.run(self)
+        self.execute(_post_install, (self.install_lib,),
+                     msg="Running post install task")
 
 setup(
     name='clones',
@@ -23,7 +40,11 @@ setup(
         #"tables >= 3.4.4",
         "seaborn >= 0.9.0",
         "networkx >= 2.1",
-        "infomap >= 1.0.0b8"
+        "infomap >= 1.0.0b8",
+        "dill >= 0.2.8.2",
+        "cython >= 0.22.1",
+        "joblib >= 0.9.0b4",
+        "pyyaml"
     ],
+    cmdclass={'install': install},
 )
-

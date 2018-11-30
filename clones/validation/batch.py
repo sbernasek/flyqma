@@ -20,6 +20,14 @@ class BatchBenchmark(Pickler):
 
         num_replicates (int) - number of fluorescence replicates
 
+        data (pd.DataFrame) - synthetic measurement data
+
+        classifier (BayesianClassifier) - classifier fit to all replicates
+
+        results (pd.DataFrame) - classifier scores for each replicate
+
+        runtime (float) - total benchmark evaluation runtime
+
     """
 
     def __init__(self, batch,
@@ -52,6 +60,12 @@ class BatchBenchmark(Pickler):
         self.classify_on = classify_on
         self.rule = rule
         self.twolevel = twolevel
+
+        # initialize attributes
+        self.data = None
+        self.classifier = None
+        self.results = None
+        self.runtime = None
 
     def __getitem__(self, replicate_id):
         """ Returns SimulationBenchmark for <replicate_id>. """

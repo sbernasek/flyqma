@@ -90,7 +90,7 @@ class SweepArguments(RunArguments):
           self.add_argument('-c', '--cores',
                               help='Number of cores.',
                               type=int,
-                              default=1,
+                              default=4,
                               required=False)
 
           # add keyword argument for memory usage
