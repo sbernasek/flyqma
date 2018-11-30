@@ -61,7 +61,7 @@ class SweepBenchmark(Pickler):
 
         """
         path = join(sweep_path, 'benchmark')
-        with open(join(path, 'benchmark.pkl'), 'rb') as file:
+        with open(join(path, 'benchmark_job.pkl'), 'rb') as file:
             job = pickle.load(file)
         job.path = path
         return job
@@ -305,7 +305,7 @@ class SweepBenchmark(Pickler):
             for scale_id, scale in enumerate(self.scales):
 
                 # store benchmark path
-                benchmark_path = join(batch_path, '{:d}'.format(scale_id))
+                benchmark_path = join(batch_path, '{:d}.pkl'.format(scale_id))
                 benchmark_paths[scale_id] = relpath(benchmark_path, self.path)
 
                 # build benchmark for current scale
