@@ -179,7 +179,7 @@ class SweepBenchmark(Pickler):
         job_script.write('#!/bin/bash\n')
 
         # move to benchmarking directory
-        job_script.write('cd {:s} \n\n'.format(path))
+        job_script.write('cd {:s} \n\n'.format(run_path))
 
         # begin outer script for processing job
         job_script.write('while IFS=$\'\\t\' read P\n')
