@@ -55,14 +55,14 @@ class SweepArguments(RunArguments):
           self.add_argument('-s', '--num_scales',
                               help='Number of fluorescence scales.',
                               type=int,
-                              default=9,
+                              default=8,
                               required=False)
 
           # add keyword argument for number of fluorescence replicates
           self.add_argument('-n', '--num_replicates',
                               help='Fluorescence replicates per simulation.',
                               type=int,
-                              default=10,
+                              default=1,
                               required=False)
 
           # add keyword argument for sweep density

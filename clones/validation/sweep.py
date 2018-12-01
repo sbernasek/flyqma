@@ -31,8 +31,8 @@ class SweepBenchmark(Pickler):
     """
 
     def __init__(self, sweep_path,
-                 num_scales=9,
-                 num_replicates=10,
+                 num_scales=8,
+                 num_replicates=1,
                  script_name='run_batch.py'):
 
         # load and set growth sweep
@@ -40,7 +40,7 @@ class SweepBenchmark(Pickler):
         self.batches = Sweep.load(sweep_path).batches
 
         # set fluorescence scales
-        self.scales = np.linspace(2, 10, num_scales)
+        self.scales = np.linspace(3, 10, num_scales)
 
         # set number of fluorescence replicates
         self.num_replicates = num_replicates
