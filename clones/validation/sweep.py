@@ -3,6 +3,7 @@ from os import mkdir, chmod, pardir
 import shutil
 
 import numpy as np
+import pandas as pd
 import dill as pickle
 
 from growth.sweep.sweep import Sweep
@@ -32,7 +33,7 @@ class SweepBenchmark(Pickler):
     def __init__(self, sweep_path,
                  num_scales=9,
                  num_replicates=10,
-                 script_name='run_benchmark.py'):
+                 script_name='run_batch.py'):
 
         # load and set growth sweep
         self.sweep_path = sweep_path
@@ -63,8 +64,18 @@ class SweepBenchmark(Pickler):
         path = join(sweep_path, 'benchmark')
         with open(join(path, 'benchmark_job.pkl'), 'rb') as file:
             job = pickle.load(file)
+
+        # set path
         job.sweep_path = sweep_path
         job.path = path
+
+        # load results
+        results_path = join(sweep_path, 'data.hdf')
+        if exists(results_path):
+            try:
+                job._results = pd.read_hdf(results_path, 'benchmark')
+            except:
+                pass
         return job
 
     @property
@@ -87,7 +98,7 @@ class SweepBenchmark(Pickler):
 
         # define paths
         path = abspath(path)
-        run_path = join(path, '..')
+        run_path = path.rsplit('/', maxsplit=1)[0]
         job_script_path = join(path, 'scripts', 'run.sh')
 
         # copy run script to scripts directory
@@ -106,8 +117,8 @@ class SweepBenchmark(Pickler):
         job_script.write('echo "Starting all batches at `date`"\n')
         job_script.write('while read P; do\n')
         job_script.write('echo "Processing batch ${P}"\n')
-        job_script.write('python ./scripts/{:s}'.format(script_name)+' ${P} ')
-        job_script.write('done < ./jobs/index.txt \n')
+        job_script.write('python ./benchmark/scripts/{:s}'.format(script_name)+' ${P} \n')
+        job_script.write('done < ./benchmark/jobs/index.txt \n')
         job_script.write('echo "Job completed at `date`"\n')
         job_script.write('exit\n')
 
@@ -147,7 +158,7 @@ class SweepBenchmark(Pickler):
 
         # define paths
         path = abspath(path)
-        run_path = join(path, '..')
+        run_path = path.rsplit('/', maxsplit=1)[0]
         job_script_path = join(path, 'scripts', 'submit.sh')
 
         # copy run script to scripts directory
@@ -197,13 +208,13 @@ class SweepBenchmark(Pickler):
         job_script.write('cd {:s} \n\n'.format(run_path))
 
         # run script
-        job_script.write('python ./scripts/{:s}'.format(script_name)+' ${P} \n')
+        job_script.write('python ./benchmark/scripts/{:s}'.format(script_name)+' ${P} \n')
         job_script.write('EOJ\n')
         job_script.write('`\n\n')
         # ============= end submission script for individual job --============
 
         # print job id
-        job_script.write('done < ./jobs/index.txt \n')
+        job_script.write('done < ./benchmark/jobs/index.txt \n')
         job_script.write('echo "All jobs submitted as of `date`"\n')
         job_script.write('exit\n')
 
@@ -377,6 +388,42 @@ class SweepBenchmark(Pickler):
             benchmark (BatchBenchmark)
 
         """
-        path = join(self.path, self.benchmark_paths[batch_id][scale_id])
+        path = join(self.sweep_path, self.benchmark_paths[batch_id][scale_id])
         benchmark = BatchBenchmark.load(path)
+        benchmark.batch.root = self.sweep_path
         return benchmark
+
+    def aggregate(self):
+        """ Aggregate results from all batches. """
+
+        nrows, ncols = self.batches.shape
+
+        # compile results from all batches
+        data = []
+        for row_id in range(nrows):
+            for column_id in range(ncols):
+                batch_id = row_id*ncols + column_id
+
+                for scale_id in range(self.num_scales):
+
+                    # load benchmark for current batch
+                    batch_benchmark = self.load_benchmark(batch_id, scale_id)
+
+                    # append results to list
+                    batch_data = batch_benchmark.results
+                    batch_data['batch_id'] = batch_id
+                    batch_data['row_id'] = row_id
+                    batch_data['column_id'] = column_id
+                    batch_data['scale_id'] = scale_id
+                    data.append(batch_data)
+
+        data = pd.concat(data)
+
+        # save results to file
+        self._results = data
+        self._results.to_hdf(join(self.path, 'data.hdf'), key='benchmark')
+
+    @property
+    def results(self):
+        """ Returns benchmarking results object. """
+        return BenchmarkingResults(self._results, self.batches.shape)
