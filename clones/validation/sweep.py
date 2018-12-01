@@ -1,4 +1,4 @@
-from os.path import join, abspath, relpath, isdir
+from os.path import join, abspath, relpath, isdir, exists
 from os import mkdir, chmod, pardir
 import shutil
 
@@ -194,8 +194,8 @@ class SweepBenchmark(Pickler):
         job_script.write('#MSUB -l walltime={0:02d}:00:00 \n'.format(walltime))
         job_script.write('#MSUB -m abe \n')
         #job_script.write('#MSUB -M sebastian@u.northwestern.edu \n')
-        job_script.write('#MSUB -o ./log/${b_id}/outlog \n')
-        job_script.write('#MSUB -e ./log/${b_id}/errlog \n')
+        job_script.write('#MSUB -o ./benchmark/log/${b_id}/outlog \n')
+        job_script.write('#MSUB -e ./benchmark/log/${b_id}/errlog \n')
         job_script.write('#MSUB -N ${b_id} \n')
         job_script.write('#MSUB -l nodes=1:ppn={:d} \n'.format(cores))
         job_script.write('#MSUB -l mem={:d}gb \n\n'.format(memory))
