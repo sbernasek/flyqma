@@ -37,7 +37,7 @@ setup(
         "statsmodels == 0.9.0",
         "pandas >= 0.23.3",
         #"pillow >= 5.2.0",
-        #"tables >= 3.4.4",
+        "tables >= 3.4.4",
         "seaborn >= 0.9.0",
         "networkx >= 2.1",
         "infomap >= 1.0.0b8",
