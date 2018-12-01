@@ -87,6 +87,7 @@ class SweepBenchmark(Pickler):
 
         # define paths
         path = abspath(path)
+        run_path = join(path, '..')
         job_script_path = join(path, 'scripts', 'run.sh')
 
         # copy run script to scripts directory
@@ -99,7 +100,7 @@ class SweepBenchmark(Pickler):
         job_script.write('#!/bin/bash\n')
 
         # move to job directory
-        job_script.write('cd {:s} \n\n'.format(path))
+        job_script.write('cd {:s} \n\n'.format(run_path))
 
         # run each batch
         job_script.write('echo "Starting all batches at `date`"\n')
@@ -146,6 +147,7 @@ class SweepBenchmark(Pickler):
 
         # define paths
         path = abspath(path)
+        run_path = join(path, '..')
         job_script_path = join(path, 'scripts', 'submit.sh')
 
         # copy run script to scripts directory
@@ -192,7 +194,7 @@ class SweepBenchmark(Pickler):
         job_script.write('source activate ~/pythonenvs/clones_env\n\n')
 
         # move to job directory
-        job_script.write('cd {:s} \n\n'.format(path))
+        job_script.write('cd {:s} \n\n'.format(run_path))
 
         # run script
         job_script.write('python ./scripts/{:s}'.format(script_name)+' ${P} \n')
@@ -228,7 +230,7 @@ class SweepBenchmark(Pickler):
 
             # append job file to index
             job_path = join(jobs_dir, '{:d}.txt'.format(batch_id))
-            index.write('{:s}\n'.format(relpath(job_path, self.path)))
+            index.write('{:s}\n'.format(relpath(job_path, self.sweep_path)))
 
             # open job file
             job_file = open(job_path, 'w')
@@ -307,7 +309,7 @@ class SweepBenchmark(Pickler):
 
                 # store benchmark path
                 benchmark_path = join(batch_path, '{:d}.pkl'.format(scale_id))
-                benchmark_paths[scale_id] = relpath(benchmark_path, self.path)
+                benchmark_paths[scale_id] = relpath(benchmark_path, self.sweep_path)
 
                 # build benchmark for current scale
                 benchmark_arg = (benchmark_path, batch, scale, self.num_replicates)
@@ -376,4 +378,5 @@ class SweepBenchmark(Pickler):
 
         """
         path = join(self.path, self.benchmark_paths[batch_id][scale_id])
-        return BatchBenchmark.load(path+'.pkl')
+        benchmark = BatchBenchmark.load(path)
+        return benchmark
