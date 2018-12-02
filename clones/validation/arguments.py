@@ -38,6 +38,14 @@ class RunArguments(ArgumentParser):
                nargs='?',
                default=getcwd())
 
+          # add keyword argument for saving measurement data
+          self.add_argument(
+               '-S', '--save_measurements',
+               help='Save measurement data.',
+               type=str2bool,
+               default=False,
+               required=False)
+
      def parse(self):
           """ Parse arguments. """
           self.args = vars(self.parse_args())

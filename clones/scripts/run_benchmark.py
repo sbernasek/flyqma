@@ -8,6 +8,7 @@ from clones.validation.batch import BatchBenchmark
 
 args = RunArguments(description='Batch benchmark arguments.')
 path = args['path']
+save_measurements = args['save_measurements']
 
 # ============================= RUN SCRIPT ====================================
 
@@ -21,7 +22,7 @@ benchmark.batch.root = curdir
 benchmark.run()
 
 # save benchmark
-benchmark.save(path)
+benchmark.save(path, save_measurements=save_measurements)
 
 # print runtime to standard out
 runtime = time() - start_time

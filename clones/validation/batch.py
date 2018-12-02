@@ -72,6 +72,21 @@ class BatchBenchmark(Pickler):
         measurements = self.data.iloc[self.replicates.indices[replicate_id], :]
         return SimulationBenchmark(measurements.copy(), **self.params)
 
+    def save(self, filepath, save_measurements=False):
+        """
+        Save serialized instance.
+
+        Args:
+
+            filepath (str) - destination of serialized object
+
+            save_measurements (bool) - if True, include measurements
+
+        """
+        if not save_measurements:
+            self.data = None
+        super().save(filepath)
+
     @property
     def params(self):
         """ Parameters for SimulationBenchmark. """
