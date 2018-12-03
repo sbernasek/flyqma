@@ -9,6 +9,8 @@ import dill as pickle
 from growth.sweep.sweep import Sweep
 from .batch import BatchBenchmark
 from .io import Pickler
+from .results import BenchmarkingResults
+from .arguments import str2bool
 
 
 class SweepBenchmark(Pickler):
@@ -51,6 +53,9 @@ class SweepBenchmark(Pickler):
         # set script name
         self.script_name = script_name
 
+        # initialize results
+        self._results = None
+
     @staticmethod
     def load(sweep_path):
         """
@@ -70,12 +75,12 @@ class SweepBenchmark(Pickler):
         job.path = path
 
         # load results
-        results_path = join(sweep_path, 'data.hdf')
+        results_path = join(path, 'data.hdf')
         if exists(results_path):
             try:
                 job._results = pd.read_hdf(results_path, 'benchmark')
             except:
-                pass
+                job._results = None
         return job
 
     @property
@@ -417,7 +422,7 @@ class SweepBenchmark(Pickler):
                     batch_data['scale_id'] = scale_id
                     data.append(batch_data)
 
-        data = pd.concat(data)
+        data = pd.concat(data).reset_index()
 
         # save results to file
         self._results = data
@@ -426,4 +431,13 @@ class SweepBenchmark(Pickler):
     @property
     def results(self):
         """ Returns benchmarking results object. """
+
+        # make sure results have been compiled
+        if self._results is None:
+            flag = str2bool(input('Results not compiled. Compile now?'))
+            if flag:
+                self.aggregate()
+            else:
+                return None
+
         return BenchmarkingResults(self._results, self.batches.shape)
