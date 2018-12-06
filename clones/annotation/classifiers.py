@@ -97,7 +97,14 @@ class Classifier:
         self.fig = self._show(self.values, self.labels, self.cmap, **kw)
 
     @staticmethod
-    def _show(x, labels, cmap, xlim=None, ax=None):
+    def _show(x, labels, cmap,
+              bins=None,
+              xlim=None,
+              histtype='step',
+              stacked=False,
+              fill=True,
+              ax=None,
+              **kw):
         """ Plot histogram. """
         if ax is None:
             fig, ax = plt.subplots(figsize=(3, 2))
@@ -107,10 +114,17 @@ class Classifier:
         if xlim is None:
             xlim = (x.min(), x.max())
 
-        bins = np.linspace(*xlim, 50)
-        for label in set(labels):
-            xi = x[(labels==label)]
-            ax.hist(xi, bins=bins, facecolor=cmap(label))
+        if bins is None:
+            bins = np.linspace(*xlim, 25)
+        values = [x[(labels==label)] for label in set(labels)]
+        colors = [cmap(label) for label in set(labels)]
+        ax.hist(values,
+                bins=bins,
+                color=colors,
+                histtype=histtype,
+                stacked=stacked,
+                fill=fill,
+                **kw)
 
         # format axis
         ax.spines['top'].set_visible(False)

@@ -4,6 +4,7 @@ from pomegranate import GeneralMixtureModel, LogNormalDistribution
 from .classifiers import Classifier
 
 
+
 class BayesianClassifier(Classifier):
     """
     Bayesian mixed log-normal model classifier.
@@ -100,6 +101,34 @@ class BayesianClassifier(Classifier):
         dist_to_gen = self.distribution_to_genotype
         return sorted(dist_to_gen, key=dist_to_gen.__getitem__)
 
+    @property
+    def num_samples(self):
+        """ Number of samples. """
+        return self.values.size
+
+    @property
+    def log_likelihood(self):
+        """ Maximum log likelihood of the data given the fitted model. """
+        return self.model.log_probability(self.values).mean()*self.num_samples
+
+    @property
+    def BIC(self):
+        """ Bayesian information criterion for the fitted mixture model. """
+        return (-2 * self.log_likelihood)+(self.num_parameters*np.log(self.num_samples))
+
+    @property
+    def AIC(self):
+        """ Akaike information criterion for the fitted mixture model. """
+        return (-2 * self.log_likelihood) + (2*self.num_parameters)
+
+    @property
+    def num_parameters(self):
+        """ Number of model parameters. """
+        get_size = lambda distribution: len(distribution.parameters)
+        num_parameters = sum([get_size(x) for x in self.model.distributions])
+        num_weights = self.model.n - 1
+        return num_parameters + num_weights
+
     @staticmethod
     def _fit(values, n=3):
         """
@@ -153,18 +182,18 @@ class BayesianClassifier(Classifier):
 
         return posterior
 
-    def show_pdf(self, ax=None, density=1000):
+    def show_pdf(self, ax=None, density=1000, alpha=0.5):
         """
         Show density function.
         """
 
         # build support
-        vmin, vmax = max(self._values.min(), 0.1), self._values.max()
+        vmin, vmax = max(self._values.min(), 0.01), self._values.max()
         support = np.linspace(vmin, vmax, num=density)
 
         # create axes
         if ax is None:
-            fig, ax = plt.subplots()
+            fig, ax = plt.subplots(figsize=(3, 2))
 
         # define map
         genotype_dict = self.distribution_to_genotype
@@ -173,10 +202,17 @@ class BayesianClassifier(Classifier):
         for i, dist in enumerate(self.model.distributions):
             pdf = dist.probability(support)
             weight = self.weights[i]
-            ax.plot(support, weight*pdf, c=self.cmap(genotype_dict[i]))
+            #ax.plot(support, weight*pdf, c=self.cmap(genotype_dict[i]))
+            ax.fill_between(support, weight*pdf, facecolors=self.cmap(genotype_dict[i]), alpha=alpha)
 
         # plot pdf
         pdf = self.model.probability(support)
-        ax.plot(support, pdf, '--', c='k', lw=2)
+        ax.plot(support, pdf, '-', c='k', lw=2)
 
-        ax.set_ylim(0, 3*pdf.mean())
+        ax.set_ylim(0, 4*pdf.mean())
+
+        # format axis
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.set_xlabel('Values', fontsize=8)
+        ax.set_ylabel('Density', fontsize=8)

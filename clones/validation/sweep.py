@@ -9,11 +9,12 @@ import dill as pickle
 from growth.sweep.sweep import Sweep
 from .batch import BatchBenchmark
 from .io import Pickler
+from .visualization import SweepVisualization
 from .results import BenchmarkingResults
 from .arguments import str2bool
 
 
-class SweepBenchmark(Pickler):
+class SweepBenchmark(Pickler, SweepVisualization):
 
     """
     Attributes:
@@ -441,3 +442,4 @@ class SweepBenchmark(Pickler):
                 return None
 
         return BenchmarkingResults(self._results, self.batches.shape)
+

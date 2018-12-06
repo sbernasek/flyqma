@@ -84,12 +84,17 @@ class BenchmarkVisualization:
         if title is not None:
             ax.set_title(title, fontsize=12)
 
-    def plot_measurements(self, ax=None, **kwargs):
+    def plot_measurements(self, ax=None, norm=None, **kwargs):
         """ Scatter plot of measurement data. """
         if ax is None:
             fig, ax = plt.subplots(figsize=(2, 2))
         c = self.fluorescence
-        self._scatter(ax, c=c, norm=self.fnorm, title=None, **kwargs)
+
+        # define normalization
+        if norm is None:
+            norm = self.fnorm
+
+        self._scatter(ax, c=c, norm=norm, title=None, **kwargs)
 
     def show(self, **kwargs):
         """ Plot visual comparison of cell classifiers. """
