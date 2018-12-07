@@ -22,6 +22,8 @@ class Classifier:
 
         n (int) - number of clusters
 
+        num_labels (int) - number of output labels
+
         classifier (vectorized func) - maps value to group_id
 
         labels (np.ndarray[int]) - predicted labels
@@ -34,7 +36,7 @@ class Classifier:
 
     """
 
-    def __init__(self, values, n=3, log=False, cmap=None):
+    def __init__(self, values, n=3, num_labels=3, log=False, cmap=None):
         """
         Instantiate k-means classifier.
 
@@ -43,6 +45,8 @@ class Classifier:
             values (array like) - basis for clustering
 
             n (int) - number of clusters
+
+            num_labels (int) - number of output labels
 
             log (bool) - indicates whether clustering performed on log values
 
@@ -54,12 +58,13 @@ class Classifier:
         self._values = values
         self.log = log
         self.n = n
+        self.num_labels = num_labels
 
         # set colormap
         self.set_cmap(cmap=cmap)
 
         # store parameters
-        self.parameters = dict(n=self.n, log=self.log)
+        self.parameters = dict(n=n, num_labels=num_labels, log=log)
         self.fig = None
 
     def __call__(self, x):
@@ -89,7 +94,7 @@ class Classifier:
             cmap = plt.cm.viridis
 
         # normalize
-        norm = Normalize(vmin=0, vmax=self.n-1)
+        norm = Normalize(vmin=0, vmax=self.num_labels-1)
         self.cmap = lambda x: cmap(norm(x))
 
     def show(self, **kw):
@@ -193,7 +198,7 @@ class KM(Classifier):
             n = len(groups)
 
         # instantiate classifier
-        super().__init__(values, n=n, log=log, cmap=cmap)
+        super().__init__(values, n=n, num_labels=len(groups), log=log, cmap=cmap)
         self.groups = groups
         self.cluster_to_group = np.vectorize(groups.get)
 

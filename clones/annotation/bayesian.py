@@ -1,8 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.colors import Normalize
+from scipy.signal import argrelextrema
+from sklearn.cluster import k_means
 from pomegranate import GeneralMixtureModel, LogNormalDistribution
+from pomegranate import ExponentialDistribution
 from .classifiers import Classifier
-
 
 
 class BayesianClassifier(Classifier):
@@ -22,6 +25,8 @@ class BayesianClassifier(Classifier):
         log (bool) - indicates whether clustering performed on log values
 
         n (int) - number of clusters
+
+        num_labels (int) - number of output labels
 
         classifier (vectorized func) - maps value to group_id
 
@@ -61,10 +66,10 @@ class BayesianClassifier(Classifier):
 
         # instantiate classifier
         super().__init__(values, **kwargs)
+        self.support = np.sort(values)
 
         # fit model
         self.model = self._fit(self.values, self.n)
-        self.weights = np.exp(self.model.weights)
 
         # build classifier and posterior
         self.classifier = self.build_classifier()
@@ -94,6 +99,21 @@ class BayesianClassifier(Classifier):
         if self.log:
             x = np.log10(x)
         return self.posterior(x)
+
+    @property
+    def distributions(self):
+        """ Model components. """
+        return self.model.distributions
+
+    @property
+    def means(self):
+        """ Mean of each distribution. """
+        return np.trapz(self.evaluate_distribution_pdfs()*self.support, x=self.support)
+
+    @property
+    def weights(self):
+        """ Normalized weight of each component distribution. """
+        return np.exp(self.model.weights)
 
     @property
     def order(self):
@@ -152,11 +172,14 @@ class BayesianClassifier(Classifier):
 
     @property
     def distribution_to_genotype(self):
-        """ Returns dictionary mapping distributions to genotypes.  """
-        flip = lambda f: f.__class__(map(reversed, f.items()))
-        means = [dist.parameters[0] for dist in self.model.distributions]
-        genotype_to_distribution = dict(enumerate(np.argsort(means)))
-        return flip(genotype_to_distribution)
+        """ Returns dictionary mapping distributions to three genotypes.  """
+        n = self.num_labels
+        cluster_means, cluster_labels,_ = k_means(self.means.reshape(-1, 1), n)
+        distribution_to_genotype = {}
+        for g, c in enumerate(np.argsort(cluster_means.ravel())):
+            for d in (cluster_labels==c).nonzero()[0]:
+                distribution_to_genotype[d] = g
+        return distribution_to_genotype
 
     def build_classifier(self):
         """ Build cell genotype classifier. """
@@ -182,37 +205,164 @@ class BayesianClassifier(Classifier):
 
         return posterior
 
-    def show_pdf(self, ax=None, density=1000, alpha=0.5):
-        """
-        Show density function.
-        """
+    @staticmethod
+    def evaluate_pdf(distribution, support):
+        """ Returns PDF of a continuous distribution. """
+        return distribution.probability(support)
 
-        # build support
-        vmin, vmax = max(self._values.min(), 0.01), self._values.max()
-        support = np.linspace(vmin, vmax, num=density)
+    @property
+    def model_pdf(self):
+        """ Returns model PDF over support. """
+        return self.model.probability(self.support)
+
+    @property
+    def pdf(self):
+        """ Returns empirical PDF over support. """
+        num_bins = self.num_samples // 50
+        bins = np.linspace(self.support.min(), self.support.max(), num_bins)
+        counts, edges = np.histogram(self.support, bins=bins, normed=True)
+        bin_centers = [(edges[i]+edges[i+1])/2. for i in range(len(edges)-1)]
+        return edges[:-1], counts
+
+    def evaluate_distribution_pdfs(self, support=None):
+        """ Returns PDF of each component over <support>. """
+        if support is None:
+            support = self.support
+        pdf = [self.evaluate_pdf(d, support) for d in self.distributions]
+        pdf = np.vstack(pdf)
+        #pdf[pdf<1e-250] = 1e-250
+        return pdf
+
+    @staticmethod
+    def evaluate_cdf(distribution, support):
+        """ Returns CDF of a discrete distribution. """
+        density = distribution.probability(support)
+        return np.cumsum(density) / density.sum()
+
+    @property
+    def cdf(self):
+        """ Returns CDF over support. """
+        return np.linspace(0, 1, self.values.size, endpoint=False)
+
+    @property
+    def distribution_cdfs(self):
+        """ Returns CDF of each component over support. """
+        cdf = [self.evaluate_cdf(d, self.support) for d in self.distributions]
+        return np.vstack(cdf)
+
+    def plot_pdf(self,
+                  ax=None,
+                  density=1000,
+                  alpha=0.5,
+                  ymax=None,
+                  figsize=(3, 2)):
+        """
+        Plot model density function, colored by output label.
+        """
 
         # create axes
         if ax is None:
-            fig, ax = plt.subplots(figsize=(3, 2))
+            fig, ax = plt.subplots(figsize=figsize)
 
-        # define map
-        genotype_dict = self.distribution_to_genotype
+        # plot model pdf segments, colored by outut label
+        support_labels = self.classifier(self.support)
+        model_pdf = self.model_pdf
+        breakpoints = [0]+list(np.diff(support_labels).nonzero()[0]+1)+[None]
+        for i, bp in enumerate(breakpoints[:-1]):
+            indices = slice(bp, breakpoints[i+1])
+            segment_support = self.support[indices]
+            segment_pdf = model_pdf[indices]
+            segment_labels = support_labels[indices]
+            segment_color = self.cmap(segment_labels)
+            ax.fill_between(segment_support, segment_pdf, color=segment_color)
 
-        # plot individual components
-        for i, dist in enumerate(self.model.distributions):
-            pdf = dist.probability(support)
-            weight = self.weights[i]
-            #ax.plot(support, weight*pdf, c=self.cmap(genotype_dict[i]))
-            ax.fill_between(support, weight*pdf, facecolors=self.cmap(genotype_dict[i]), alpha=alpha)
-
-        # plot pdf
-        pdf = self.model.probability(support)
-        ax.plot(support, pdf, '-', c='k', lw=2)
-
-        ax.set_ylim(0, 4*pdf.mean())
+        # plot overall model pdf
+        ax.plot(self.support, model_pdf, '-', c='k', lw=2)
 
         # format axis
+        if ymax is None:
+            maxima = model_pdf[argrelextrema(model_pdf, np.greater)]
+            ymax = 1.5*np.product(maxima)**(1/maxima.size)
+        ax.set_ylim(0, ymax)
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
         ax.set_xlabel('Values', fontsize=8)
         ax.set_ylabel('Density', fontsize=8)
+
+    def plot_pdfs(self,
+                  ax=None,
+                  density=1000,
+                  alpha=0.5,
+                  ymax=None,
+                  figsize=(3, 2)):
+        """
+        Plot density function for each distribution, colored by output label.
+        """
+
+        # create axes
+        if ax is None:
+            fig, ax = plt.subplots(figsize=figsize)
+
+        # plot empirical pdf
+        ax.step(*self.pdf, where='post', color='r', linewidth=2)
+
+        # plot individual component pdfs
+        pdfs = self.evaluate_distribution_pdfs() * self.weights.reshape(-1, 1)
+        for i, pdf in enumerate(pdfs):
+            color = self.cmap(self.distribution_to_genotype[i])
+            ax.fill_between(self.support, pdf, facecolors=color, alpha=alpha)
+
+        # plot model pdf
+        model_pdf = self.model_pdf
+        ax.plot(self.support, model_pdf, '-', c='k', lw=2)
+
+        # format axis
+        if ymax is None:
+            maxima = model_pdf[argrelextrema(model_pdf, np.greater)]
+            ymax = 1.5*np.product(maxima)**(1/maxima.size)
+        ax.set_ylim(0, ymax)
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.set_xlabel('Values', fontsize=8)
+        ax.set_ylabel('Density', fontsize=8)
+
+    def plot_cdfs(self, figsize=(3, 2)):
+        """ Plot cumulative distribution functions. """
+
+        fig, ax = plt.subplots(figsize=figsize)
+
+        # plot empirical cdf (data)
+        ax.plot(self.support, self.cdf, '-r', lw=2)
+
+        # plot component cdfs (components)
+        for cdf in self.distribution_cdfs:
+            ax.plot(self.support, cdf, '-k')
+
+        # plot weighted component cdf (model fit)
+        cdf = (self.distribution_cdfs*self.weights.reshape(-1, 1)).sum(axis=0)
+        ax.plot(self.support, cdf, '-b', lw=2)
+
+
+class MixedClassifier(BayesianClassifier):
+
+    @staticmethod
+    def _fit(values, n=3):
+        """
+        Fit exponential+log-normal mixture model using likelihood maximization.
+
+        Args:
+
+            values (np.ndarray[float]) - 1D array of values
+
+            n (int) - number of log-normal distributions
+
+        Returns:
+
+            model (pomegranate.GeneralMixtureModel)
+
+        """
+        x = values.reshape(-1, 1)
+        distributions = [ExponentialDistribution] + [LogNormalDistribution]*(n-1)
+        args = (distributions, n, x)
+        kwargs = dict(n_init=1000)
+        return GeneralMixtureModel.from_samples(*args, **kwargs)
