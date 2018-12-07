@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 
 from ..annotation.bayesian import BayesianClassifier
+from ..annotation.model_selection import ModelSelection
 from ..annotation.genotype import CommunityBasedGenotype
 from ..spatial.graphs import WeightedGraph
 from .scoring import Scoring
@@ -178,7 +179,8 @@ class SimulationBenchmark(BenchmarkProperties, BenchmarkVisualization):
     def fit_cell_classifier(measurements, classify_on='fluorescence'):
         """ Returns BayesianClassifier object. """
         values = measurements[classify_on].values
-        return BayesianClassifier(values, classify_on=classify_on)
+        selector = ModelSelection(values, classify_on, max_num_components=6)
+        return selector.BIC_optimal
 
     @staticmethod
     def build_graph(measurements, weighted_by='fluorescence'):
