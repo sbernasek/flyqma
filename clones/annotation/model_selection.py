@@ -91,8 +91,6 @@ class ModelSelection:
         ax.spines['top'].set_visible(False)
 
 
-
-
 class Merge:
     """
     Class for merging distributions.

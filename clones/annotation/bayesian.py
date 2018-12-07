@@ -254,6 +254,7 @@ class BayesianClassifier(Classifier):
                   ax=None,
                   density=1000,
                   alpha=0.5,
+                  xmax=None,
                   ymax=None,
                   figsize=(3, 2)):
         """
@@ -283,6 +284,10 @@ class BayesianClassifier(Classifier):
         if ymax is None:
             maxima = model_pdf[argrelextrema(model_pdf, np.greater)]
             ymax = 1.5*np.product(maxima)**(1/maxima.size)
+        if xmax is None:
+            xmax = np.percentile(self.support, 99)
+
+        ax.set_xlim(0, xmax)
         ax.set_ylim(0, ymax)
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
@@ -293,6 +298,7 @@ class BayesianClassifier(Classifier):
                   ax=None,
                   density=1000,
                   alpha=0.5,
+                  xmax=None,
                   ymax=None,
                   figsize=(3, 2)):
         """
@@ -320,7 +326,11 @@ class BayesianClassifier(Classifier):
         if ymax is None:
             maxima = model_pdf[argrelextrema(model_pdf, np.greater)]
             ymax = 1.5*np.product(maxima)**(1/maxima.size)
+        if xmax is None:
+            xmax = np.percentile(self.support, 99)
+
         ax.set_ylim(0, ymax)
+        ax.set_xlim(0, xmax)
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
         ax.set_xlabel('Values', fontsize=8)

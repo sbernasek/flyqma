@@ -34,7 +34,9 @@ class SweepBenchmark(Pickler, SweepVisualization):
     """
 
     def __init__(self, sweep_path,
-                 num_scales=8,
+                 min_scale=2,
+                 max_scale=10,
+                 num_scales=None,
                  num_replicates=1,
                  script_name='run_batch.py'):
 
@@ -43,7 +45,9 @@ class SweepBenchmark(Pickler, SweepVisualization):
         self.batches = Sweep.load(sweep_path).batches
 
         # set fluorescence scales
-        self.scales = np.linspace(3, 10, num_scales)
+        if num_scales is None:
+            num_scales = max_scale - min_scale + 1
+        self.scales = np.linspace(min_scale, max_scale, num_scales)
 
         # set number of fluorescence replicates
         self.num_replicates = num_replicates

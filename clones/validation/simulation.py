@@ -138,7 +138,7 @@ class SimulationBenchmark(BenchmarkProperties, BenchmarkVisualization):
                  classifier=None,
                  classify_on='fluorescence',
                  twolevel=False,
-                 rule='weighted'):
+                 rule='proportional'):
         """
         Args:
 
@@ -150,7 +150,7 @@ class SimulationBenchmark(BenchmarkProperties, BenchmarkVisualization):
 
             twolevel (bool) - if True, perform two-level clustering
 
-            rule (str) - voting rule, e.g. 'weighted' or 'majority'
+            rule (str) - voting rule, e.g. 'proportional', 'weighted' or 'majority'
 
         """
 

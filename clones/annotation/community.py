@@ -43,7 +43,7 @@ class CommunityClassifier:
         return mode
 
     @classmethod
-    def build_voter(cls, cell_classifier, rule='majority'):
+    def build_voter(cls, cell_classifier, rule='proportional'):
         """
         Build voting function.
 
@@ -60,11 +60,22 @@ class CommunityClassifier:
             def voter(x):
                 return cls.get_mode(cell_classifier(x))
 
+        # aggregate maximum mean posterior (proportional representation)
+        elif rule == 'proportional':
+            def voter(x):
+                posterior = cell_classifier.evaluate_posterior(x)
+                return posterior.mean(axis=0).argmax()
+
         # aggregate votes weighted by posterior probability of each label
         elif rule == 'weighted':
             def voter(x):
                 posterior = cell_classifier.evaluate_posterior(x)
-                return posterior.mean(axis=0).argmax()
+                confidence = posterior.max(axis=1)
+                genotypes = posterior.argmax(axis=1)
+                ind = np.argsort(genotypes)
+                starts = np.searchsorted(genotypes[ind], np.arange(4))
+                lengths = np.diff(starts)
+                return np.argmax([confidence[ind][slice(s, s+l)].sum() for s, l in zip(starts[:-1], lengths)])
 
         else:
             raise ValueError('Voter rule not recognized.')

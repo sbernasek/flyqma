@@ -60,10 +60,24 @@ class SweepArguments(RunArguments):
           super().add_arguments()
 
           # add keyword argument for number of fluorescence scales
+          self.add_argument('--min_scale',
+                              help='Minimum fluorescence scale.',
+                              type=int,
+                              default=3,
+                              required=False)
+
+          # add keyword argument for number of fluorescence scales
+          self.add_argument('--max_scale',
+                              help='Maximum fluorescence scales.',
+                              type=int,
+                              default=10,
+                              required=False)
+
+          # add keyword argument for number of fluorescence scales
           self.add_argument('-s', '--num_scales',
                               help='Number of fluorescence scales.',
                               type=int,
-                              default=8,
+                              default=None,
                               required=False)
 
           # add keyword argument for number of fluorescence replicates
@@ -77,14 +91,14 @@ class SweepArguments(RunArguments):
           self.add_argument('-t', '--twolevel',
                               help='Use two-level clustering.',
                               type=str2bool,
-                              default=False,
+                              default=True,
                               required=False)
 
           # add keyword argument for vote aggregation rule
           self.add_argument('-r', '--rule',
                               help='Vote aggregation rule.',
                               type=str,
-                              default='weighted',
+                              default='proportional',
                               required=False)
 
           # add keyword argument for estimated run time
