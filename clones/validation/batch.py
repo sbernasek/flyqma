@@ -34,6 +34,7 @@ class BatchBenchmark(Pickler):
                  scale=10,
                  num_replicates=1,
                  classify_on='fluorescence',
+                 logratio=False,
                  rule='weighted',
                  twolevel=False):
         """
@@ -49,6 +50,8 @@ class BatchBenchmark(Pickler):
 
             classify_on (str) - attribute on which cells are classified
 
+            logratio (bool) - if True, weight edges by logratio
+
             rule (str) - rule used for vote aggregation
 
             twolevel (bool) - if True, use two-level clustering
@@ -58,6 +61,7 @@ class BatchBenchmark(Pickler):
         self.scale = scale
         self.num_replicates = num_replicates
         self.classify_on = classify_on
+        self.logratio = logratio
         self.rule = rule
         self.twolevel = twolevel
 
@@ -91,6 +95,7 @@ class BatchBenchmark(Pickler):
     def params(self):
         """ Parameters for SimulationBenchmark. """
         return dict(classifier=self.classifier,
+                    logratio=self.logratio,
                     rule=self.rule,
                     twolevel=self.twolevel)
 
@@ -121,11 +126,10 @@ class BatchBenchmark(Pickler):
             # evaluate benchmark for current replicate
             benchmark = SimulationBenchmark(replicate.copy(), **self.params)
 
-            # evaluate performance metric
-            simple, community = benchmark.simple_MAE, benchmark.community_MAE
-
             # store results
-            results[replicate_id] = dict(simple=simple, community=community)
+            results[replicate_id] = dict(simple=benchmark.simple_MAE,
+                                         community=benchmark.community_MAE,
+                                         katz=benchmark.katz_MAE)
 
         # compile dataframe
         results = pd.DataFrame.from_dict(results, orient='index')

@@ -23,6 +23,7 @@ sweep = SweepBenchmark(
 
 # build SweepBenchmark
 sweep.build(
+    logratio=args['logratio'],
     rule=args['rule'],
     twolevel=args['twolevel'],
     walltime=args['walltime'],

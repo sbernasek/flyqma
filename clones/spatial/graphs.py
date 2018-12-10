@@ -206,7 +206,7 @@ class WeightedGraph(Graph):
 
     """
 
-    def __init__(self, data, weighted_by='r'):
+    def __init__(self, data, weighted_by='r', logratio=False):
         """
         Instantiate weighted graph.
 
@@ -216,19 +216,21 @@ class WeightedGraph(Graph):
 
             weighted_by (str) - data attribute used to weight edges
 
-            q (float) - maximum edge length quantile for edge inclusion, 0-100
+            logratio (bool) - if True, weight edges by log ratio
 
         """
 
         super().__init__(data)
         self.weighted_by = weighted_by
         self.community_labels = None
+        self.logratio = logratio
 
     def evaluate_edge_weights(self, weighted_by='r'):
         """
         Evaluate edge weights.
 
         Args:
+
             weighted_by (str) - data attribute used to weight edges
 
         Returns:
@@ -237,7 +239,7 @@ class WeightedGraph(Graph):
 
         """
         wf = WeightFunction(self.df, weighted_by=weighted_by)
-        return wf.assess_weights(self.edges)
+        return wf.assess_weights(self.edges, logratio=self.logratio)
 
     def build_links(self):
         """
@@ -255,6 +257,12 @@ class WeightedGraph(Graph):
         else:
             links = [(int(e[0]), int(e[1])) for e in self.edges]
         return links
+
+    def get_networkx(self):
+        """ Returns networkx instance of graph. """
+        G = nx.Graph()
+        G.add_weighted_edges_from(self.build_links())
+        return G
 
     def find_communities(self, **kwargs):
         """
@@ -312,7 +320,22 @@ class WeightFunction:
         """
         return np.abs(self.values.loc[i] - self.values.loc[j])
 
-    def assess_weights(self, edges):
+    def logratio(self, i, j):
+        """
+        Evaluate log ratio between nodes i and j.
+
+        Args:
+
+            i, j (ind) - node indices
+
+        Returns:
+
+            logratio (float)
+
+        """
+        return np.abs(np.log(self.values.loc[i]/self.values.loc[j]))
+
+    def assess_weights(self, edges, logratio=False):
         """
         Evaluate edge weights normalized by mean difference in node values.
 
@@ -320,12 +343,17 @@ class WeightFunction:
 
             edges (list of (i, j) tuples) - edges between nodes i and j
 
+            logratio (bool) - if True, weight edges by logratio
+
         Returns:
 
             weights (np.ndarray[float]) - edge weights
 
         """
-        energy = np.array([self.difference(*e) for e in edges])
+        if logratio:
+            energy = np.array([self.logratio(*e) for e in edges])
+        else:
+            energy = np.array([self.difference(*e) for e in edges])
         weights = np.exp(-energy/np.mean(energy))
         return weights
 

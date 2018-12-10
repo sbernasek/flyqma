@@ -13,7 +13,7 @@ from .images import ImageRGB
 from ..measurement.segmentation import Segmentation
 from ..measurement.measure import Measurements
 from ..spatial.graphs import WeightedGraph
-from ..annotation.genotype import CommunityBasedGenotype
+from ..annotation.community import InfomapLabeler
 from ..annotation.labelers import CelltypeLabeler
 from ..annotation.concurrency import ConcurrencyLabeler
 from ..bleedthrough.correction import LayerCorrection
@@ -347,8 +347,8 @@ class Layer(ImageRGB):
 
         # assign cluster labels
         if cluster:
-            assign_genotypes = CommunityBasedGenotype.from_layer(self)
-            assign_genotypes(data)
+            annotator = InfomapLabeler.from_layer(self)
+            annotator(data)
 
         # assign celltype labels
         celltype_labels = {0:'m', 1:'h', 2:'w', -1:'none'}

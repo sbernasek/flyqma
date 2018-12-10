@@ -88,6 +88,13 @@ class SweepArguments(RunArguments):
                               required=False)
 
           # add keyword argument for sweep density
+          self.add_argument('-lr', '--logratio',
+                              help='Weight edges by logratio.',
+                              type=str2bool,
+                              default=False,
+                              required=False)
+
+          # add keyword argument for sweep density
           self.add_argument('-t', '--twolevel',
                               help='Use two-level clustering.',
                               type=str2bool,

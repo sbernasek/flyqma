@@ -4,7 +4,7 @@ from matplotlib.colors import Normalize
 
 from ..annotation.bayesian import BayesianClassifier
 from ..annotation.model_selection import ModelSelection
-from ..annotation.genotype import CommunityBasedGenotype
+from ..annotation.community import InfomapLabeler, KatzLabeler
 from ..spatial.graphs import WeightedGraph
 from .scoring import Scoring
 
@@ -40,6 +40,11 @@ class BenchmarkProperties:
         return self.df.community_genotype.values
 
     @property
+    def katz_genotypes(self):
+        """ Genotype based on Katz centrality. """
+        return self.df.katz_genotype.values
+
+    @property
     def fluorescence(self):
         """ Measured fluorescence. """
         return self.df[self.annotator.cell_classifier.classify_on].values
@@ -53,6 +58,11 @@ class BenchmarkProperties:
     def community_MAE(self):
         """ Mean absolute error of community-based classifier labels. """
         return self.scores['community'].MAE
+
+    @property
+    def katz_MAE(self):
+        """ Mean absolute error of Katz classifier labels. """
+        return self.scores['katz'].MAE
 
 
 class BenchmarkVisualization:
@@ -128,7 +138,7 @@ class SimulationBenchmark(BenchmarkProperties, BenchmarkVisualization):
 
         df (pd.DataFrame) - synthetic measurement data
 
-        annotator (CommunityBasedGenotype) - cluster-based annotator
+        annotator (InfomapLabeler) - cluster-based annotator
 
         classify_on (str) - attribute on which cell measurements are classified
 
@@ -137,6 +147,7 @@ class SimulationBenchmark(BenchmarkProperties, BenchmarkVisualization):
     def __init__(self, measurements,
                  classifier=None,
                  classify_on='fluorescence',
+                 logratio=False,
                  twolevel=False,
                  rule='proportional'):
         """
@@ -147,6 +158,8 @@ class SimulationBenchmark(BenchmarkProperties, BenchmarkVisualization):
             classifier (BayesianClassifier) - if None, fit to measurements
 
             classify_on (str) - attribute on which measurements are classified
+
+            logratio (bool) - if True, weight edges by logratio
 
             twolevel (bool) - if True, perform two-level clustering
 
@@ -162,18 +175,25 @@ class SimulationBenchmark(BenchmarkProperties, BenchmarkVisualization):
         measurements.loc[:, 'simple_genotype'] = classifier(measurements)
 
         # build graph
-        graph = self.build_graph(measurements, classify_on)
+        graph = self.build_graph(measurements, classify_on, logratio)
 
-        # annotate measurements
+        # annotate measurements using infomap cluster-based labeler
         kw = dict(rule=rule, twolevel=twolevel)
-        self.annotator = CommunityBasedGenotype(graph, classifier, **kw)
+        self.annotator = InfomapLabeler(graph, classifier, **kw)
         self.annotator(measurements)
+
+        # annotate measurements using Katz centrality-based labeler
+        katz_annotator = KatzLabeler(graph, classifier)
+        katz_annotator(measurements)
+
+        # store measurements
         self.df = measurements
 
         # score annotation performance
         self.scores = {}
         self.scores['simple'] = self.score(self.simple_genotypes)
         self.scores['community'] = self.score(self.community_genotypes)
+        self.scores['katz'] = self.score(self.katz_genotypes)
 
     @staticmethod
     def fit_cell_classifier(measurements, classify_on='fluorescence'):
@@ -183,9 +203,9 @@ class SimulationBenchmark(BenchmarkProperties, BenchmarkVisualization):
         return selector.BIC_optimal
 
     @staticmethod
-    def build_graph(measurements, weighted_by='fluorescence'):
+    def build_graph(measurements, weighted_by='fluorescence', logratio=False):
         """ Returns WeightedGraph object. """
-        return WeightedGraph(measurements, weighted_by=weighted_by)
+        return WeightedGraph(measurements, weighted_by=weighted_by, logratio=logratio)
 
     def score(self, labels):
         """ Assess accuracy of <labels>. """
