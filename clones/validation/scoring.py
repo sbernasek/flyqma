@@ -50,7 +50,7 @@ class Scoring:
     @property
     def percent_correct(self):
         """ Fraction of measurements with correct annotation. """
-        return self._foo
+        return self.data.correct.sum()/self.n
 
     @property
     def f1(self):

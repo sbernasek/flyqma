@@ -36,7 +36,8 @@ class BatchBenchmark(Pickler):
                  classify_on='fluorescence',
                  logratio=False,
                  rule='weighted',
-                 twolevel=False):
+                 twolevel=False,
+                 katz_kwargs={}):
         """
         Instantiate batch benchmark.
 
@@ -56,6 +57,8 @@ class BatchBenchmark(Pickler):
 
             twolevel (bool) - if True, use two-level clustering
 
+            katz_kwargs (dict) - keyword arguments for KatzClassifier
+
         """
         self.batch = batch
         self.scale = scale
@@ -64,6 +67,7 @@ class BatchBenchmark(Pickler):
         self.logratio = logratio
         self.rule = rule
         self.twolevel = twolevel
+        self.katz_kwargs = katz_kwargs
 
         # initialize attributes
         self.data = None
@@ -97,7 +101,8 @@ class BatchBenchmark(Pickler):
         return dict(classifier=self.classifier,
                     logratio=self.logratio,
                     rule=self.rule,
-                    twolevel=self.twolevel)
+                    twolevel=self.twolevel,
+                    katz_kwargs=self.katz_kwargs)
 
     @property
     def replicates(self):

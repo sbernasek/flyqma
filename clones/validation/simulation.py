@@ -115,6 +115,14 @@ class BenchmarkVisualization:
         self._scatter(axes[1, 0], c=self.simple_genotypes, title='Cell-based classifier', **kwargs)
         self._scatter(axes[1, 1], c=self.community_genotypes, title='Community-based classifier', **kwargs)
 
+    def show_classifiers(self, **kwargs):
+        """ Plot visual comparison of cell classifiers. """
+        fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(6, 6))
+        self._scatter(axes[0, 0], c=self.true_genotypes, title='Ground Truth', **kwargs)
+        self._scatter(axes[0, 1], c=self.simple_genotypes, title='Cell-based classifier', **kwargs)
+        self._scatter(axes[1, 0], c=self.community_genotypes, title='Infomap classifier', **kwargs)
+        self._scatter(axes[1, 1], c=self.katz_genotypes, title='Katz centrality classifier', **kwargs)
+
     def show_measurements(self, **kwargs):
         """ Plot visual comparison of genotypes and measurements. """
         fig, axes = plt.subplots(ncols=2, figsize=(6, 3))
@@ -149,7 +157,8 @@ class SimulationBenchmark(BenchmarkProperties, BenchmarkVisualization):
                  classify_on='fluorescence',
                  logratio=False,
                  twolevel=False,
-                 rule='proportional'):
+                 rule='proportional',
+                 katz_kwargs={}):
         """
         Args:
 
@@ -164,6 +173,8 @@ class SimulationBenchmark(BenchmarkProperties, BenchmarkVisualization):
             twolevel (bool) - if True, perform two-level clustering
 
             rule (str) - voting rule, e.g. 'proportional', 'weighted' or 'majority'
+
+            katz_kwargs (dict) - keyword arguments for KatzClassifier
 
         """
 
@@ -183,7 +194,7 @@ class SimulationBenchmark(BenchmarkProperties, BenchmarkVisualization):
         self.annotator(measurements)
 
         # annotate measurements using Katz centrality-based labeler
-        katz_annotator = KatzLabeler(graph, classifier)
+        katz_annotator = KatzLabeler(graph, classifier, **katz_kwargs)
         katz_annotator(measurements)
 
         # store measurements

@@ -8,14 +8,29 @@ class BenchmarkingResults:
     Container for managing aggregated results of a benchmarking sweep.
     """
 
-    def __init__(self, data, shape):
+    def __init__(self, data, shape, methods=None):
         """
         Instantiate benchmarking results object.
+
+        Args:
+
+            methods (array like) - methods included
+
         """
 
+        if methods is None:
+            methods = ['simple', 'community', 'katz']
+            methods = [m for m in methods if m in data.columns]
+        self.methods = {m: i for i, m in enumerate(methods)}
+
         columns = ['row_id', 'column_id', 'scale_id']
-        self.data = data.groupby(columns)[['simple', 'community']].mean()
+        self.data = data.groupby(columns)[methods].mean()
         self.shape = shape
+
+    @property
+    def num_methods(self):
+        """ Number of methods. """
+        return len(self.methods)
 
     def slice(self, row_id=0):
         """
@@ -23,9 +38,8 @@ class BenchmarkingResults:
         """
         df = self.data.xs(row_id, level=0).swaplevel().sort_index(level=0)
         shape = [len(s) for s in df.index.levels]
-        matrices = df.values.reshape(*shape, 2)
-        simple, community = matrices[:,:,0], matrices[:,:,1]
-        return simple, community
+        matrices = df.values.reshape(*shape, self.num_methods)
+        return matrices
 
     @staticmethod
     def build_figure(nrows=1, ncols=1, figsize=(2, 2)):
@@ -40,6 +54,8 @@ class BenchmarkingResults:
         ax.set_xlabel('Clone size')
 
     def plot_relative_error(self,
+                            method='community',
+                            reference_method='simple',
                             row_id=0,
                             vmin=-3,
                             vmax=3,
@@ -48,8 +64,12 @@ class BenchmarkingResults:
         """ Plots relative error rate for a given <row_id>. """
 
         # compile foldchange array (FC < 0 is good performance)
-        simple, community = self.slice(row_id)
-        foldchange = np.log2(community/simple)
+        drop_last_axis = lambda x: x.reshape(x.shape[:-1])
+        matrices = np.split(self.slice(row_id), self.num_methods, -1)
+        matrices = [drop_last_axis(x) for x in matrices]
+        scores = matrices[self.methods[method]]
+        reference_scores = matrices[self.methods[reference_method]]
+        foldchange = np.log2(scores/reference_scores)
 
         # plot
         fig, ax = self.build_figure()
@@ -68,10 +88,13 @@ class BenchmarkingResults:
         """ Plots absolute error rates for a given <row_id>. """
 
         # compile absolute error arrays (low error is good performance)
-        matrices = self.slice(row_id)
+        drop_last_axis = lambda x: x.reshape(x.shape[:-1])
+        matrices = np.split(self.slice(row_id), self.num_methods, -1)
+        matrices = [drop_last_axis(x) for x in matrices]
 
         # plot
-        fig, axes = self.build_figure(ncols=2, figsize=(4.5, 2))
+        figsize = (self.num_methods*2 + 1., 2)
+        fig, axes = self.build_figure(ncols=self.num_methods, figsize=figsize)
 
         for ax, matrix in zip(axes, matrices):
 
