@@ -11,6 +11,21 @@ from .classifiers import Classifier
 class BayesianProperties:
 
     @property
+    def lbound(self):
+        """ Lower bound of support. """
+        return np.percentile(self.values, q=0.1)
+
+    @property
+    def ubound(self):
+        """ Upper bound of support. """
+        return np.percentile(self.values, q=99.9)
+
+    @property
+    def bounds(self):
+        """ Low and upper bounds of support. """
+        return np.percentile(self.values, q=[.1, 99.9])
+
+    @property
     def components(self):
         """ Model components. """
         return self.model.distributions
@@ -237,7 +252,7 @@ class BayesianClassifier(Classifier, BayesianProperties, BayesianVisualization):
         return self.evaluate_classifier(df)
 
     @staticmethod
-    def _fit(values, n=3):
+    def _fit(values, n=3, crop=True):
         """
         Fit log-normal mixture model using likelihood maximization.
 
@@ -247,16 +262,22 @@ class BayesianClassifier(Classifier, BayesianProperties, BayesianVisualization):
 
             n (int) - number of log-normal distributions
 
+            crop (bool) - if True, crop values to [0.1, 99.9] percentiles
+
         Returns:
 
             model (pomegranate.GeneralMixtureModel)
 
         """
+        if crop:
+            select_between = lambda x, b: x[(x>=b[0]) * (x<=b[1])]
+            bounds = np.percentile(values, q=[0.1, 99.9])
+            values = select_between(values, bounds)
+
         x = values.reshape(-1, 1)
         args = (LogNormalDistribution, n, x)
         kwargs = dict(n_init=1000)
         return GeneralMixtureModel.from_samples(*args, **kwargs)
-
 
     def evaluate_classifier(self, df):
         """ Returns labels for measurements in <df>. """
@@ -313,9 +334,22 @@ class BayesianClassifier(Classifier, BayesianProperties, BayesianVisualization):
 
         def posterior(values):
             """ Returns probabilities of each label for <values>.  """
+
+            # evaluate posterior probability of each label for each value
             p = self.model.predict_proba(values.reshape(-1, 1))
-            label_p = [p[:,i].sum(axis=1) for i in self.component_groups]
-            return np.vstack(label_p).T
+            _posterior = [p[:,i].sum(axis=1) for i in self.component_groups]
+            _posterior = np.vstack(_posterior).T
+
+            # fix label probabilities for points outside the support bounds
+            below, above = values < self.lbound, values > self.ubound
+            for rows, col in zip((below.ravel(), above.ravel()), [0, -1]):
+                if rows.sum() == 0:
+                    continue
+                adjust = np.zeros((rows.sum(), self.num_labels), dtype=float)
+                adjust[:, col] = 1.
+                _posterior[rows] = adjust
+
+            return _posterior
 
         return posterior
 
