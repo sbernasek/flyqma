@@ -16,13 +16,37 @@ from ..spatial.graphs import WeightedGraph
 from ..annotation.community import InfomapLabeler
 from ..annotation.labelers import CelltypeLabeler
 from ..annotation.concurrency import ConcurrencyLabeler
+from ..annotation.visualization import CloneBoundaries
 from ..bleedthrough.correction import LayerCorrection
 from ..utilities.io import IO
 from .defaults import Defaults
 defaults = Defaults()
 
 
-class Layer(ImageRGB):
+class LayerVisualization:
+    """ Methods for visualizing a layer. """
+
+    def plot_boundary(self, ax,
+                        label,
+                        label_by='genotype',
+                        color='r',
+                        alpha=70,
+                        **kwargs):
+        """ Plot boundary of <label_by> groups with <label> on <ax>. """
+        boundaries = CloneBoundaries(self.data, label_by=label_by, alpha=alpha)
+        boundaries.plot_boundary(label, color=color, ax=ax, **kwargs)
+
+    def plot_boundaries(self, ax,
+                        label_by='genotype',
+                        cmap=plt.cm.bwr,
+                        alpha=70,
+                        **kwargs):
+        """ Plot boundaries of all <label_by> groups on <ax>. """
+        boundaries = CloneBoundaries(self.data, label_by=label_by, alpha=alpha)
+        boundaries.plot_boundaries(cmap=cmap, ax=ax, **kwargs)
+
+
+class Layer(ImageRGB, LayerVisualization):
     """
     Object represents a single RGB image layer.
 

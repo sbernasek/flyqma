@@ -4,6 +4,55 @@ from matplotlib.colors import ListedColormap
 from scipy.spatial import Voronoi
 from matplotlib.collections import PolyCollection
 
+from matplotlib.colors import Normalize
+from ..spatial.alpha import AlphaShapes
+
+
+class CloneBoundaries:
+    """
+    Object for drawing paths around clone boundaries.
+
+    Attributes:
+
+        shapes (list of AlphaShapes) - shape indices for ordered labels
+
+    """
+
+    def __init__(self, df, label_by='genotype', alpha=50):
+        self.shapes = self.build_shapes(df, label_by, alpha)
+
+    @classmethod
+    def from_layer(cls, layer, label_by='genotype', **kwargs):
+        """ Instantiate from clones.Layer instance. """
+        return cls(layer.data, label_by=label_by, **kwargs)
+
+    @property
+    def norm(self):
+        """ Normalization for number of shapes. """
+        return Normalize(vmin=0, vmax=len(self.shapes)-1)
+
+    @staticmethod
+    def build_shapes(df, label_by, alpha):
+        """ Compile shapes. """
+        shapes_dict = {}
+        for label in df[label_by].unique():
+            xy = df[df[label_by]==label][['centroid_x', 'centroid_y']].values
+            shapes_dict[label] = AlphaShapes(xy, alpha=alpha)
+        return shapes_dict
+
+    def plot_boundary(self, label, **kwargs):
+        """ Plot boundary for clones with <label>. """
+        shape = self.shapes[label]
+        shape.plot_boundary(**kwargs)
+
+    def plot_boundaries(self, cmap=plt.cm.viridis, **kwargs):
+        """ Plot all clone boundaries. """
+        for label in self.shapes.keys():
+            color = cmap(self.norm(label))
+            self.plot_boundary(label, color=color, **kwargs)
+
+
+
 
 class Tessellation:
     """
