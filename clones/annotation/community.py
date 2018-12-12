@@ -317,7 +317,11 @@ class KatzLabeler(InfomapLabeler):
         n = np.array(adjacency).shape[0]
         centrality = np.linalg.solve(np.eye(n, n)-(alpha*adjacency), posterior)
 
+        # build classifier that maps model distributions to genotypes.
+        #get_label = np.vectorize(cell_classifier.component_to_label.get)
+        node_labels = centrality.argmax(axis=1)
+
         # return genotype mapping
-        index_to_genotype = dict(zip(list(G.nodes), centrality.argmax(axis=1)))
+        index_to_genotype = dict(zip(list(G.nodes), node_labels))
 
         return np.vectorize(index_to_genotype.get)
