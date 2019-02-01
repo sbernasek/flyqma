@@ -315,7 +315,7 @@ class KatzLabeler(InfomapLabeler):
 
         # evaluate centrality
         n = np.array(adjacency).shape[0]
-        centrality = np.linalg.solve(np.eye(n, n)-(alpha*adjacency), posterior)
+        centrality = np.linalg.solve(np.eye(n, n)-(alpha*adjacency), (1-alpha)*posterior)
 
         # build classifier that maps model distributions to genotypes.
         #get_label = np.vectorize(cell_classifier.component_to_label.get)

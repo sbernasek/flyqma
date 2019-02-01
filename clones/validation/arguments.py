@@ -59,25 +59,25 @@ class SweepArguments(RunArguments):
 
           super().add_arguments()
 
-          # add keyword argument for number of fluorescence scales
-          self.add_argument('--min_scale',
-                              help='Minimum fluorescence scale.',
-                              type=int,
-                              default=3,
+          # add keyword argument for minimum fluorescence ambiguity
+          self.add_argument('--min_ambiguity',
+                              help='Minimum fluorescence ambiguity.',
+                              type=float,
+                              default=0.1,
                               required=False)
 
-          # add keyword argument for number of fluorescence scales
-          self.add_argument('--max_scale',
-                              help='Maximum fluorescence scales.',
+          # add keyword argument for maximum fluorescence ambiguity
+          self.add_argument('--max_ambiguity',
+                              help='Maximum fluorescence ambiguity.',
+                              type=float,
+                              default=1.,
+                              required=False)
+
+          # add keyword argument for number of fluorescence ambiguities
+          self.add_argument('-a', '--num_ambiguities',
+                              help='Number of fluorescence ambiguities.',
                               type=int,
                               default=10,
-                              required=False)
-
-          # add keyword argument for number of fluorescence scales
-          self.add_argument('-s', '--num_scales',
-                              help='Number of fluorescence scales.',
-                              type=int,
-                              default=None,
                               required=False)
 
           # add keyword argument for number of fluorescence replicates

@@ -1,15 +1,7 @@
-synthetic/
 build/
-pomegranate/
 doctrees/
-art/
 clones.egg-info/
-notebooks/old
-data/*
-/modules/cmodules/*
-*.pdf
 *.pyc
 notebooks/.ipynb_checkpoints/*
-*.xlsx
 docs/source/.doctrees/
 notebooks/development/

@@ -23,7 +23,7 @@ class BenchmarkingResults:
             methods = [m for m in methods if m in data.columns]
         self.methods = {m: i for i, m in enumerate(methods)}
 
-        columns = ['row_id', 'column_id', 'scale_id']
+        columns = ['row_id', 'column_id', 'ambiguity_id']
         self.data = data.groupby(columns)[methods].mean()
         self.shape = shape
 

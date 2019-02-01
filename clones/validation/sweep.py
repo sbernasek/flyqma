@@ -25,7 +25,7 @@ class SweepBenchmark(Pickler, SweepVisualization):
 
         batches (2D np.ndarray[growth.Batch]) - batches of growth replicates
 
-        scales (np.ndarray[float]) - fluorescence scales
+        ambiguities (np.ndarray[float]) - fluorescence ambiguities
 
         num_replicates (int) - number of fluorescence replicates
 
@@ -34,9 +34,9 @@ class SweepBenchmark(Pickler, SweepVisualization):
     """
 
     def __init__(self, sweep_path,
-                 min_scale=2,
-                 max_scale=10,
-                 num_scales=None,
+                 min_ambiguity=0.1,
+                 max_ambiguity=1.,
+                 num_ambiguities=10,
                  num_replicates=1,
                  script_name='run_batch.py'):
 
@@ -44,10 +44,8 @@ class SweepBenchmark(Pickler, SweepVisualization):
         self.sweep_path = sweep_path
         self.batches = Sweep.load(sweep_path).batches
 
-        # set fluorescence scales
-        if num_scales is None:
-            num_scales = max_scale - min_scale + 1
-        self.scales = np.linspace(min_scale, max_scale, num_scales)
+        # set fluorescence ambiguities
+        self.ambiguities = np.linspace(min_ambiguity, max_ambiguity, num_ambiguities)
 
         # set number of fluorescence replicates
         self.num_replicates = num_replicates
@@ -89,9 +87,9 @@ class SweepBenchmark(Pickler, SweepVisualization):
         return job
 
     @property
-    def num_scales(self):
-        """ Number of fluorescence scales. """
-        return self.scales.size
+    def num_ambiguities(self):
+        """ Number of fluorescence ambiguities. """
+        return self.ambiguities.size
 
     @staticmethod
     def build_run_script(path, script_name):
@@ -257,8 +255,8 @@ class SweepBenchmark(Pickler, SweepVisualization):
             job_file = open(job_path, 'w')
 
             # write batch benchmark paths to job file
-            for scale_id in range(self.num_scales):
-                benchmark_path = self.benchmark_paths[batch_id][scale_id]
+            for ambiguity_id in range(self.num_ambiguities):
+                benchmark_path = self.benchmark_paths[batch_id][ambiguity_id]
                 job_file.write('{:s}\n'.format(benchmark_path))
 
             # create log directory for job
@@ -325,18 +323,18 @@ class SweepBenchmark(Pickler, SweepVisualization):
             mkdir(batch_path)
             benchmark_paths = {}
 
-            # make benchmarks for each scale of batch
-            for scale_id, scale in enumerate(self.scales):
+            # make benchmarks for each ambiguity value in the batch
+            for ambiguity_id, ambiguity in enumerate(self.ambiguities):
 
                 # store benchmark path
-                benchmark_path = join(batch_path, '{:d}.pkl'.format(scale_id))
-                benchmark_paths[scale_id] = relpath(benchmark_path, self.sweep_path)
+                benchmark_path = join(batch_path, '{:d}.pkl'.format(ambiguity_id))
+                benchmark_paths[ambiguity_id] = relpath(benchmark_path, self.sweep_path)
 
-                # build benchmark for current scale
-                benchmark_arg = (benchmark_path, batch, scale, self.num_replicates)
+                # build benchmark for current ambiguity
+                benchmark_arg = (benchmark_path, batch, ambiguity, self.num_replicates)
                 self.build_benchmark(*benchmark_arg, **kwargs)
 
-            # store scale paths
+            # store ambiguity paths
             self.benchmark_paths[batch_id] = benchmark_paths
 
         # save serialized job
@@ -359,9 +357,9 @@ class SweepBenchmark(Pickler, SweepVisualization):
                                      memory=memory)
 
     @classmethod
-    def build_benchmark(cls, path, batch, scale, num_replicates, **kwargs):
+    def build_benchmark(cls, path, batch, ambiguity, num_replicates, **kwargs):
         """
-        Builds and saves a BatchBenchmark instance for a given batch and scale.
+        Builds and saves a BatchBenchmark instance for a given batch and fluorescence ambiguity coefficient.
 
         Args:
 
@@ -369,7 +367,7 @@ class SweepBenchmark(Pickler, SweepVisualization):
 
             batch (growth.sweep.Batch) - batch of growth replicates
 
-            scale (float) - fluorescence scale
+            ambiguity (float) - fluorescence ambiguity coefficient
 
             num_replicates (int) - number of fluorescence replicates
 
@@ -378,12 +376,12 @@ class SweepBenchmark(Pickler, SweepVisualization):
         """
 
         # instantiate benchmark
-        benchmark = BatchBenchmark(batch, scale, num_replicates, **kwargs)
+        benchmark = BatchBenchmark(batch, ambiguity, num_replicates, **kwargs)
 
         # save benchmark
         benchmark.save(path)
 
-    def load_benchmark(self, batch_id, scale_id):
+    def load_benchmark(self, batch_id, ambiguity_id):
         """
         Load simulation instance from file.
 
@@ -391,14 +389,14 @@ class SweepBenchmark(Pickler, SweepVisualization):
 
             batch_id (int) - batch index
 
-            scale_id (int) - scale index
+            ambiguity_id (int) - ambiguity coefficient index
 
         Returns:
 
             benchmark (BatchBenchmark)
 
         """
-        path = join(self.sweep_path, self.benchmark_paths[batch_id][scale_id])
+        path = join(self.sweep_path, self.benchmark_paths[batch_id][ambiguity_id])
         benchmark = BatchBenchmark.load(path)
         benchmark.batch.root = self.sweep_path
         return benchmark
@@ -414,17 +412,17 @@ class SweepBenchmark(Pickler, SweepVisualization):
             for column_id in range(ncols):
                 batch_id = row_id*ncols + column_id
 
-                for scale_id in range(self.num_scales):
+                for ambiguity_id in range(self.num_ambiguities):
 
                     # load benchmark for current batch
-                    batch_benchmark = self.load_benchmark(batch_id, scale_id)
+                    batch_benchmark = self.load_benchmark(batch_id, ambiguity_id)
 
                     # append results to list
                     batch_data = batch_benchmark.results
                     batch_data['batch_id'] = batch_id
                     batch_data['row_id'] = row_id
                     batch_data['column_id'] = column_id
-                    batch_data['scale_id'] = scale_id
+                    batch_data['ambiguity_id'] = ambiguity_id
                     data.append(batch_data)
 
         data = pd.concat(data).reset_index()

@@ -10,7 +10,7 @@ class SweepVisualization:
     @property
     def max_fluroescence(self):
         """ Peak fluorescence across sweep. """
-        batch = self.load_benchmark(0, self.num_scales-1)
+        batch = self.load_benchmark(0, self.num_ambiguities-1)
         return np.percentile(batch.classifier.values, 99)
 
     @property
@@ -27,7 +27,7 @@ class SweepVisualization:
                           **kwargs):
 
         # determine shape
-        shape = self.scales.size, self.batches.shape[1]
+        shape = self.ambiguities.size, self.batches.shape[1]
         xs = range(0, shape[1], resolution)
         ys = range(0, shape[0], resolution)
         nrows, ncols = len(ys), len(xs)
@@ -41,14 +41,14 @@ class SweepVisualization:
         gs = GridSpec(nrows, ncols, wspace=0, hspace=0)
 
         # plot fluorescence values
-        for i, scale_id in enumerate(xs):
+        for i, ambiguity_id in enumerate(xs):
             for j, batch_id in enumerate(ys[::-1]):
 
                 # add axis
                 ax = fig.add_subplot(gs[i, j])
 
                 # load BatchBenchmark then generate and plot measurement data
-                batch = self.load_benchmark(batch_id, scale_id)
+                batch = self.load_benchmark(batch_id, ambiguity_id)
                 simulation = batch.benchmark_simulation(replicate_id)
                 simulation.plot_measurements(ax=ax, norm=norm, **kwargs)
 
