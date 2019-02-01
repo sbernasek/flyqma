@@ -6,9 +6,9 @@ from clones.validation.sweep import SweepBenchmark
 
 args = SweepArguments(description='Benchmark sweep options.')
 sweep_path = args['path']
-min_scale = args['min_scale']
-max_scale = args['max_scale']
-num_scales = args['num_scales']
+min_ambiguity = args['min_ambiguity']
+max_ambiguity = args['max_ambiguity']
+num_ambiguities = args['num_ambiguities']
 num_replicates = args['num_replicates']
 
 # ============================= RUN SCRIPT ====================================
@@ -16,9 +16,9 @@ num_replicates = args['num_replicates']
 # instantiate SweepBenchmark object
 sweep = SweepBenchmark(
     sweep_path,
-    min_scale=min_scale,
-    max_scale=max_scale,
-    num_scales=num_scales,
+    min_ambiguity=min_ambiguity,
+    max_ambiguity=max_ambiguity,
+    num_ambiguities=num_ambiguities,
     num_replicates=num_replicates)
 
 # build SweepBenchmark

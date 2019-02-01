@@ -77,7 +77,7 @@ class SweepArguments(RunArguments):
           self.add_argument('-a', '--num_ambiguities',
                               help='Number of fluorescence ambiguities.',
                               type=int,
-                              default=10,
+                              default=16,
                               required=False)
 
           # add keyword argument for number of fluorescence replicates

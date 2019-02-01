@@ -36,7 +36,7 @@ class SweepBenchmark(Pickler, SweepVisualization):
     def __init__(self, sweep_path,
                  min_ambiguity=0.1,
                  max_ambiguity=1.,
-                 num_ambiguities=10,
+                 num_ambiguities=16,
                  num_replicates=1,
                  script_name='run_batch.py'):
 
