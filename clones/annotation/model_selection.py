@@ -3,21 +3,63 @@ import matplotlib.pyplot as plt
 import scipy.stats as st
 from matplotlib.gridspec import GridSpec
 from scipy.signal import argrelextrema
+
 from .bayesian import BayesianClassifier
+from .lognormal import LognormalModel
 
 
 class ModelSelection:
 
-    def __init__(self, values, classify_on, max_num_components=10):
+    def __init__(self, values, classify_on,
+                 min_num_components=3,
+                 max_num_components=10,
+                 crop=False):
+        """
+        Perform model selection by choosing the model that minimizes BIC score.
+
+        Args:
+
+            values (np.ndarray[float]) - 1D array of sample values
+
+            classify_on (str) - attribute label for sample values
+
+            min_num_components (int) - minimum number of components in mixture
+
+            max_num_components (int) - maximum number of components in mixture
+
+            crop (bool) - if True, crop data to 1st and 99th percentiles
+
+        """
+
         self.values = np.sort(values)
         self.classify_on = classify_on
+        self.min_num_components = min_num_components
         self.max_num_components = max_num_components
-        self.num_components = range(3, max_num_components+1)
+        self.crop = crop
+        self.num_components = range(min_num_components, max_num_components+1)
         self.models = self.fit_models()
 
+
     def fit_models(self):
-        fit_model = lambda n: BayesianClassifier(self.values, classify_on=self.classify_on, n=n)
-        return [fit_model(n) for n in self.num_components]
+        """ Fit model with each number of components. """
+
+        # define parameters
+        args = (self.values,)
+        kwargs = dict(classify_on=self.classify_on, crop=self.crop)
+
+        # fit models
+        models = []
+        for n in self.num_components:
+            if n == 1:
+                model = LognormalModel(*args)
+            elif n == 2:
+                model = BayesianClassifier(*args, n=2, num_labels=2, **kwargs)
+            else:
+                model = BayesianClassifier(*args, n=n, **kwargs)
+
+            models.append(model)
+
+        return models
 
     @property
     def cdf(self):
@@ -53,11 +95,17 @@ class ModelSelection:
             if i == np.argmin(self.BIC):
                 axes[i].set_title('SELECTED')
 
-    def plot_information_criteria(self, bic=True, aic=True, figsize=(3, 2)):
+    def plot_information_criteria(self,
+                                  ax=None,
+                                  bic=True,
+                                  aic=True,
+                                  figsize=(3, 2)):
         """
         Plot information criteria versus number of components.
 
         Args:
+
+            ax (matplotlib.axes.AxesSubplot) - if None, create axis
 
             bic (bool) - include BIC scores
 
@@ -65,9 +113,16 @@ class ModelSelection:
 
             figsize (tuple) - figure size
 
+        Returns:
+
+            fig (matplotlib.figure)
+
         """
 
-        fig, ax = plt.subplots(figsize=figsize)
+        if ax is None:
+            fig, ax = plt.subplots(figsize=figsize)
+        else:
+            fig = plt.gcf()
 
         # plot AIC scores
         if aic:
@@ -89,6 +144,8 @@ class ModelSelection:
         ax.legend(frameon=False, bbox_to_anchor=(0., 1.02, 1., .102), loc='upper center', ncol=2, mode="center", borderaxespad=0.)
         ax.spines['right'].set_visible(False)
         ax.spines['top'].set_visible(False)
+
+        return fig
 
 
 class Merge:

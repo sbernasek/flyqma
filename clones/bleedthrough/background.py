@@ -1,8 +1,10 @@
-
+from copy import deepcopy
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.ndimage import binary_dilation, generate_binary_structure
 from matplotlib.gridspec import GridSpec
+
+from ..visualization.masking import Mask
 
 
 class BackgroundExtraction:
@@ -104,3 +106,37 @@ class BackgroundExtraction:
         """
         bg_px = self.isolate_pixels(channel)
         return bg_px[~bg_px.mask].data
+
+    def plot_foreground_mask(self, ax=None, figsize=(3, 3)):
+        """
+        Plot foreground mask.
+
+        Args:
+
+            ax (matplotlib.axes.AxesSubplot) - if None, create figure
+
+            figsize (tuple) - figure size
+
+        Returns:
+
+            figure
+
+        """
+
+        if ax is None:
+            fig, ax = plt.subplots(figsize=figsize)
+        else:
+            fig = plt.gcf()
+
+        # extract and visualize red/green channels
+        rg = deepcopy(self.layer.im)
+        rg[:,:,-1] = 0
+        ax.imshow(rg)
+
+        # add foreground mask
+        mask = Mask(self.bg_mask)
+        mask.add_contourf(ax, alpha=0.5, hatches=['//'])
+        mask.add_contour(ax, lw=2, color='w')
+        ax.axis('off')
+
+        return fig

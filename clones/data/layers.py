@@ -45,6 +45,51 @@ class LayerVisualization:
         boundaries = CloneBoundaries(self.data, label_by=label_by, alpha=alpha)
         boundaries.plot_boundaries(cmap=cmap, ax=ax, **kwargs)
 
+    def build_mask(self, classifier,
+                   interior_only=False,
+                   selection_only=False,
+                   null_value=-1):
+        """
+        Use segment <classifier> to construct an image mask.
+
+        Args:
+
+            classifier (annotation.Classifier object)
+
+            interior_only (bool) - if True, excludes clone borders
+
+            selection_only (bool) - if True, only include selected region
+
+            null_value (int) - value used to fill unused pixels
+
+        """
+
+        # assign labels
+        assigned_labels = classifier(self.data)
+
+        # build dictionary mapping segments to labels
+        segment_to_label = dict(zip(self.data.segment_id, assigned_labels))
+        segment_to_label[0] = null_value
+
+        # exclude borders
+        if interior_only:
+            boundary = self.data[self.data.boundary]
+            boundary_to_black = {x: null_value for x in boundary.segment_id}
+            segment_to_label.update(boundary_to_black)
+
+        # exclude cells not included in selection
+        if selection_only:
+            excluded = self.data[~self.data.selected]
+            excluded_to_black = {x: null_value for x in excluded.id}
+            segment_to_label.update(excluded_to_black)
+
+        # construct mask
+        segment_to_label = np.vectorize(segment_to_label.get)
+        label_mask = segment_to_label(self.labels)
+        label_mask = np.ma.MaskedArray(label_mask, label_mask==null_value)
+
+        return label_mask
+
 
 class Layer(ImageRGB, LayerVisualization):
     """
@@ -518,8 +563,9 @@ class Layer(ImageRGB, LayerVisualization):
         fig, ax = plt.subplots(figsize=figsize)
 
         # add image
-        image = self.get_channel(channel)
-        image.show(ax=ax, segments=False, **image_kw)
+        if channel is not None:
+            image = self.get_channel(channel)
+            image.show(ax=ax, segments=False, **image_kw)
 
         # add graph
         self.graph.show(ax=ax, **graph_kw)

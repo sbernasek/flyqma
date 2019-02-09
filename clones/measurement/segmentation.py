@@ -25,7 +25,7 @@ class Segmentation:
 
     """
 
-    def __init__(self, image, seed_kws={}, seg_kws={}):
+    def __init__(self, image, seed_kws={}, seg_kws={}, exclude_edges=True):
         """
         Instantiate and run segmentation.
 
@@ -37,13 +37,18 @@ class Segmentation:
 
             seg_kws (dict) - keyword arguments for segmentation
 
+            exclude_edges (bool) - if True, exclude segments on edge of image
+
         """
         image.set_otsu_mask()
         self.labels = None
         self.seeds = self.get_seeds_from_distance(image.mask, **seed_kws)
         self.update_cmap()
         self.watershed(image.mask, **seg_kws)
-        self.exclude_edge_segments()
+
+        if exclude_edges:
+            self.exclude_edge_segments()
+
         self.segment_ids = np.array(list(self.seeds.keys()))
 
     @staticmethod

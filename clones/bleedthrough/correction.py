@@ -3,17 +3,16 @@ import gc
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from matplotlib.gridspec import GridSpec
-import seaborn as sns
 
 from ..utilities.io import IO
 from .models import GLM
 from .resampling import resample_uniformly
 from .background import BackgroundExtraction
-from ..vis.settings import *
+from .visualization import CorrectionVisualization
+from ..visualization.settings import *
 
 
-class LayerCorrection(GLM):
+class LayerCorrection(GLM, CorrectionVisualization):
     """
     Linear correction for background correlation between fluorescence channels within an individual layer.
 
@@ -145,98 +144,6 @@ class LayerCorrection(GLM):
         """ Remove pixels with zero values in either channel. """
         nonzero_mask = np.logical_and(x!=0, y!=0)
         return x[nonzero_mask], y[nonzero_mask]
-
-    def show_fit(self, mode='box', bin_size=0.05, figsize=(3, 2)):
-        """ Plot fit to background pixels using sns.boxplot . """
-
-        # intantiate figure
-        fig, ax = plt.subplots(figsize=figsize)
-
-        # compile dataframe
-        bg_xy = np.vstack((self.x, self.y)).T
-        df = pd.DataFrame.from_records(bg_xy, columns=['x', 'y'])
-
-        # add data to plot
-        df['bin'] = (df.x // bin_size)
-        if mode == 'strip':
-            sns.stripplot(x='bin', y='y', data=df, ax=ax, size=1, color='k')
-        elif mode == 'box':
-            sns.boxplot(x='bin', y='y', data=df, color='grey', ax=ax, width=.6, fliersize=2)
-        elif mode == 'violin':
-            sns.violinplot(x='bin', y='y', data=df, color='grey', ax=ax, width=.6)
-        elif mode == 'scatter':
-            sns.scatterplot(x='bin', y='y', data=df)
-        elif mode == 'raw':
-            ax.plot(df.x, df.y, '.k', markersize=1)
-
-        # set limits
-        xlim = (-0.5, df.bin.max()+0.5)
-        ax.set_xlim(*xlim)
-
-        # format axes
-        ax.set_xlabel('Red intensity')
-        ax.set_ylabel('Green intensity')
-        xticks = ax.get_xticks() * bin_size
-        ax.set_xticklabels(['{:0.2f}'.format(s) for s in xticks])
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-
-        # add model prediction to plot
-        ax.plot(ax.get_xticks(), self.predict(xticks), '-r', linewidth=1)
-
-        # store figure instance
-        self.figs['fit'] = fig
-
-    def show_correction(self, figsize=(6, 2), selected_only=False):
-        """
-        Show cell measurements before and after correction.
-
-        Args:
-
-            figsize (tuple) - figure size
-
-            selected_only (bool) - if True, exclude cells outside selection bounds
-
-        """
-
-        # instantiate figure
-        fig = plt.figure(figsize=figsize)
-        gs = GridSpec(nrows=1, ncols=2, wspace=.3)
-        ax0 = plt.subplot(gs[0])
-        ax1 = plt.subplot(gs[1])
-
-        # add data to plots
-        if selected_only:
-            mask = self.layer.data.selected.values
-        else:
-            mask = np.ones(self.xt.size, dtype=bool)
-
-        ax0.scatter(self.xt[mask], self.yt[mask], c='k', s=1, linewidth=0)
-        ax1.scatter(self.xt[mask], self.ytc[mask], c='k', s=1, linewidth=0)
-
-        # add model prediction to plot (dashed line for extrapolation)
-        ax0.plot(self.xtdomain, self.predict(self.xtdomain), '--r', lw=1)
-        ax0.plot(self.domain, self.predict(self.domain), '-r', lw=1.5)
-
-        # label axes
-        ax0.set_xlabel('Nuclear RFP level')
-        ax0.set_ylabel('Nuclear GFP level')
-        ax0.set_title('Original (Layer {:d})'.format(self.layer._id))
-        ax1.set_ylabel('Corrected GFP level')
-        ax1.set_xlabel('Nuclear RFP level')
-        ax1.set_title('Corrected')
-
-        # format axes
-        xlim = (-0.02, self.xtdomain.max()+0.02)
-        ylim = (-0.05, self.yt.max())
-        for ax in (ax0, ax1):
-            ax.set_xlim(*xlim)
-            ax.set_ylim(*ylim)
-            ax.spines['top'].set_visible(False)
-            ax.spines['right'].set_visible(False)
-
-        # store figure instance
-        self.figs['correction'] = fig
 
     def save(self, images=True):
         """

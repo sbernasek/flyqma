@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap, Normalize
 
 from ..utilities.io import IO
-from ..vis.settings import *
+from ..visualization.settings import *
 
 
 class Classifier:

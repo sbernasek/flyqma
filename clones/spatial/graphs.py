@@ -5,8 +5,7 @@ from matplotlib.tri import Triangulation
 import networkx as nx
 from collections import Counter
 
-from growth.spatial.triangulation import LocalTriangulation
-#from .triangulation import LocalTriangulation
+from .triangulation import LocalTriangulation
 from .infomap import InfoMap
 
 
@@ -188,7 +187,11 @@ class WeightedGraph(Graph):
 
         weighted_by (str) - data attribute used to weight edges
 
-        q (float) - edge length quantile above which edges are excluded, 0-100
+        community_labels (np.ndarray[int]) - community label for each node
+
+        logratio (bool) - if True, weight edges by log ratio
+
+        distance (bool) - if True, weights edges by distance rather than similarity
 
     Inherited attributes:
 
@@ -206,7 +209,7 @@ class WeightedGraph(Graph):
 
     """
 
-    def __init__(self, data, weighted_by='r', logratio=False):
+    def __init__(self, data, weighted_by='r', logratio=False, distance=False):
         """
         Instantiate weighted graph.
 
@@ -218,12 +221,15 @@ class WeightedGraph(Graph):
 
             logratio (bool) - if True, weight edges by log ratio
 
+            distance (bool) - if True, weights edges by distance
+
         """
 
         super().__init__(data)
         self.weighted_by = weighted_by
         self.community_labels = None
         self.logratio = logratio
+        self.distance = distance
 
     def evaluate_edge_weights(self, weighted_by='r'):
         """
@@ -238,7 +244,7 @@ class WeightedGraph(Graph):
             weights (np.ndarray[float]) - edge weights
 
         """
-        wf = WeightFunction(self.df, weighted_by=weighted_by)
+        wf = WeightFunction(self.df, weighted_by=weighted_by, distance=self.distance)
         return wf.assess_weights(self.edges, logratio=self.logratio)
 
     def build_links(self):
@@ -288,9 +294,11 @@ class WeightFunction:
 
         values (pd.Series) - node attribute values
 
+        distance (bool) - if True, weights edges by distance
+
     """
 
-    def __init__(self, df, weighted_by='r'):
+    def __init__(self, df, weighted_by='r', distance=False):
         """
         Instantiate edge weighting function.
 
@@ -300,10 +308,13 @@ class WeightFunction:
 
             weighted_by (str) - node attribute used to assess similarity
 
+            distance (bool) - if True, weights edges by distance
+
         """
         self.df = df
         self.weighted_by = weighted_by
         self.values = df[weighted_by]
+        self.distance = distance
 
     def difference(self, i, j):
         """
@@ -355,6 +366,11 @@ class WeightFunction:
         else:
             energy = np.array([self.difference(*e) for e in edges])
         weights = np.exp(-energy/np.mean(energy))
+
+        # invert similarities to distances
+        if self.distance:
+            weights = 1 - weights
+
         return weights
 
 
@@ -476,15 +492,16 @@ class GraphVisualization:
             elif not disconnect:
                 weights.append(self.G[u][v]['weight'])
             else:
-                continue
+                weights.append(0)
         return weights
 
     def draw(self,
              ax=None,
              colorby='community',
              disconnect=False,
-             ec='k',
-             node_cmap=None,
+             edge_color=None,
+             node_color=None,
+             cmap=None,
              **kw):
         """
         Draw graph.
@@ -493,11 +510,11 @@ class GraphVisualization:
 
             ax (matplotlib.axes.AxesSubplot) - axis on which to draw graph
 
-            colorby (str) - node attribute on which nodes are colored
+            colorby (str) - node attribute on which nodes/edges are colored
 
             disconnect (bool) - if True, exclude edges between communities
 
-            ec (str) - edge color
+            edge_color, node_color (str) - edge/node colors, overrides colorby
 
             node_cmap (matplotlib.colors.ColorMap) - node colormap
 
@@ -508,22 +525,28 @@ class GraphVisualization:
             fig, ax = plt.subplots(figsize=(15, 15))
 
         # set colormap
-        if node_cmap is None:
-            node_cmap = self.set_cmap(colorby=colorby)
-        self.cmap = node_cmap
+        if cmap is None and None in (edge_color, node_color):
+            cmap = self.set_cmap(colorby=colorby)
+        self.cmap = cmap
 
-        # get edge properties
-        if colorby == 'genotype':
-            edge_colors = [self.cmap(self.G.node[u][colorby]) for u,v in self.G.edges]
+        # assign node color
+        if node_color is None:
+            get_color = lambda x: self.cmap(int(x))
+            node_colors = [get_color(v) for k, v in nx.get_node_attributes(self.G, colorby).items()]
         else:
-            edge_colors = [ec for _ in self.G.edges]
+            node_colors = [node_color for _ in self.G.nodes]
+
+        # assign edge color
+        if edge_color is None:
+            node_value = lambda index: self.G.node[index][colorby]
+            node_color = lambda index: self.cmap(node_value(index))
+            edge_colors = [node_color(u) for u,v in self.G.edges]
+        else:
+            edge_colors = [edge_color for _ in self.G.edges]
         edge_weights = self.get_edge_weights(colorby, disconnect)
 
-        # get node properties
-        node_colors = [int(v) for k, v in nx.get_node_attributes(self.G, colorby).items()]
-
         # draw graph
-        self._draw(ax, self.G, self.pos, node_colors, edge_colors, edge_weights, cmap=self.cmap, **kw)
+        self._draw(ax, self.G, self.pos, node_colors, edge_colors, edge_weights, **kw)
 
     @staticmethod
     def _draw(ax,
@@ -532,9 +555,9 @@ class GraphVisualization:
               node_colors,
               edge_colors,
               edge_widths,
-              cmap=None,
               node_alpha=1,
               node_size=20,
+              node_edgewidth=0.,
               lw=3,
               edge_alpha=0.5,
               **kwargs):
@@ -553,11 +576,11 @@ class GraphVisualization:
 
             edge_widths (array like) - edge linewidths
 
-            cmap (matplotlib.colors.ColorMap) - colormap applied to node values
-
             node_alpha (float) - node transparency
 
             node_size (float) - node size
+
+            node_edgewidth (float) - linewidth of node outline
 
             lw (float) - maximum edge linewidth
 
@@ -566,6 +589,9 @@ class GraphVisualization:
             kwargs: keyword arguments for nx.draw_networkx_nodes
 
         """
+
+        # extract edge weights
+        edge_weights = [x[-1]['weight'] for x in G.edges(data=True)]
 
         # draw edges
         norm = Normalize(vmin=min(edge_weights), vmax=max(edge_weights))
@@ -578,6 +604,7 @@ class GraphVisualization:
             node_color=node_colors,
             node_alpha=node_alpha,
             node_size=node_size,
-            cmap=cmap, **kwargs)
+            linewidths=node_edgewidth,
+            **kwargs)
 
         ax.axis('off')

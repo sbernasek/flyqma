@@ -6,6 +6,7 @@ from sklearn.cluster import k_means
 from pomegranate import GeneralMixtureModel, LogNormalDistribution
 from pomegranate import ExponentialDistribution
 from .classifiers import Classifier
+from ..visualization.settings import *
 
 
 class BayesianProperties:
@@ -24,6 +25,11 @@ class BayesianProperties:
     def bounds(self):
         """ Low and upper bounds of support. """
         return np.percentile(self.values, q=[.1, 99.9])
+
+    @property
+    def num_components(self):
+        """ Number of model components. """
+        return self.components.size
 
     @property
     def components(self):
@@ -114,33 +120,102 @@ class BayesianVisualization:
         ax.set_xlabel('Values', fontsize=8)
         ax.set_ylabel('Density', fontsize=8)
 
-    def plot_pdfs(self,
+    def stacked_pdfs(self,
                   ax=None,
+                  empirical=False,
                   density=1000,
                   alpha=0.5,
+                  cmap=plt.cm.Greys,
                   xmax=None,
                   ymax=None,
                   figsize=(3, 2)):
         """
         Plot density function for each distribution, colored by output label.
+
+        Args:
+
+            ax (matplotlib.axes.AxesSubplot) - if None, create figure
+
+            empirical (bool) - if True, include empirical PDF
+
         """
 
         # create axes
         if ax is None:
             fig, ax = plt.subplots(figsize=figsize)
+        else:
+            fig = plt.gcf()
 
         # plot empirical pdf
-        ax.step(*self.pdf, where='post', color='r', linewidth=2)
+        if empirical:
+            ax.step(*self.pdf, where='post', color='r', linewidth=1)
+
+        # plot individual component pdfs
+        pdfs = self.evaluate_component_pdfs() * self.weights.reshape(-1, 1)
+        means = np.log(self.means)
+        values = np.log(self.values)
+        norm = Normalize(vmin=values.min(), vmax=values.max())
+        order = np.argsort(means)
+        colors = cmap(norm(means[order]))
+        ax.stackplot(self.support, pdfs[order], alpha=alpha, colors=colors)
+
+        # plot model pdf
+        model_pdf = self.model_pdf
+        ax.plot(self.support, model_pdf, '-', c='k', lw=1)
+
+        ax.set_ylim(0, ymax)
+        ax.set_xlim(0, xmax)
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.set_xlabel('Values', fontsize=8)
+        ax.set_ylabel('Density', fontsize=8)
+
+        return fig
+
+    def plot_pdfs(self,
+                  ax=None,
+                  empirical=False,
+                  line=True,
+                  fill=True,
+                  density=1000,
+                  alpha=0.5,
+                  cmap=plt.cm.viridis,
+                  xmax=None,
+                  ymax=None,
+                  figsize=(3, 2)):
+        """
+        Plot density function for each distribution, colored by output label.
+
+        Args:
+
+            ax (matplotlib.axes.AxesSubplot) - if None, create figure
+
+            empirical (bool) - if True, include empirical PDF
+
+        """
+
+        # create axes
+        if ax is None:
+            fig, ax = plt.subplots(figsize=figsize)
+        else:
+            fig = plt.gcf()
+
+        # plot empirical pdf
+        if empirical:
+            ax.step(*self.pdf, where='post', color='r', linewidth=1)
 
         # plot individual component pdfs
         pdfs = self.evaluate_component_pdfs() * self.weights.reshape(-1, 1)
         for i, pdf in enumerate(pdfs):
             color = self.cmap(self.component_to_label[i])
-            ax.fill_between(self.support, pdf, facecolors=color, alpha=alpha)
+            if line:
+                ax.plot(self.support, pdf, color=color, alpha=alpha, lw=1.)
+            if fill:
+                ax.fill_between(self.support, pdf, facecolors=color, alpha=alpha, linewidth=1.)
 
         # plot model pdf
         model_pdf = self.model_pdf
-        ax.plot(self.support, model_pdf, '-', c='k', lw=2)
+        ax.plot(self.support, model_pdf, '-', c='k', lw=1)
 
         # format axis
         if ymax is None:
@@ -156,21 +231,55 @@ class BayesianVisualization:
         ax.set_xlabel('Values', fontsize=8)
         ax.set_ylabel('Density', fontsize=8)
 
-    def plot_cdfs(self, figsize=(3, 2)):
-        """ Plot cumulative distribution functions. """
+        return fig
 
-        fig, ax = plt.subplots(figsize=figsize)
+    def plot_cdfs(self,
+                  ax=None,
+                  log=False,
+                  figsize=(3, 2),
+                  cmap=plt.cm.Greys,
+                  **kwargs):
+        """
+        Plot component cumulative distribution functions as stackplot.
+        """
 
-        # plot empirical cdf (data)
-        ax.plot(self.support, self.cdf, '-r', lw=2)
+        # log transform data
+        if log:
+            support = np.log(self.log_support)
+            component_cdfs = self.component_log_cdfs
+        else:
+            support = self.support
+            component_cdfs = self.component_cdfs
+        weighted_component_cdfs = (component_cdfs*self.weights.reshape(-1, 1))
 
-        # plot component cdfs (components)
-        for cdf in self.component_cdfs:
-            ax.plot(self.support, cdf, '-k')
+        # create figure
+        if ax is None:
+            fig, ax = plt.subplots(figsize=figsize)
+            ax.spines['right'].set_visible(False)
+            ax.spines['top'].set_visible(False)
+            ax.set_ylabel('Cumulative density')
+        else:
+            fig = plt.gcf()
 
-        # plot weighted component cdf (model fit)
-        cdf = (self.component_cdfs*self.weights.reshape(-1, 1)).sum(axis=0)
-        ax.plot(self.support, cdf, '-b', lw=2)
+        # plot weighted CDF for each component
+        means = np.log(self.means)
+        values = np.log(self.values)
+        norm = Normalize(vmin=values.min(), vmax=values.max())
+        order = np.argsort(means)
+        colors = cmap(norm(means[order]))
+        ax.stackplot(support, weighted_component_cdfs[order], colors=colors, **kwargs)
+
+        # plot empirical CDF (data)
+        if log:
+            ax.plot(np.log(self.support), self.cdf, '-r', lw=1.)
+        else:
+            ax.plot(self.support, self.cdf, '-r', lw=1.)
+
+        # plot mixture CDF
+        mixture_cdf = weighted_component_cdfs.sum(axis=0)
+        ax.plot(support, mixture_cdf, '--k', lw=1)
+
+        return fig
 
 
 class BayesianClassifier(Classifier, BayesianProperties, BayesianVisualization):
@@ -205,15 +314,23 @@ class BayesianClassifier(Classifier, BayesianProperties, BayesianVisualization):
 
     """
 
-    def __init__(self, values, classify_on='r', **kwargs):
+    def __init__(self, values,
+                 classify_on='r',
+                 weights=None,
+                 crop=False,
+                 **kwargs):
         """
         Fit a cell classifier to an array of values.
 
         Args:
 
-            values (np.ndarray[float]) - 1-D vector of measured values
+            values (np.ndarray[float]) - 1D array of measured values
 
             classify_on (str) - measurement attribute from which values came
+
+            weights (np.ndarray[float]) - 1D array of sample weights (optional)
+
+            crop (bool) - if True, crop values to [0.1, 99.9] percentiles
 
         Keyword arguments:
 
@@ -234,7 +351,9 @@ class BayesianClassifier(Classifier, BayesianProperties, BayesianVisualization):
         self.support = np.sort(values)
 
         # fit model
-        self.model = self._fit(self.values, self.n)
+        self.sample_weights = weights
+        self.crop = crop
+        self.model = self._fit(self.values, self.n, weights=weights, crop=crop)
 
         # build classifier and posterior
         self.classifier = self.build_classifier()
@@ -252,7 +371,7 @@ class BayesianClassifier(Classifier, BayesianProperties, BayesianVisualization):
         return self.evaluate_classifier(df)
 
     @staticmethod
-    def _fit(values, n=3, crop=True):
+    def _fit(values, n=3, weights=None, crop=False):
         """
         Fit log-normal mixture model using likelihood maximization.
 
@@ -261,6 +380,8 @@ class BayesianClassifier(Classifier, BayesianProperties, BayesianVisualization):
             values (np.ndarray[float]) - 1D array of values
 
             n (int) - number of log-normal distributions
+
+            weights (np.ndarray[float]) - 1D array of sample weights
 
             crop (bool) - if True, crop values to [0.1, 99.9] percentiles
 
@@ -276,7 +397,7 @@ class BayesianClassifier(Classifier, BayesianProperties, BayesianVisualization):
 
         x = values.reshape(-1, 1)
         args = (LogNormalDistribution, n, x)
-        kwargs = dict(n_init=1000)
+        kwargs = dict(n_init=5000, weights=weights)
         return GeneralMixtureModel.from_samples(*args, **kwargs)
 
     def evaluate_classifier(self, df):
@@ -397,6 +518,18 @@ class BayesianClassifier(Classifier, BayesianProperties, BayesianVisualization):
         cdf = [self.evaluate_cdf(d, self.support) for d in self.components]
         return np.vstack(cdf)
 
+    @property
+    def log_support(self):
+        """ Log-spaced support vector. """
+        support = np.log(self.support)
+        return np.logspace(support.min(), support.max(), num=support.size, base=np.e)
+
+    @property
+    def component_log_cdfs(self):
+        """ Returns CDF of each component over support. """
+        cdf = [self.evaluate_cdf(d, self.log_support) for d in self.components]
+        return np.vstack(cdf)
+
 
 class MixedClassifier(BayesianClassifier):
 
@@ -421,3 +554,6 @@ class MixedClassifier(BayesianClassifier):
         args = (distributions, n, x)
         kwargs = dict(n_init=1000)
         return GeneralMixtureModel.from_samples(*args, **kwargs)
+
+
+

@@ -211,6 +211,12 @@ class SimulationBenchmark(BenchmarkProperties, BenchmarkVisualization):
         """ Returns BayesianClassifier object. """
         values = measurements[classify_on].values
         selector = ModelSelection(values, classify_on, max_num_components=6)
+
+        # check that BIC optimal model contains at least three components
+        num_components = selector.BIC_optimal.num_components
+        if num_components < 3:
+            raise UserWarning('Optimal model has {:d} components.'.format())
+
         return selector.BIC_optimal
 
     @staticmethod
