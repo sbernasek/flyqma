@@ -69,8 +69,8 @@ class LocalTriangulation(Triangulation):
     @property
     def edges(self):
         """ Filtered edges. """
-        #return self.filter_edges(self.nodes, self.edge_list, self.edge_lengths)
         return self.filter_outliers(self.nodes, self.edge_list, self.edge_lengths)
+        #return self.filter_edges(self.nodes, self.edge_list, self.edge_lengths)
         #return self.filter_hull(self.edge_list)
         #return self.filter_longest_edge(self.edge_list, self.edge_lengths)
 

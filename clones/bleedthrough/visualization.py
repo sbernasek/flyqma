@@ -74,7 +74,7 @@ class CorrectionVisualization:
 
         # add data to plots
         if selected_only:
-            mask = self.layer.data.selected.values
+            mask = self.data.selected.values
         else:
             mask = np.ones(self.xt.size, dtype=bool)
 
@@ -86,12 +86,10 @@ class CorrectionVisualization:
         ax0.plot(self.domain, self.predict(self.domain), '-r', lw=1.5)
 
         # label axes
-        ax0.set_xlabel('Nuclear RFP level')
-        ax0.set_ylabel('Nuclear GFP level')
-        ax0.set_title('Original (Layer {:d})'.format(self.layer._id))
+        ax0.set_xlabel('Measured RFP level')
+        ax0.set_ylabel('Measured GFP level')
         ax1.set_ylabel('Corrected GFP level')
-        ax1.set_xlabel('Nuclear RFP level')
-        ax1.set_title('Corrected')
+        ax1.set_xlabel('Measured RFP level')
 
         # format axes
         xlim = (-0.02, self.xtdomain.max()+0.02)
@@ -105,6 +103,66 @@ class CorrectionVisualization:
         # store figure instance
         self.figs['correction'] = fig
 
+    @staticmethod
+    def _pixel_distribution(x0, xf, label='', bins=None, **kwargs):
+        """
+        Plot the background pixel intensity distributions before and after resampling.
+        """
+
+        # create figure
+        fig = plt.figure(figsize=(3.5, 1.))
+        gs = GridSpec(nrows=1, ncols=2, wspace=0.3)
+        ax0 = fig.add_subplot(gs[0])
+        ax1 = fig.add_subplot(gs[1])
+        axes = (ax0, ax1)
+
+        if bins is None:
+            bins = np.arange(0, .4, .05)
+
+        # plot pixel intensity distributions
+        _ = axes[0].hist(x0, bins=bins, color='k')
+        _ = axes[1].hist(xf, bins=bins, color='k')
+
+        # format axes
+        for ax in axes:
+            ax.set_xlim(0, bins.max())
+            ax.spines['top'].set_visible(False)
+            ax.spines['right'].set_visible(False)
+            #ax.set_yticks([])
+            ax.set_ylim(bottom=1, top=2e5)
+            ax.set_yscale('symlog', linthreshy=.9, nonposy="clip")
+            ax.set_yticks([1, 10, 100, 1000, 10000, 100000])
+            ax.set_ylabel('No. pixels')
+        ax0.set_xlabel('{:s} level'.format(label))
+        ax1.set_xlabel('Resampled {:s} level'.format(label))
+
+        return fig
+
+    def show_resampling(self, xbins=None, ybins=None, **kwargs):
+        """
+        Visualize resampling procedure.
+
+        Returns:
+
+            figures (tuple)
+
+        """
+
+        # get raw background pixels
+        if self.store_pixels:
+            x0, y0 = self.xraw, self.yraw
+        else:
+            x0, y0 = self.extract_background()
+
+        fig0 = self._pixel_distribution(x0, self.x, label='RFP', bins=xbins, **kwargs)
+        fig1 = self._pixel_distribution(y0, self.y, label='GFP', bins=ybins, **kwargs)
+
+        return fig0, fig1
+
+
+class LayerCorrectionVisualization:
+    """ Methods for visualizing layer correction procedure. """
+
     def show_background_extraction(self, **kwargs):
         """
         Visualize background extraction procedure.
@@ -116,57 +174,3 @@ class CorrectionVisualization:
         """
         bg_extraction = BackgroundExtraction(self.layer, niters=self.niters)
         return bg_extraction.plot_foreground_mask(**kwargs)
-
-    def show_resampling(self, **kwargs):
-        """
-        Visualize resampling procedure.
-
-        Returns:
-
-            figures (tuple)
-
-        """
-
-        # extract background pixels
-        bg_extraction = BackgroundExtraction(self.layer, niters=self.niters)
-        bg_x0 = bg_extraction.extract_pixels('r')
-        bg_y0 = bg_extraction.extract_pixels('g')
-
-        # resample pixels
-        bg_x, bg_y = resample_uniformly(bg_x0, bg_y0)
-
-        # define plotting function
-        def plot(bg_x, bg_y):
-            """ Plot bg_x and bg_y distributions. """
-
-            # create figure
-            fig = plt.figure(figsize=(5, 1.25))
-            gs = GridSpec(nrows=1, ncols=2, wspace=0.3)
-            ax0 = fig.add_subplot(gs[0])
-            ax1 = fig.add_subplot(gs[1])
-            axes = (ax0, ax1)
-
-            # plot pixel intensity distributions
-            bins = np.arange(0, .4, .05)
-            _ = axes[0].hist(bg_x, bins=bins, color='k')
-            _ = axes[1].hist(bg_y, bins=bins, color='k')
-
-            # format axes
-            for ax in axes:
-                ax.set_xlim(0, bins.max())
-                ax.spines['top'].set_visible(False)
-                ax.spines['right'].set_visible(False)
-                #ax.set_yticks([])
-                ax.set_ylim(bottom=10, top=2e5)
-                ax.set_yscale('log')
-                ax.set_yticks([10, 100, 1000, 10000, 100000])
-                ax.set_ylabel('No. pixels')
-            ax0.set_xlabel('RFP level')
-            ax1.set_xlabel('GFP level')
-
-            return fig
-
-        fig0 = plot(bg_x0, bg_y0)
-        fig1 = plot(bg_x, bg_y)
-
-        return fig0, fig1

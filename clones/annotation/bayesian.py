@@ -179,7 +179,8 @@ class BayesianVisualization:
                   fill=True,
                   density=1000,
                   alpha=0.5,
-                  cmap=plt.cm.viridis,
+                  cmap=None,
+                  vmin=-1,
                   xmax=None,
                   ymax=None,
                   figsize=(3, 2)):
@@ -194,6 +195,12 @@ class BayesianVisualization:
 
         """
 
+        # defien colormap
+        if cmap is not None:
+            colormap = self.build_colormap(cmap, vmin)
+        else:
+            colormap = self.cmap
+
         # create axes
         if ax is None:
             fig, ax = plt.subplots(figsize=figsize)
@@ -207,15 +214,15 @@ class BayesianVisualization:
         # plot individual component pdfs
         pdfs = self.evaluate_component_pdfs() * self.weights.reshape(-1, 1)
         for i, pdf in enumerate(pdfs):
-            color = self.cmap(self.component_to_label[i])
+            color = colormap(self.component_to_label[i])
             if line:
                 ax.plot(self.support, pdf, color=color, alpha=alpha, lw=1.)
             if fill:
-                ax.fill_between(self.support, pdf, facecolors=color, alpha=alpha, linewidth=1.)
+                ax.fill_between(self.support, pdf, facecolors=color, alpha=alpha, linewidth=1., rasterized=True)
 
         # plot model pdf
         model_pdf = self.model_pdf
-        ax.plot(self.support, model_pdf, '-', c='k', lw=1)
+        ax.plot(self.support, model_pdf, '--', c='k', lw=1)
 
         # format axis
         if ymax is None:
@@ -223,7 +230,6 @@ class BayesianVisualization:
             ymax = 2.5*np.product(maxima)**(1/maxima.size)
         if xmax is None:
             xmax = np.percentile(self.support, 99)
-
         ax.set_ylim(0, ymax)
         ax.set_xlim(0, xmax)
         ax.spines['top'].set_visible(False)

@@ -1,3 +1,7 @@
+*.pdf
+*.png
+*.hdf
+*.npy
 build/
 doctrees/
 clones.egg-info/

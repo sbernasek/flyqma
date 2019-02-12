@@ -49,19 +49,47 @@ class Graph:
         return np.array(sorted(np.unique(self.edges)), dtype=int)
 
     @property
+    def node_positions(self):
+        """ Assign 2D coordinate positions to nodes. """
+        node_positions = {}
+        for k in self.nodes:
+            i = self.position_map(k)
+            node_positions[k] = np.array([self.tri.x[i], self.tri.y[i]])
+        return node_positions
+
+    @property
     def edges(self):
         """ Distance-filtered edges. """
         return self.node_map(self.tri.edges)
 
-    def get_networkx(self):
-        """ Returns networkx instance of graph. """
-        G = nx.Graph()
-        G.add_edges_from(self.edges)
-        return G
+    @property
+    def edge_list(self):
+        """ Distance-filtered edges as (from, to) tuples. """
+        return [(int(e[0]), int(e[1]), None) for e in self.edges]
 
     def get_subgraph(self, ind):
         """ Instantiate subgraph from DataFrame indices. """
         return Graph(self.df.loc[ind])
+
+    def get_networkx(self, *node_attributes):
+        """
+        Returns networkx instance of graph.
+
+        Args:
+
+            node_attributes (str) - attributes to be added for each node
+
+        """
+        G = nx.Graph()
+        G.add_weighted_edges_from(self.edge_list)
+
+        # add node attributes
+        for attr in node_attributes:
+            if attr is not None:
+                values_dict = dict(self.df.loc[self.nodes][attr])
+                nx.set_node_attributes(G, name=attr, values=values_dict)
+
+        return G
 
     @staticmethod
     def _construct_triangulation(df, **kwargs):
@@ -162,21 +190,35 @@ class Graph:
                      antialiased=True,
                      **kwargs)
 
-    def show(self, ax, **kw):
-        """ Visualize graph. """
-        vis = GraphVisualization.from_graph(self)
-        vis.draw(ax=ax, **kw)
-
-    def build_links(self):
+    def show(self, ax=None, colorby=None, disconnect=False, **kwargs):
         """
-        Construct list of weighted edges.
+        Visualize graph.
 
-        Returns:
+        Args:
 
-            links (list) - series of (node_from, node_to, [weight]) tuples
+            ax (matplotlib.axes.AxesSubplot) - if None, create figure
+
+            colorby (str) - node attribute used to assign node/edge colors
+
+            disconnect (bool) - if True, remove edges between nodes whose colorby values differ
+
+            kwargs: keyword arguments for GraphVisualization.draw
 
         """
-        return self.edges
+        if colorby is not None:
+            msg = 'Colorby attribute must be an integer type.'
+            assert self.df[colorby].dtype in (np.integer, int), msg
+
+        # construct graph
+        G = self.get_networkx(colorby)
+        if disconnect:
+            is_different = lambda u,v: G.node[u][colorby] != G.node[v][colorby]
+            removed_edges = [edge for edge in G.edges if is_different(*edge)]
+            G.remove_edges_from(removed_edges)
+
+        # draw graph
+        vis = GraphVisualization(G, self.node_positions)
+        vis.draw(ax=ax, colorby=colorby, **kwargs)
 
 
 class WeightedGraph(Graph):
@@ -209,7 +251,7 @@ class WeightedGraph(Graph):
 
     """
 
-    def __init__(self, data, weighted_by='r', logratio=False, distance=False):
+    def __init__(self, data, weighted_by, logratio=True, distance=False):
         """
         Instantiate weighted graph.
 
@@ -231,44 +273,31 @@ class WeightedGraph(Graph):
         self.logratio = logratio
         self.distance = distance
 
-    def evaluate_edge_weights(self, weighted_by='r'):
+    @property
+    def edge_list(self):
+        """ Distance-filtered edges as (from, to, weight) tuples. """
+        if self.weighted_by not in (None, 'none', 'None'):
+            weights = self.evaluate_edge_weights()
+            unpack = lambda e, w: (int(e[0]), int(e[1]), w)
+            edge_list = [unpack(e, w) for e, w in zip(self.edges, weights)]
+        else:
+            edge_list = super().edge_list
+
+        return edge_list
+
+    def evaluate_edge_weights(self):
         """
         Evaluate edge weights.
-
-        Args:
-
-            weighted_by (str) - data attribute used to weight edges
 
         Returns:
 
             weights (np.ndarray[float]) - edge weights
 
         """
-        wf = WeightFunction(self.df, weighted_by=weighted_by, distance=self.distance)
+        wf = WeightFunction(self.df,
+                            weighted_by=self.weighted_by,
+                            distance=self.distance)
         return wf.assess_weights(self.edges, logratio=self.logratio)
-
-    def build_links(self):
-        """
-        Construct list of weighted edges.
-
-        Returns:
-
-            links (list) - series of (node_from, node_to, [weight]) tuples
-
-        """
-        if self.weighted_by not in (None, 'none', 'None'):
-            weights = self.evaluate_edge_weights(self.weighted_by)
-            unpack = lambda e, w: (int(e[0]), int(e[1]), w)
-            links = [unpack(e, w) for e, w in zip(self.edges, weights)]
-        else:
-            links = [(int(e[0]), int(e[1])) for e in self.edges]
-        return links
-
-    def get_networkx(self):
-        """ Returns networkx instance of graph. """
-        G = nx.Graph()
-        G.add_weighted_edges_from(self.build_links())
-        return G
 
     def find_communities(self, **kwargs):
         """
@@ -277,9 +306,10 @@ class WeightedGraph(Graph):
         kwargs: keyword arguments for InfoMap (default is two-level)
 
         """
-        edges = self.build_links()
-        community_detector = InfoMap(edges, **kwargs)
-        self.community_labels = community_detector(self.nodes)
+        community_detector = InfoMap(self.edge_list, **kwargs)
+        labels = community_detector(self.nodes)
+        self.community_labels = labels
+        self.df.loc[self.position_map(self.nodes), 'community'] = labels
 
 
 class WeightFunction:
@@ -400,109 +430,20 @@ class GraphVisualization:
         self.G = G
         self.pos = pos
 
-    @classmethod
-    def from_graph(cls, graph):
-        """
-        Instantiate from Graph instance.
-
-        Args:
-
-            graph (Graph)
-
-        Returns:
-
-            nxGraph (GraphVisualization)
-
-        """
-
-        # build graph from edges
-        edges = [cls.to_nx_edge(*edge) for edge in graph.build_links()]
-        G = cls.build_graph(edges)
-
-        # assign node positions
-        pos = cls.assign_node_positions(graph)
-
-        # assign two-level InfoMap communities
-        edges = graph.build_links()
-        nx.set_node_attributes(G, name='community', values=InfoMap(edges).node_to_module)
-
-        try:
-            gs = graph.df.loc[graph.nodes].genotype
-            node_to_genotype = {k: v for k, v in zip(gs.index, gs)}
-            nx.set_node_attributes(G, name='genotype', values=node_to_genotype)
-        except:
-            raise ValueError('No genotype attribute found.')
-
-        try:
-            node_to_km_label = dict(graph.df.km_label)
-            nx.set_node_attributes(G, name='community_genotype', values=node_to_km_label)
-        except:
-            pass
-            #raise ValueError('No community_genotype attribute found.')
-
-        return GraphVisualization(G, pos)
-
-    @staticmethod
-    def build_graph(edges):
-        """ Build networkx graph object. """
-        G = nx.Graph()
-        G.add_edges_from(edges)
-        return G
-
-    @staticmethod
-    def to_nx_edge(x, y, weight):
-        """ Convert edge to networkx format.  """
-        return (x, y, dict(weight=weight))
-
-    @staticmethod
-    def assign_node_positions(graph):
-        """ Assign 2D coordinate positions to nodes. """
-        node_positions = {}
-        for k in graph.nodes:
-            i = graph.position_map(k)
-            node_positions[k] = np.array([graph.tri.x[i], graph.tri.y[i]])
-        return node_positions
-
-    def set_cmap(self, colorby='community'):
-        """ Set colormap. """
+    def build_cmap(self, colorby):
+        """ Build colormap. """
         levels = [v for k,v in nx.get_node_attributes(self.G, colorby).items()]
-        N = max(levels) + 1
+        N = np.unique(levels).size
         colors = np.random.random(size=(N, 3))
         return ListedColormap(colors, 'indexed', N)
-
-    def get_edge_weights(self, label_on, disconnect=True):
-        """
-        Get edge weights.
-
-        Args:
-
-            label_on (str) - attribute used to determine node kinship
-
-            disconnect (bool) - if True, exclude edges between communities
-
-        Returns:
-
-            weights (list) - edge weights
-
-        """
-        weights = []
-        for u, v in self.G.edges:
-            if self.G.node[u][label_on]==self.G.node[v][label_on]:
-                weights.append(self.G[u][v]['weight'])
-            elif not disconnect:
-                weights.append(self.G[u][v]['weight'])
-            else:
-                weights.append(0)
-        return weights
 
     def draw(self,
              ax=None,
              colorby='community',
-             disconnect=False,
              edge_color=None,
              node_color=None,
              cmap=None,
-             **kw):
+             **kwargs):
         """
         Draw graph.
 
@@ -512,26 +453,26 @@ class GraphVisualization:
 
             colorby (str) - node attribute on which nodes/edges are colored
 
-            disconnect (bool) - if True, exclude edges between communities
-
             edge_color, node_color (str) - edge/node colors, overrides colorby
 
             node_cmap (matplotlib.colors.ColorMap) - node colormap
 
         """
 
+        assert (colorby is not None or node_color is not None), 'Either node color or colorby attribute must be specified.'
+        assert (colorby is not None or edge_color is not None), 'Either edge color or colorby attribute must be specified.'
+
         # create figure
         if ax is None:
-            fig, ax = plt.subplots(figsize=(15, 15))
+            fig, ax = plt.subplots(figsize=(10, 10))
 
-        # set colormap
+        # build colormap
         if cmap is None and None in (edge_color, node_color):
-            cmap = self.set_cmap(colorby=colorby)
-        self.cmap = cmap
+            cmap = self.build_cmap(colorby=colorby)
 
         # assign node color
         if node_color is None:
-            get_color = lambda x: self.cmap(int(x))
+            get_color = lambda x: cmap(int(x))
             node_colors = [get_color(v) for k, v in nx.get_node_attributes(self.G, colorby).items()]
         else:
             node_colors = [node_color for _ in self.G.nodes]
@@ -539,14 +480,13 @@ class GraphVisualization:
         # assign edge color
         if edge_color is None:
             node_value = lambda index: self.G.node[index][colorby]
-            node_color = lambda index: self.cmap(node_value(index))
+            node_color = lambda index: cmap(node_value(index))
             edge_colors = [node_color(u) for u,v in self.G.edges]
         else:
             edge_colors = [edge_color for _ in self.G.edges]
-        edge_weights = self.get_edge_weights(colorby, disconnect)
 
         # draw graph
-        self._draw(ax, self.G, self.pos, node_colors, edge_colors, edge_weights, **kw)
+        self._draw(ax, self.G, self.pos, node_colors, edge_colors, **kwargs)
 
     @staticmethod
     def _draw(ax,
@@ -554,7 +494,6 @@ class GraphVisualization:
               pos,
               node_colors,
               edge_colors,
-              edge_widths,
               node_alpha=1,
               node_size=20,
               node_edgewidth=0.,
@@ -573,8 +512,6 @@ class GraphVisualization:
             node_colors (array like) - node values
 
             edge_colors (array like) - edge colors
-
-            edge_widths (array like) - edge linewidths
 
             node_alpha (float) - node transparency
 
@@ -595,12 +532,17 @@ class GraphVisualization:
 
         # draw edges
         norm = Normalize(vmin=min(edge_weights), vmax=max(edge_weights))
-        edge_widths = [norm(w)*lw for w in edge_widths]
-        nx.draw_networkx_edges(G, pos, ax=ax, edge_color=edge_colors, width=edge_widths, alpha=edge_alpha)
+        edge_widths = [norm(w)*lw for w in edge_weights]
+        nx.draw_networkx_edges(G, pos,
+                               ax=ax,
+                               edge_color=edge_colors,
+                               width=edge_widths,
+                               alpha=edge_alpha)
 
         # draw nodes
         nodeCollection = nx.draw_networkx_nodes(G,
             pos=pos,
+            ax=ax,
             node_color=node_colors,
             node_alpha=node_alpha,
             node_size=node_size,

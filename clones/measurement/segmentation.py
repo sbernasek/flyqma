@@ -51,6 +51,11 @@ class Segmentation:
 
         self.segment_ids = np.array(list(self.seeds.keys()))
 
+    @property
+    def num_objects(self):
+        """ Number of unique objects in image. """
+        return np.unique(self.labels).size - 1
+
     @staticmethod
     def array_to_dict(arr):
         """ Convert array to dictionary. """

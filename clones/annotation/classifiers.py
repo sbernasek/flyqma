@@ -97,6 +97,24 @@ class Classifier:
         norm = Normalize(vmin=0, vmax=self.num_labels-1)
         self.cmap = lambda x: cmap(norm(x))
 
+    def build_colormap(self, cmap, vmin=-1):
+        """
+        Build normalized colormap for class labels.
+
+        Args:
+
+            cmap (matplotlib.colormap)
+
+            vmin (float) - lower bound for colorscale
+
+        Returns:
+
+            colormap (func) - function mapping class labels to colors
+
+        """
+        norm = Normalize(vmin=vmin, vmax=self.num_labels-1)
+        return lambda x: cmap(norm(x))
+
     def show(self, **kw):
         """ Plot histogram. """
         self.fig = self._show(self.values, self.labels, self.cmap, **kw)

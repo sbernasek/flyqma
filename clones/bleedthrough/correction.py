@@ -8,17 +8,118 @@ from ..utilities.io import IO
 from .models import GLM
 from .resampling import resample_uniformly
 from .background import BackgroundExtraction
-from .visualization import CorrectionVisualization
+from .visualization import CorrectionVisualization,LayerCorrectionVisualization
 from ..visualization.settings import *
 
 
-class LayerCorrection(GLM, CorrectionVisualization):
+class Correction(GLM, CorrectionVisualization):
+    """
+    Linear correction for background correlation between fluorescence channels within an individual layer.
+
+    Attributes:
+
+        xt, yt (np.ndarray[float]) - foreground measurements
+
+        xraw, yraw (np.ndarray[float]) - raw background pixel intensities
+
+        x, y (np.ndarray[float]) - resampled background pixel intensities
+
+    """
+
+    def __init__(self, xt, yt, bg_x, bg_y,
+                 remove_zeros=False,
+                 resample=True,
+                 resample_size=None,
+                 resample_cutoff=None,
+                 store_pixels=True,
+                 **fit_kw):
+        """
+        Instantiate bleedthrough correction for an RGB image layer.
+
+        Args:
+
+            data (pd.DataFrame) - measurement data
+
+            xt, yt (np.ndarray[float]) - foreground measurements
+
+            bg_x, bg_y (np.ndarray[float]) - background pixel intensities
+
+            remove_zeros (bool) - if True, remove all zero-valued pixels.
+
+            resample (bool) - if True, uniformly resample pixels in X
+
+            resample_size (int) - number of uniform samples
+
+            resample_cutoff (int) - upper bound for samples (quantile, 0-100)
+
+            store_pixels (bool) - if True, store raw background pixels
+
+        """
+
+        # store data
+        self.xt = xt
+        self.yt = yt
+
+        self.store_pixels = store_pixels
+        if store_pixels:
+            self.xraw = bg_x
+            self.yraw = bg_y
+
+        # store parameters
+        self.remove_zeros = remove_zeros
+        self.resample = resample
+        self.resample_size = resample_size
+        self.resample_cutoff = resample_cutoff
+
+        # remove zero-valued pixels
+        if remove_zeros:
+            bg_x, bg_y = self._remove_zeros(bg_x, bg_y)
+
+        # resample uniformly in X
+        if resample:
+            bg_x, bg_y = resample_uniformly(bg_x, bg_y, resample_size, resample_cutoff)
+
+        # fit line to background pixels
+        super().__init__(bg_x, bg_y, **fit_kw)
+
+        # apply correction to measurements (internally)
+        self.correct_measurements()
+
+        # instantiate container for figures
+        self.figs = {}
+
+    def correct_measurements(self):
+        """ Apply correction to measurements. """
+
+        # store measurement values (test data)
+        self.xtdomain = np.linspace(0, self.xt.max(), 10)
+
+        # store model prediction and corrected measurements
+        self.ytp = self.predict(self.xt)
+        self.ytc = self.yt - self.ytp
+
+    @staticmethod
+    def _remove_zeros(x, y):
+        """ Remove pixels with zero values in either channel. """
+        nonzero_mask = np.logical_and(x!=0, y!=0)
+        return x[nonzero_mask], y[nonzero_mask]
+
+
+class LayerCorrection(Correction, LayerCorrectionVisualization):
     """
     Linear correction for background correlation between fluorescence channels within an individual layer.
 
     Attributes:
 
         layer (Layer) - layer RGB image
+
+    Inherited attributes:
+
+        xt, yt (np.ndarray[float]) - foreground measurements
+
+        xraw, yraw (np.ndarray[float]) - raw background pixel intensities
+
+        x, y (np.ndarray[float]) - resampled background pixel intensities
 
     Parameters:
 
@@ -46,6 +147,7 @@ class LayerCorrection(GLM, CorrectionVisualization):
                  resample=True,
                  resample_size=None,
                  resample_cutoff=None,
+                 store_pixels=False,
                  **fit_kw):
         """
         Instantiate bleedthrough correction for an RGB image layer.
@@ -68,41 +170,38 @@ class LayerCorrection(GLM, CorrectionVisualization):
 
             resample_cutoff (int) - upper bound for samples (quantile, 0-100)
 
+            store_pixels (bool) - if True, store raw background pixels
+
         """
 
         # store layer
         self.layer = layer
-
-        # store parameters
         self.xvar = xvar
         self.yvar = yvar
         self.niters = niters
-        self.remove_zeros=remove_zeros,
-        self.resample=resample,
-        self.resample_size=resample_size,
-        self.resample_cutoff=resample_cutoff,
+
+        # get foreground measurements
+        xt = layer.data[xvar].values
+        yt = layer.data[xvar].values
 
         # extract X and Y pixels from background
-        bg_ext = BackgroundExtraction(layer, niters)
+        bg_x, bg_y = self.extract_background()
+
+        # instantiate correction
+        super().__init__(xt, yt, bg_x, bg_y,
+                         remove_zeros=remove_zeros,
+                         resample=resample,
+                         resample_size=resample_size,
+                         resample_cutoff=resample_cutoff,
+                         store_pixels=store_pixels,
+                         **fit_kw)
+
+    def extract_background(self):
+        """ Returns raw background pixels. """
+        bg_ext = BackgroundExtraction(self.layer, self.niters)
         bg_x = bg_ext.extract_pixels(self.xvar)
         bg_y = bg_ext.extract_pixels(self.yvar)
-
-        # remove zero-valued pixels
-        if remove_zeros:
-            bg_x, bg_y = self._remove_zeros(bg_x, bg_y)
-
-        # resample uniformly in X
-        if resample:
-            bg_x, bg_y = resample_uniformly(bg_x, bg_y, resample_size, resample_cutoff)
-
-        # fit line to background pixels
-        super().__init__(bg_x, bg_y, **fit_kw)
-
-        # apply correction to measurements (internally)
-        self.correct_measurements()
-
-        # instantiate container for figures
-        self.figs = {}
+        return bg_x, bg_y
 
     @classmethod
     def load(cls, layer):
@@ -126,24 +225,6 @@ class LayerCorrection(GLM, CorrectionVisualization):
         data = io.read_json(join(path, 'data.json'))
 
         return LayerCorrection(layer, **data['params'])
-
-    def correct_measurements(self):
-        """ Apply correction to measurements. """
-
-        # store measurement values (test data)
-        self.xt = self.layer.data[self.xvar].values
-        self.yt = self.layer.data[self.yvar].values
-        self.xtdomain = np.linspace(0, self.xt.max(), 10)
-
-        # store model prediction and corrected measurements
-        self.ytp = self.predict(self.xt)
-        self.ytc = self.yt - self.ytp
-
-    @staticmethod
-    def _remove_zeros(x, y):
-        """ Remove pixels with zero values in either channel. """
-        nonzero_mask = np.logical_and(x!=0, y!=0)
-        return x[nonzero_mask], y[nonzero_mask]
 
     def save(self, images=True):
         """

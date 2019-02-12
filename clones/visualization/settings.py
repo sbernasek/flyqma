@@ -4,11 +4,11 @@ import matplotlib.pyplot as plt
 
 # labels
 labelpad = 1
-labelsize = 8
+labelsize = 7
 
 # tick labels
 tickpad = 1
-ticklabelsize = 7
+ticklabelsize = 6
 
 # font params
 plt.rcParams['font.size'] = ticklabelsize

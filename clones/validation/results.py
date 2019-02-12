@@ -49,62 +49,93 @@ class BenchmarkingResults:
     @staticmethod
     def format_ax(ax):
         """ Apply basic formatting to axis. """
-        ax.invert_xaxis()
         ax.set_ylabel('Fluorescence ambiguity')
         ax.set_xlabel('Clone size')
 
+    @staticmethod
+    def plot_image(ax, im, fliplr=False, flipud=False, **kwargs):
+        """ Plot <im> on <ax>. """
+
+        if fliplr:
+            im = np.fliplr(im)
+
+        if flipud:
+            im = np.flipud(im)
+
+        ax.imshow(im, **kwargs)
+
     def plot_relative_error(self,
-                            method='community',
+                            ax=None,
+                            method='katz',
                             reference_method='simple',
                             row_id=0,
                             vmin=-3,
                             vmax=3,
                             cmap=plt.cm.seismic,
                             **kwargs):
-        """ Plots relative error rate for a given <row_id>. """
+        """
+        Plots relative error rate for a given <row_id>.
+
+        """
 
         # compile foldchange array (FC < 0 is good performance)
-        drop_last_axis = lambda x: x.reshape(x.shape[:-1])
-        matrices = np.split(self.slice(row_id), self.num_methods, -1)
-        matrices = [drop_last_axis(x) for x in matrices]
-        scores = matrices[self.methods[method]]
-        reference_scores = matrices[self.methods[reference_method]]
+        #drop_last_axis = lambda x: x.reshape(x.shape[:-1])
+        #matrices = np.split(self.slice(row_id), self.num_methods, -1)
+        #matrices = [drop_last_axis(x) for x in matrices]
+        #scores = matrices[self.methods[method]]
+        #reference_scores = matrices[self.methods[reference_method]]
+
+        scores = self.slice(row_id)[:,:, self.methods[method]]
+        reference_scores = self.slice(row_id)[:,:, self.methods[reference_method]]
         foldchange = np.log2(scores/reference_scores)
 
         # plot
-        fig, ax = self.build_figure()
-        ax.imshow(foldchange, vmin=vmin, vmax=vmax, cmap=cmap, **kwargs)
+        if ax is None:
+            fig, ax = self.build_figure()
+        else:
+            fig = plt.gcf()
+
+        kw = dict(vmin=vmin, vmax=vmax, cmap=cmap)
+        kw.update(kwargs)
+        self.plot_image(ax, foldchange, fliplr=True, flipud=False, **kw)
         self.format_ax(ax)
 
         return fig
 
     def plot_absolute_error(self,
+                            ax=None,
+                            method='katz',
                             row_id=0,
                             log=True,
                             vmin=0.,
                             vmax=0.25,
                             cmap=plt.cm.Greys,
                             **kwargs):
-        """ Plots absolute error rates for a given <row_id>. """
+        """
+        Plots absolute error rates for a given <row_id> and <method>.
+        """
 
         # compile absolute error arrays (low error is good performance)
-        drop_last_axis = lambda x: x.reshape(x.shape[:-1])
-        matrices = np.split(self.slice(row_id), self.num_methods, -1)
-        matrices = [drop_last_axis(x) for x in matrices]
+        # drop_last_axis = lambda x: x.reshape(x.shape[:-1])
+        # matrices = np.split(self.slice(row_id), self.num_methods, -1)
+        # matrices = [drop_last_axis(x) for x in matrices]
+        matrix = self.slice(row_id)[:,:,self.methods[method]]
+
+        # log-transform values
+        if log:
+            matrix = np.log10(matrix)
+            vmin, vmax = np.log10(vmin), np.log10(vmax)
 
         # plot
-        figsize = (self.num_methods*2 + 1., 2)
-        fig, axes = self.build_figure(ncols=self.num_methods, figsize=figsize)
+        if ax is None:
+            fig, axes = self.build_figure(figsize=(2, 2))
+        else:
+            fig = plt.gcf()
 
-        for ax, matrix in zip(axes, matrices):
-
-            # log-transform values
-            if log:
-                matrix = np.log10(matrix)
-                vmin, vmax = -3, -0.5
-
-            # plot
-            ax.imshow(matrix, vmin=vmin, vmax=vmax, cmap=cmap)
-            self.format_ax(ax)
+        # plot
+        kw = dict(vmin=vmin, vmax=vmax, cmap=cmap)
+        kw.update(kwargs)
+        self.plot_image(ax, matrix, fliplr=True, flipud=False, **kw)
+        self.format_ax(ax)
 
         return fig

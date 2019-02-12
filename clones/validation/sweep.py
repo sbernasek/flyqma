@@ -76,6 +76,7 @@ class SweepBenchmark(Pickler, SweepVisualization):
         # set path
         job.sweep_path = sweep_path
         job.path = path
+        job.batches = Sweep.load(sweep_path).batches
 
         # load results
         results_path = join(path, 'data.hdf')
