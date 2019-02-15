@@ -107,11 +107,13 @@ class BackgroundExtraction:
         bg_px = self.isolate_pixels(channel)
         return bg_px[~bg_px.mask].data
 
-    def plot_foreground_mask(self, ax=None, figsize=(3, 3)):
+    def plot_foreground_mask(self, invert=False, ax=None, figsize=(3, 3)):
         """
         Plot foreground mask.
 
         Args:
+
+            invert (bool) - if True, mask background rather than foreground
 
             ax (matplotlib.axes.AxesSubplot) - if None, create figure
 
@@ -134,7 +136,11 @@ class BackgroundExtraction:
         ax.imshow(rg)
 
         # add foreground mask
-        mask = Mask(self.bg_mask)
+        if invert:
+            mask = Mask(~self.bg_mask)
+        else:
+            mask = Mask(self.bg_mask)
+
         mask.add_contourf(ax, alpha=0.5, hatches=['//'])
         mask.add_contour(ax, lw=2, color='w')
         ax.axis('off')

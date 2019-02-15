@@ -102,10 +102,13 @@ class ImageScalar:
         """ Adds border of specified contour. """
         ax.contour(mask, [0.5], linewidths=[lw], colors=[color])
 
-    def add_contours(self, ax, lw=1, color='r'):
+    def add_contours(self, ax, lw=1, color='r', rasterized=False):
         """ Adds borders of all contours. """
         mask = self.labels > 0
-        ax.contour(mask, [0.5], linewidths=[lw], colors=[color])
+        ctr = ax.contour(mask, [0.5], linewidths=[lw], colors=[color])
+        if rasterized:
+            for c in ctr.collections:
+                c.set_rasterized(True)
 
     def gaussian_filter(self, sigma=(1., 1.)):
         """ Apply 2D gaussian filter. """

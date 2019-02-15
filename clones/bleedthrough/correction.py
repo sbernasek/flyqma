@@ -182,7 +182,7 @@ class LayerCorrection(Correction, LayerCorrectionVisualization):
 
         # get foreground measurements
         xt = layer.data[xvar].values
-        yt = layer.data[xvar].values
+        yt = layer.data[yvar].values
 
         # extract X and Y pixels from background
         bg_x, bg_y = self.extract_background()

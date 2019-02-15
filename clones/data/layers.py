@@ -45,10 +45,82 @@ class LayerVisualization:
         boundaries = CloneBoundaries(self.data, label_by=label_by, alpha=alpha)
         boundaries.plot_boundaries(cmap=cmap, ax=ax, **kwargs)
 
-    def build_mask(self, classifier,
+    def _build_mask(self, values,
                    interior_only=False,
                    selection_only=False,
                    null_value=-1):
+        """
+        Use <values> to construct an image mask.
+
+        Args:
+
+            values (array like) - value/label for each segment
+
+            interior_only (bool) - if True, excludes clone borders
+
+            selection_only (bool) - if True, only include selected region
+
+            null_value (int) - value used to fill unused pixels
+
+        Returns:
+
+            mask (np.ma.Maskedarray) - masked image in which foreground segments are replaced with the specified values
+
+        """
+
+        # build dictionary mapping segments to values
+        segment_to_value = dict(zip(self.data.segment_id, values))
+        segment_to_value[0] = null_value
+
+        # exclude borders
+        if interior_only:
+            boundary = self.data[self.data.boundary]
+            boundary_to_black = {x: null_value for x in boundary.segment_id}
+            segment_to_value.update(boundary_to_black)
+
+        # exclude cells not included in selection
+        if selection_only:
+            excluded = self.data[~self.data.selected]
+            excluded_to_black = {x: null_value for x in excluded.id}
+            segment_to_value.update(excluded_to_black)
+
+        # construct mask
+        segment_to_value = np.vectorize(segment_to_value.get)
+        mask = segment_to_value(self.labels)
+        mask = np.ma.MaskedArray(mask, mask==null_value)
+
+        return mask
+
+    def build_attribute_mask(self, attribute,
+                             interior_only=False,
+                             selection_only=False,
+                             **kwargs):
+        """
+        Use <attribute> value for each segment to construct an image mask.
+
+        Args:
+
+            attribute (str) - attribute used to label each segment
+
+            interior_only (bool) - if True, excludes clone borders
+
+            selection_only (bool) - if True, only include selected region
+
+        Returns:
+
+            mask (np.ma.Maskedarray) - masked image in which foreground segments are replaced with the attribute values
+
+        """
+
+        return self._build_mask(self.data[attribute].values,
+                                interior_only=interior_only,
+                                selection_only=selection_only,
+                                **kwargs)
+
+    def build_classifier_mask(self, classifier,
+                   interior_only=False,
+                   selection_only=False,
+                   **kwargs):
         """
         Use segment <classifier> to construct an image mask.
 
@@ -60,35 +132,15 @@ class LayerVisualization:
 
             selection_only (bool) - if True, only include selected region
 
-            null_value (int) - value used to fill unused pixels
+        Returns:
+
+            mask (np.ma.Maskedarray) - masked image in which foreground segments are replaced with the assigned labels
 
         """
-
-        # assign labels
-        assigned_labels = classifier(self.data)
-
-        # build dictionary mapping segments to labels
-        segment_to_label = dict(zip(self.data.segment_id, assigned_labels))
-        segment_to_label[0] = null_value
-
-        # exclude borders
-        if interior_only:
-            boundary = self.data[self.data.boundary]
-            boundary_to_black = {x: null_value for x in boundary.segment_id}
-            segment_to_label.update(boundary_to_black)
-
-        # exclude cells not included in selection
-        if selection_only:
-            excluded = self.data[~self.data.selected]
-            excluded_to_black = {x: null_value for x in excluded.id}
-            segment_to_label.update(excluded_to_black)
-
-        # construct mask
-        segment_to_label = np.vectorize(segment_to_label.get)
-        label_mask = segment_to_label(self.labels)
-        label_mask = np.ma.MaskedArray(label_mask, label_mask==null_value)
-
-        return label_mask
+        return self._build_mask(classifier(self.data),
+                                interior_only=interior_only,
+                                selection_only=selection_only,
+                                **kwargs)
 
 
 class Layer(ImageRGB, LayerVisualization):
@@ -382,7 +434,7 @@ class Layer(ImageRGB, LayerVisualization):
         data[yvar+'c'] = data[yvar] - trend
         data[yvar+'c_normalized'] = data[yvar+'c'] / data[self.metadata['bg']]
 
-    def build_graph(self, data, **graph_kw):
+    def build_graph(self, data, weighted_by='r_normalized', **graph_kw):
         """
         Compile weighted graph connecting adjacent cells.
 
@@ -390,14 +442,15 @@ class Layer(ImageRGB, LayerVisualization):
 
             data (pd.DataFrame) - processed cell measurement data
 
+            weighted_by (str) - attribute used to weight edges
+
         Keyword Args:
 
             q (float) - edge length quantile above which edges are pruned
 
-            weighted_by (str) - quantity used to weight edges
         """
         self.metadata['params']['graph_kw'] = graph_kw
-        self.graph = WeightedGraph(data, **graph_kw)
+        self.graph = WeightedGraph(data, weighted_by, **graph_kw)
 
     def apply_annotation(self, data, cluster=False):
         """

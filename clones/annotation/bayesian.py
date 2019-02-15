@@ -152,8 +152,8 @@ class BayesianVisualization:
 
         # plot individual component pdfs
         pdfs = self.evaluate_component_pdfs() * self.weights.reshape(-1, 1)
-        means = np.log(self.means)
-        values = np.log(self.values)
+        means = np.log10(self.means)
+        values = np.log10(self.values)
         norm = Normalize(vmin=values.min(), vmax=values.max())
         order = np.argsort(means)
         colors = cmap(norm(means[order]))
@@ -251,7 +251,7 @@ class BayesianVisualization:
 
         # log transform data
         if log:
-            support = np.log(self.log_support)
+            support = np.log10(self.log_support)
             component_cdfs = self.component_log_cdfs
         else:
             support = self.support
@@ -268,8 +268,8 @@ class BayesianVisualization:
             fig = plt.gcf()
 
         # plot weighted CDF for each component
-        means = np.log(self.means)
-        values = np.log(self.values)
+        means = np.log10(self.means)
+        values = np.log10(self.values)
         norm = Normalize(vmin=values.min(), vmax=values.max())
         order = np.argsort(means)
         colors = cmap(norm(means[order]))
@@ -277,7 +277,7 @@ class BayesianVisualization:
 
         # plot empirical CDF (data)
         if log:
-            ax.plot(np.log(self.support), self.cdf, '-r', lw=1.)
+            ax.plot(np.log10(self.support), self.cdf, '-r', lw=1.)
         else:
             ax.plot(self.support, self.cdf, '-r', lw=1.)
 
@@ -527,8 +527,8 @@ class BayesianClassifier(Classifier, BayesianProperties, BayesianVisualization):
     @property
     def log_support(self):
         """ Log-spaced support vector. """
-        support = np.log(self.support)
-        return np.logspace(support.min(), support.max(), num=support.size, base=np.e)
+        support = np.log10(self.support)
+        return np.logspace(support.min(), support.max(), num=support.size, base=10)
 
     @property
     def component_log_cdfs(self):

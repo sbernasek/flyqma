@@ -309,7 +309,11 @@ class WeightedGraph(Graph):
         community_detector = InfoMap(self.edge_list, **kwargs)
         labels = community_detector(self.nodes)
         self.community_labels = labels
-        self.df.loc[self.position_map(self.nodes), 'community'] = labels
+
+        # add labels to dataframe
+        index = np.arange(len(self.df))
+        #self.df.iloc[index, 'community'] = labels[self.node_map(index)]
+        self.df['community'] = labels[self.node_map(index)]
 
 
 class WeightFunction:

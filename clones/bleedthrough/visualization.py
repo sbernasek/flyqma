@@ -167,6 +167,10 @@ class LayerCorrectionVisualization:
         """
         Visualize background extraction procedure.
 
+        Keyword arguments:
+
+            invert (bool) - if True, mask background rather than foreground
+
         Returns:
 
             figure
