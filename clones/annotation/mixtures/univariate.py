@@ -4,6 +4,41 @@ from collections import Counter
 from scipy.stats import norm
 from sklearn.mixture import GaussianMixture
 
+from .visualization import MixtureVisualization
+
+
+"""
+    Univariate mixed log-normal model classifier.
+
+    Attributes:
+
+        model (mixtures.UnivariateMixture) - frozen univariate mixture model
+
+        weights (np.ndarray[float]) - 1D array of component weights
+
+    Inherited attributes:
+
+        values (array like) - basis for clustering
+
+        log (bool) - indicates whether clustering performed on log values
+
+        n (int) - number of clusters
+
+        num_labels (int) - number of output labels
+
+        classifier (vectorized func) - maps value to group_id
+
+        labels (np.ndarray[int]) - predicted labels
+
+        cmap (matplotlib.colors.ColorMap) - colormap for group_id
+
+        parameters (dict) - {param name: param value} pairs
+
+        fig (matplotlib.figures.Figure) - histogram figure
+
+    """
+
+
 
 class MixtureProperties:
 
@@ -70,17 +105,27 @@ class MixtureProperties:
     @property
     def components(self):
         """ Individual model components. """
-        get_params = lambda i: (self.means_[i], np.sqrt(self.covariances_[i])
-        build_component = lambda i: norm(*get_params(i)))
+        get_params = lambda i: (self.means_[i], np.sqrt(self.covariances_[i]))
+        build_component = lambda i: norm(*get_params(i))
         return [build_component(i) for i in range(self.n_components)]
 
     @property
     def pdf(self):
-        """ Mixture PDF. """
+        """ Gaussian Mixture PDF. """
         pdf = np.zeros(self.support_size)
         for i in range(self.n_components):
             pdf += self.get_component_pdf(i)
         return pdf
+
+    @property
+    def component_pdfs(self):
+        """ Returns stacked array of component PDFs. """
+        return self._component_pdfs()
+
+    def _component_pdfs(self, weighted=True, support=None):
+        """ Returns stacked array of component PDFs over <support>. """
+        build_pdf = lambda idx: self.get_component_pdf(idx, weighted, support)
+        return np.vstack([build_pdf(idx) for idx in range(self.n_components)])
 
 
 class UnivariateMixture(GaussianMixture,
@@ -193,13 +238,13 @@ class UnivariateMixture(GaussianMixture,
         """
         return np.exp(self.multi_logsample(N, m))
 
-    def get_component_pdf(self, idx, weighted=True, log=True):
+    def get_component_pdf(self, idx, weighted=True, support=None):
         """ Returns PDF for indexed component. """
 
-        pdf = self.components[idx].pdf(self.support).reshape(self.support_size)
+        if support is None:
+            support = self.support
 
-        if not log:
-            pdf /= self.scale_factor
+        pdf = self.components[idx].pdf(support).reshape(support.shape)
 
         if weighted:
             pdf *= self.weights_[idx]
@@ -219,87 +264,3 @@ class UnivariateMixture(GaussianMixture,
         min_num_samples = (SNR*(max_sigma[idx]/delta_mu[idx])**2).max()
 
         return min_num_samples
-
-
-def figure(func):
-    def wrapper(*args, ax=None, **kwargs):
-        if ax is None:
-            fig, ax = plt.subplots(figsize=(2., 1.25))
-        func(*args, ax=ax, **kwargs)
-    return wrapper
-
-
-class MixtureVisualization:
-    """ Visualization methods for mixture models. """
-
-    @property
-    def summary(self):
-        """ Returns text-based summary of mixture model. """
-        m = ' :: '.join(['{:0.2f}'.format(x) for x in self.means])
-        s = ' :: '.join(['{:0.2f}'.format(np.sqrt(x)) for x in self.stds])
-        w = ' :: '.join(['{:0.2f}'.format(x) for x in self.weights_])
-        summary = 'Means: {:s}'.format(m)
-        summary += '\nStds: {:s}'.format(s)
-        summary += '\nWeights: {:s}'.format(w)
-        summary += '\nlnL: {:0.2f}'.format(self.log_likelihood)
-        return summary
-
-    @figure
-    def plot_component_pdf(self, idx,
-                           weighted=True,
-                           log=False,
-                           ax=None,
-                           **kwargs):
-        """ Plots PDF for specified component. """
-
-        # retrieve pdf for specified component
-        pdf = self.get_component_pdf(idx, weighted=weighted, log=log)
-
-        # plot component pdf
-        if log:
-            ax.plot(self.support, pdf, **kwargs)
-        else:
-            ax.plot(self.scale_factor, pdf, **kwargs)
-
-        self.format_ax(ax, log=log)
-
-    @figure
-    def plot_pdf(self, log=False, ax=None, **kwargs):
-        """ Plots overall PDF for mixture model. """
-
-        if log:
-            ax.plot(self.support, self.pdf*self.scale_factor, **kwargs)
-        else:
-            ax.plot(self.scale_factor, self.pdf, **kwargs)
-
-        self.format_ax(ax, log=log)
-
-    @figure
-    def plot(self, log=False, ax=None,
-             pdf_color='k', component_color='r', **kwargs):
-        """ Plots PDF for mixture model as well as each weighted component. """
-
-        self.plot_pdf(log=log, ax=ax, color=pdf_color)
-        for i in range(self.n_components):
-            self.plot_component_pdf(i, log=log, ax=ax, color=component_color)
-
-    @figure
-    def plot_data(self, log=False, ax=None, **kwargs):
-        """ Plots PDF for mixture model as well as each weighted component. """
-
-        if log:
-            data = self.values
-        else:
-            data = np.exp(self.values)
-
-        bins = np.linspace(self.support.min(), self.support.max(), num=50)
-        _ = ax.hist(data, bins=bins, density=True, **kwargs)
-
-    def format_ax(self, ax, log=False):
-        if log:
-            ax.set_xlim(self.support.min(), self.support.max())
-        else:
-            ax.set_xlim(0, self.scale_factor.max())
-        ax.spines['top'].set_visible(False)
-        ax.spines['right'].set_visible(False)
-

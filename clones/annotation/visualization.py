@@ -52,8 +52,6 @@ class CloneBoundaries:
             self.plot_boundary(label, color=color, **kwargs)
 
 
-
-
 class Tessellation:
     """
     Object for visualizing Voronoi tessellations.

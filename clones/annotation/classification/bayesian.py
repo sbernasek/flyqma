@@ -5,8 +5,9 @@ from scipy.signal import argrelextrema
 from sklearn.cluster import k_means
 from pomegranate import GeneralMixtureModel, LogNormalDistribution
 from pomegranate import ExponentialDistribution
+
 from .classifiers import Classifier
-from ..visualization.settings import *
+from ...visualization.settings import *
 
 
 class BayesianProperties:

@@ -2,6 +2,18 @@ __author__ = 'Sebastian Bernasek'
 
 import matplotlib.pyplot as plt
 
+
+def default_figure(func):
+    """ Decorator for creating axis. """
+    def wrapper(*args, ax=None, figsize=(2., 1.25), **kwargs):
+        if ax is None:
+            fig, ax = plt.subplots(figsize=figsize)
+            ax.spines['top'].set_visible(False)
+            ax.spines['right'].set_visible(False)
+        func(*args, ax=ax, **kwargs)
+    return wrapper
+
+
 # labels
 labelpad = 1
 labelsize = 7
