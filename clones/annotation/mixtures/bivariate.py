@@ -63,9 +63,9 @@ class BivariateMixture(BivariateMixtureProperties,
     def get_marginal_mixture(self, margin):
         """ Returns univariate mixture model for specified <margin>. """
 
-        values = self.values[:, margin].reshape(-1, 1)
-        mu = self.means_[:, margin].reshape(-1, 1)
-        cov = self.covariances_[:, margin].reshape(-1, 1)
+        values = self.values[:, [margin]]
+        mu = self.means_[:, [margin]]
+        cov = self.covariances_[:, [margin]]
         weights = self.weights_
 
         args = (mu, cov, weights)
@@ -94,15 +94,6 @@ class BivariateMixture(BivariateMixtureProperties,
         else:
             support = self.supporty
         return support, pdf
-
-    def get_component_pdf(self, idx, weighted=True):
-
-        pdf = self.components[idx].pdf(self.support).reshape(self.support_size)
-
-        if weighted:
-            pdf *= self.weights_[idx]
-
-        return pdf
 
     def get_component_marginal_pdf(self, idx, margin, weighted=True):
         component = self.components[idx]

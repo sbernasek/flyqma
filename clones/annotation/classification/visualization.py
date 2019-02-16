@@ -50,6 +50,11 @@ class MixtureVisualization:
         cdfs *= self.model.weights_.reshape(-1, 1)
         return cdfs
 
+    @property
+    def support_labels(self):
+        """ Labels for support vector. """
+        return self.classifier(self.support.reshape(-1, 1))
+
     @default_figure
     def plot_pdf(self,
                   density=1000,
@@ -64,7 +69,7 @@ class MixtureVisualization:
         """
 
         # plot model pdf segments, colored by output label
-        support_labels = self.classifier(self.support)
+        support_labels = self.support_labels
         breakpoints = [0]+list(np.diff(support_labels).nonzero()[0]+1)+[None]
         for i, bp in enumerate(breakpoints[:-1]):
             indices = slice(bp, breakpoints[i+1])
@@ -199,3 +204,57 @@ class BivariateMixtureVisualization:
         cdfs *= model.weights_.reshape(-1, 1)
         return cdfs
 
+    @property
+    def support_labels(self):
+        """ Labels for support vector (over x margin). """
+        margin = self.marginalize(0)
+        return margin.classifier(self.support.reshape(-1, 1))
+
+    @joint_figure
+    def plot_bivariate_pdf(self, fig, bg='w', **kwargs):
+        """ Plot bivariate PDF, with each cluster shaded by its label. """
+
+        pdfs = self.model.component_pdfs
+
+        # define label colors
+        component_to_label = np.vectorize(self.component_to_label.get)
+        labels = component_to_label(np.arange(self.num_components))
+        label_colors = self.cmap(labels)[:, :-1]
+
+        # plot each bivariate pdf, colored by label
+        norm = Normalize(pdfs.min(), pdfs.max())
+        fig.ax_joint.set_facecolor(bg)
+        for idx, pdf in enumerate(pdfs):
+            ccm = build_transparent_cmap(label_colors[idx], bg=bg)
+            fig.ax_joint.imshow(norm(pdf), cmap=ccm, extent=self.model.extent)
+
+        # plot marginal pdfs
+        self.model.plot_margin(0, ax=fig.ax_xmargin, component_color=label_colors)
+        self.model.plot_margin(1, invert=True, ax=fig.ax_ymargin, component_color=label_colors)
+
+        fig.ax_xmargin.set_xlim(self.model.lbound, self.model.ubound)
+        fig.ax_ymargin.set_ylim(self.model.lbound, self.model.ubound)
+
+        return fig
+
+    @joint_figure
+    def plot_phase_space(self, fig, bg='w', **kwargs):
+        """ Plot phase space, with each region shaded by its label. """
+
+        labels = self.classifier(self.model.support)
+        labels = labels.reshape(self.model.support_size)
+        fig.ax_joint.imshow(self.cmap(labels))
+
+        # define label colors
+        component_to_label = np.vectorize(self.component_to_label.get)
+        component_labels = component_to_label(np.arange(self.num_components))
+        label_colors = self.cmap(component_labels)[:, :-1]
+
+        # plot marginal pdfs
+        self.model.plot_margin(0, ax=fig.ax_xmargin, component_color=label_colors)
+        self.model.plot_margin(1, invert=True, ax=fig.ax_ymargin, component_color=label_colors)
+
+        fig.ax_xmargin.set_xlim(self.model.lbound, self.model.ubound)
+        fig.ax_ymargin.set_ylim(self.model.lbound, self.model.ubound)
+
+        return fig

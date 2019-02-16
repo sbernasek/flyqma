@@ -6,6 +6,7 @@ from ..visualization.settings import default_figure
 
 
 class ModelSelectionVisualization:
+    """ Methods for visualizing model selection procedure. """
 
     def plot_models(self, panelsize=(3, 2), **kwargs):
         """ Plot model for each number of components. """
@@ -81,7 +82,7 @@ class UnivariateModelSelection(ModelSelectionVisualization):
 
         """
 
-        self.values = np.sort(values)
+        self.values = values
         self.classify_on = classify_on
         self.min_num_components = min_num_components
         self.max_num_components = max_num_components
@@ -110,11 +111,6 @@ class UnivariateModelSelection(ModelSelectionVisualization):
             models.append(model)
 
         return models
-
-    @property
-    def cdf(self):
-        """ Empirical CDF. """
-        return np.linspace(0, 1, self.values.size, endpoint=False)
 
     @property
     def BIC(self):

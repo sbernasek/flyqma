@@ -1,9 +1,9 @@
+from copy import deepcopy
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.cluster import k_means
 
-from ..mixtures import UnivariateMixture, BivariateMixture
 from .classifiers import Classifier
+from ..mixtures import UnivariateMixture, BivariateMixture
 from .visualization import MixtureVisualization, BivariateMixtureVisualization
 
 
@@ -39,6 +39,7 @@ class MixtureModelClassifier(Classifier, MixtureVisualization):
                  num_components=3,
                  num_labels=3,
                  fit_kw={},
+                 model=None,
                  **kwargs):
         """
         Fit a univariate mixture model classifier to an array of values.
@@ -53,6 +54,8 @@ class MixtureModelClassifier(Classifier, MixtureVisualization):
 
             fit_kw (dict) - keyword arguments for fitting mixture model
 
+            model (mixtures.UnivariateMixture) - pre-fitted model
+
         Keyword arguments:
 
             classify_on (str or list) - attribute(s) on which to cluster
@@ -66,7 +69,9 @@ class MixtureModelClassifier(Classifier, MixtureVisualization):
         self.parameters['num_components'] = num_components
 
         # fit model
-        self.model = self.fit(self.values, num_components, **fit_kw)
+        if model is None:
+            model = self.fit(self.values, num_components, **fit_kw)
+        self.model = model
 
         # build classifier and posterior
         self.classifier = self.build_classifier()
@@ -135,8 +140,8 @@ class MixtureModelClassifier(Classifier, MixtureVisualization):
             _posterior = np.vstack(_posterior).T
 
             # fix label probabilities for points outside the support bounds
-            below = values < self.model.lbound
-            above = values > self.model.ubound
+            below = values[:, 0] < self.model.lbound
+            above = values[:, 0] > self.model.ubound
             for rows, col in zip((below.ravel(), above.ravel()), [0, -1]):
                 if rows.sum() == 0:
                     continue
@@ -162,6 +167,17 @@ class MixtureModelClassifier(Classifier, MixtureVisualization):
             x = np.log(x)
         return self.posterior(x)
 
+    def build_classifier(self):
+        """
+        Build function that returns the most probable label for each of a series of values.
+        """
+
+        def classifier(values):
+            """ Returns <label> for <values> by maximizing posterior.  """
+            return self.posterior(values).argmax(axis=1)
+
+        return classifier
+
 
 class BivariateMixtureClassifier(BivariateMixtureVisualization,
                                  MixtureModelClassifier):
@@ -176,9 +192,9 @@ class BivariateMixtureClassifier(BivariateMixtureVisualization,
 
         values (np.ndarray[float]) - basis for clustering
 
-        classify_on (str or list) - attribute(s) on which to cluster
+        classify_on (list) - attributes on which to cluster
 
-        num_labels (int) - number of output labels
+        num_labels (int) - number of labels
 
         num_components (int) - number of mixture components
 
@@ -193,6 +209,24 @@ class BivariateMixtureClassifier(BivariateMixtureVisualization,
         parameters (dict) - {param name: param value} pairs
 
     """
+
+    def __getitem__(self, margin):
+        """ Returns MixtureModelClassifier for specified margin. """
+        return self.marginalize(margin)
+
+    def marginalize(self, margin):
+        """ Returns MixtureModelClassifier for specified margin. """
+
+        # assemble marginalized properties
+        values = self._values[:, [margin]]
+        model = self.model[margin]
+
+        # duplicate parameters
+        parameters = deepcopy(self.parameters)
+        parameters['classify_on'] = self.classify_on[0]
+        _ = parameters.pop('log')
+
+        return MixtureModelClassifier(values, model=model, **parameters)
 
     @staticmethod
     def fit(values, num_components=3, **kwargs):

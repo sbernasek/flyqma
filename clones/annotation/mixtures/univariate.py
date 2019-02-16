@@ -80,7 +80,7 @@ class MixtureProperties:
     @property
     def log_likelihood(self):
         """ Maximized log likelihood. """
-        return self.score(self.values) * self.values.size
+        return self.score(self.values) * self.num_samples
 
     @property
     def BIC(self):
@@ -103,6 +103,11 @@ class MixtureProperties:
         return self.support.size
 
     @property
+    def num_samples(self):
+        """ Number of samples. """
+        return self.values.shape[0]
+
+    @property
     def components(self):
         """ Individual model components. """
         get_params = lambda i: (self.means_[i], np.sqrt(self.covariances_[i]))
@@ -122,10 +127,10 @@ class MixtureProperties:
         """ Returns stacked array of component PDFs. """
         return self._component_pdfs()
 
-    def _component_pdfs(self, weighted=True, support=None):
-        """ Returns stacked array of component PDFs over <support>. """
-        build_pdf = lambda idx: self.get_component_pdf(idx, weighted, support)
-        return np.vstack([build_pdf(idx) for idx in range(self.n_components)])
+    def _component_pdfs(self, weighted=True):
+        """ Returns stacked array of component PDFs over support. """
+        build_pdf = lambda idx: self.get_component_pdf(idx, weighted)
+        return np.stack([build_pdf(idx) for idx in range(self.n_components)])
 
 
 class UnivariateMixture(GaussianMixture,
@@ -195,6 +200,11 @@ class UnivariateMixture(GaussianMixture,
         model.weights_ = weights
         model.means_ = mu
         model.covariances_ = sigma
+        precisions = np.linalg.inv(np.diag(sigma.ravel()))
+        model.precisions_ = np.diag(precisions).reshape(-1, 1)
+        cholesky_precision = np.linalg.cholesky(precisions)
+        model.precisions_cholesky_ = np.diag(cholesky_precision).reshape(-1, 1)
+        model.lower_bound_ = model.score(model.values)
 
         if values is None:
             model.values = model.logsample(1000)
@@ -238,13 +248,10 @@ class UnivariateMixture(GaussianMixture,
         """
         return np.exp(self.multi_logsample(N, m))
 
-    def get_component_pdf(self, idx, weighted=True, support=None):
+    def get_component_pdf(self, idx, weighted=True):
         """ Returns PDF for indexed component. """
 
-        if support is None:
-            support = self.support
-
-        pdf = self.components[idx].pdf(support).reshape(support.shape)
+        pdf = self.components[idx].pdf(self.support).reshape(self.support_size)
 
         if weighted:
             pdf *= self.weights_[idx]

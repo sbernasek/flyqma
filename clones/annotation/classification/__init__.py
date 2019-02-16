@@ -1,2 +1,2 @@
-from .mixture import MixtureModelClassifier, BivariateMixtureClassifier
+from .mixtures import MixtureModelClassifier, BivariateMixtureClassifier
 from .kmeans import KMeansClassifier

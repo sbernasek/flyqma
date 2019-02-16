@@ -114,26 +114,41 @@ class BivariateVisualization:
                     invert=False,
                     log=True,
                     pdf_color='k',
+                    pdf_linestyle='--',
+                    pdf_lw=0.5,
                     component_color='r',
-                    ax=None,
-                    **kwargs):
+                    component_lw=0.5,
+                    min_density=0.01,
+                    ax=None):
 
+        # extract x/y margins
         if margin == 0:
             support, pdf = self.get_xmargin(log=log)
         else:
             support, pdf = self.get_ymargin(log=log)
 
-        if invert:
-            ax.plot(pdf, support, '-', color=pdf_color, **kwargs)
-            for idx in range(self.n_components):
-                mpdf = self.get_component_marginal_pdf(idx, margin, True)
-                ax.plot(mpdf, support, '-', color=component_color, **kwargs)
+        # define colors for component lines
+        if type(component_color) == str:
+            component_color *= self.n_components
 
+        # define parameters
+        above = (pdf >= min_density)
+        pdf_kw = dict(color=pdf_color, lw=pdf_lw, linestyle=pdf_linestyle)
+        comp_kw = dict(lw=component_lw)
+
+        # invert x/y axes (for vertical margin)
+        if invert:
+            ax.plot(pdf[above], support[above], '-', **pdf_kw)
+            for i in range(self.n_components):
+                mpdf = self.get_component_marginal_pdf(i, margin, True)
+                ind = (mpdf >= min_density)
+                ax.plot(mpdf[ind], support[ind], color=component_color[i], **comp_kw)
         else:
-            ax.plot(support, pdf, '-', color=pdf_color, **kwargs)
-            for idx in range(self.n_components):
-                mpdf = self.get_component_marginal_pdf(idx, margin, True)
-                ax.plot(support, mpdf, '-', color=component_color, **kwargs)
+            ax.plot(support[above], pdf[above], '-', **pdf_kw)
+            for i in range(self.n_components):
+                mpdf = self.get_component_marginal_pdf(i, margin, True)
+                ind = (mpdf >= min_density)
+                ax.plot(support[ind], mpdf[ind], color=component_color[i], **comp_kw)
 
         return ax
 
@@ -160,6 +175,9 @@ class BivariateVisualization:
         # plot marginal pdfs
         self.plot_margin(0, ax=ax_xmargin)
         self.plot_margin(1, invert=True, ax=ax_ymargin)
+
+        ax_xmargin.set_xlim(self.lbound, self.ubound)
+        ax_ymargin.set_ylim(self.lbound, self.ubound)
 
         return fig
 

@@ -41,10 +41,21 @@ class ClassifierProperties:
         return [[k for k, v in x.items() if v == l] for l in labels]
 
     @property
+    def centroids(self):
+        """ Means of each component on linear scale (not log transformed). """
+        centroids = self.means
+        if self.log:
+            centroids = np.exp(centroids)
+        return centroids.reshape(-1, 1)
+
+    @property
     def component_to_label(self):
-        """ Returns dictionary mapping components to labels.  """
+        """
+        Returns dictionary mapping components to labels.  Mapping is achieved by k-means clustering the model centroids (linear scale).
+        """
         n = self.num_labels
-        cluster_means, cluster_labels, _ = k_means(self.means.reshape(-1,1), n)
+
+        cluster_means, cluster_labels, _ = k_means(self.centroids, n)
         component_to_label = {}
         for label, c in enumerate(np.argsort(cluster_means.ravel())):
             for d in (cluster_labels==c).nonzero()[0]:
