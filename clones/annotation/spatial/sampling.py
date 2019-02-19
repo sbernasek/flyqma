@@ -1,6 +1,7 @@
 import numpy as np
 import networkx as nx
-from ...visualization.settings import default_figure
+
+from ...visualization.settings import *
 
 
 class NeighborSampler:

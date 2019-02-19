@@ -2,10 +2,46 @@ __author__ = 'Sebastian Bernasek'
 
 import numpy as np
 from scipy.stats import binned_statistic
+from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 
+from ...visualization.settings import *
+from .timeseries import plot_mean, plot_mean_interval
+from .timeseries import smoothed_moving_average
 
-class CorrelationData:
+
+class CorrelationProperties:
+
+    # fraction of cells used to determine window size
+    window_frac = 0.01
+
+    @property
+    def num_measurements(self):
+        """ Estimated number of measurements. """
+        return np.sqrt(self.d_ij.size)
+
+    @property
+    def window(self):
+        """ Window size. """
+        return int(np.round((self.num_measurements * self.window_frac) ** 2))
+
+    @property
+    def d_av(self):
+        """ Smoothed moving average distances. """
+        return smoothed_moving_average(self.d_ij, self.window)
+
+    @property
+    def C_av(self):
+        """ Smoothed moving average correlation. """
+        return smoothed_moving_average(self.C_ij, self.window)
+
+    @property
+    def characteristic_length(self):
+        """ Characteristic length over which correlations decay. """
+        return CharacteristicLength(self).characteristic_length
+
+
+class CorrelationData(CorrelationProperties):
     """
     Container for correlations between 1-D timeseries.
 
@@ -62,6 +98,16 @@ class CorrelationData:
         self.C_ij = C_ij[ind]
 
         return self
+
+    @property
+    def num_fluctuations(self):
+        """ Number of pairwise fluctuations. """
+        return len(self.d_ij)
+
+    @property
+    def ubound(self):
+        """ Upper bound on pairwise distances. """
+        return np.percentile(self.d_ij, 99)
 
     @staticmethod
     def get_binned_stats(x, y, bins, statistic='mean'):
@@ -142,122 +188,135 @@ class CorrelationData:
 
         return centers, uppers, lowers
 
-    # def visualize(self,
-    #               ax=None,
-    #               null_model=False,
-    #               scatter=True,
-    #               confidence=True,
-    #               zero=True,
-    #               ma_kw=None,
-    #               nbootstraps=100,
-    #               color='k',
-    #               max_distance=500):
-    #     """
-    #     Plot pairwise normalized fluctuations versus pairwise distances.
+    @default_figure
+    def histogram_distances(self, ax=None, **kwargs):
+        """ Plot histogram of pairwise distances between measurements. """
+        _ = ax.hist(self.d_ij, **kwargs)
+        ax.set_ylabel('Num. pairs')
+        ax.set_xlabel('Separation distance')
 
-    #     Args:
+    @default_figure
+    def histogram_fluctuations(self, ax=None, **kwargs):
+        """ Plot histogram of pairwise fluctuations between measurements. """
+        _ = ax.hist(self.C_ij, **kwargs)
+        ax.set_ylabel('Num. pairs')
+        ax.set_xlabel('Fluctuation')
 
-    #         ax (mpl.axes.AxesSubplot) - if None, create figure
+    @default_figure
+    def visualize(self,
+                  null_model=False,
+                  scatter=False,
+                  confidence=False,
+                  zero=True,
+                  smooth=True,
+                  ma_type='sliding',
+                  window_size=500,
+                  resolution=100,
+                  nbootstraps=50,
+                  color='k',
+                  max_distance=None,
+                  ax=None):
+        """
+        Plot pairwise normalized fluctuations versus pairwise distances.
 
-    #         null_model (bool) - if True, shuffle d_ij vector
+        Args:
 
-    #         scatter (bool) - if True, show individual markers
+            null_model (bool) - if True, shuffle d_ij vector
 
-    #         confidence (bool) - if True, include confidence interval
+            scatter (bool) - if True, show individual markers
 
-    #         zero (bool) - if True, include zero correlation line for reference
+            confidence (bool) - if True, include confidence interval
 
-    #         interval_kw (dict) - keyword arguments for interval formatting
+            zero (bool) - if True, include zero correlation line for reference
 
-    #         ma_kw (dict) - keyword arguments for moving average smoothing
+            smooth (bool) - if True, apply smoothing to moving average
 
-    #         nbootstraps (int) - number of bootstrap samples for confidence interval
+            ma_type (str) - type of average used, either sliding, binned, or savgol
 
-    #         color (str) - color used for confidence interval
+            window_size (int) - size of window
 
-    #         max_distance (float) - largest pairwise distance included
+            resolution (int) - sampling interval
 
-    #     Returns:
+            nbootstraps (int) - number of bootstrap samples for confidence interval
 
-    #         ax (mpl.axes.AxesSubplot)
+            color (str) - color used for confidence interval
 
-    #     """
+            max_distance (float) - largest pairwise distance included
 
-    #     # create figure/axis
-    #     if ax is None:
-    #         fig, ax = plt.subplots(figsize=(9, 3))
+            ax (mpl.axes.AxesSubplot) - if None, create figure
 
-    #     # get number of pairwise fluctuations
-    #     number_of_pairs = len(self.d_ij)
+        Returns:
 
-    #     # if null_model is True, randomly shuffle d_ij vector
-    #     if null_model:
-    #         d = np.random.choice(self.d_ij, number_of_pairs, replace=False)
-    #     else:
-    #         d = self.d_ij
+            ax (mpl.axes.AxesSubplot)
 
-    #     # filter by max_distance
-    #     xmax = (max_distance//100)*100
-    #     ind = (d<=max_distance)
-    #     C = self.C_ij[ind]
-    #     d = d[ind]
+        """
 
-    #     # sort by distance
-    #     ind = np.argsort(d)
-    #     d = d[ind]
-    #     C = C[ind]
+        d = self.d_ij
+        C = self.C_ij
 
-    #     # get smoothing arguments
-    #     if ma_kw is None:
-    #         ma_kw=dict(ma_type='savgol', window_size=100, resolution=50)
+        # if null_model is True, randomly shuffle d_ij vector
+        if null_model:
+            d = np.random.choice(d, self.num_fluctuations, replace=False)
 
-    #     # plot moving average
-    #     plot_mean(d, C, ax,
-    #               line_color=color,
-    #               line_width=1,
-    #               line_alpha=1,
-    #               markersize=2,
-    #               **ma_kw)
+            # sort by distance
+            ind = np.argsort(d)
+            d = d[ind]
+            C = C[ind]
 
-    #     # plot confidence interval for moving average
-    #     if confidence:
-    #         plot_mean_interval(d, C, ax,
-    #                            confidence=95,
-    #                            color=color,
-    #                            alpha=0.35,
-    #                            nbootstraps=nbootstraps,
-    #                            **ma_kw)
+        # filter by max_distance
+        if max_distance is None:
+            max_distance = self.ubound
+        xmax = (max_distance//100)*100
+        ind = (d<=max_distance)
+        C = C[ind]
+        d = d[ind]
 
-    #     # plot markers
-    #     if scatter:
-    #         ax.scatter(d, C, alpha=0.2, color='grey', linewidth=0)
+        # get smoothing arguments
+        ma_kw=dict(ma_type=ma_type, window_size=window_size, resolution=resolution)
 
-    #     # plot zero reference line
-    #     if zero:
-    #         ax.plot([0, xmax], np.zeros(2), '-r', linewidth=1, alpha=0.25)
+        # plot moving average
+        plot_mean(ax=ax, x=d, y=C,
+                  line_color=color,
+                  line_width=1,
+                  line_alpha=1,
+                  markersize=2,
+                  smooth=smooth,
+                  **ma_kw)
 
-    #     # format
-    #     ymin, ymax = -0.6, 0.6
-    #     ax.set_ylim(ymin, ymax), ax.set_yticks([-0.5, 0, 0.5])
-    #     ax.set_ylabel('mean corr.', fontsize=10)
-    #     ax.set_xlabel('y-distance between cells $i, j$ (px)', fontsize=12)
-    #     ax.tick_params(labelsize=10)
-    #     ax.set_xlim(0, xmax)
+        # plot confidence interval for moving average
+        if confidence:
+            plot_mean_interval(ax=ax, x=d, y=C,
+                               confidence=95,
+                               color=color,
+                               alpha=0.35,
+                               nbootstraps=nbootstraps,
+                               **ma_kw)
 
-    #     return ax
+        # plot markers
+        if scatter:
+            ax.scatter(d, C, alpha=0.2, color='grey', linewidth=0)
+
+        # plot zero reference line
+        if zero:
+            ax.plot([0, xmax], np.zeros(2), '-r', linewidth=1, alpha=0.25)
+
+        # format
+        ymin, ymax = -0.15, 0.7
+        ax.set_ylim(ymin, ymax), ax.set_yticks([-0., 0.2, 0.4, .6])
+        ax.set_xlim(0, xmax)
+        ax.set_xlabel('Pairwise distance')
+        ax.set_ylabel('Correlation')
 
 
 class SpatialCorrelation(CorrelationData):
     """
-    Object for evaluating spatial correlation of expression between cells.
+    Object for evaluating spatial correlation of expression between measurements.
 
     Attributes:
 
-        channel (str) - expression channel for which correlations are desired
+        attribute (str) - name of correlated attribute
 
-        y_only (bool) - if True, only use y-component of pairwise distances
-
-        raw (bool) - if True, use raw fluorescence intensities
+        log (bool) - if True, log-transform attribute values
 
     Inherited attributes:
 
@@ -267,44 +326,32 @@ class SpatialCorrelation(CorrelationData):
 
     """
 
-    def __init__(self,
-                 df=None,
-                 channel='green',
-                 y_only=True,
-                 raw=False):
+    def __init__(self, graph, attribute, log=False):
         """
         Instantiate object for evaluating spatial correlation of expression between cells.
 
         Args:
 
-            df (pd.Dataframe) - cell measurement data
+            graph (spatial.Graph derivative) - graph object
 
-            channel (str) - expression channel for which correlations are desired
+            attribute (str) - name of correlated attribute
 
-            y_only (bool) - if True, only use y-component of pairwise distances
-
-            raw (bool) - if True, use raw fluorescence intensities
+            log (bool) - if True, log-transform attribute values
 
         """
 
         # store parameters
-        self.channel = channel
-        self.y_only = y_only
-        self.raw = raw
+        self.attribute = attribute
+        self.log = log
 
-        # get pairwise distances and fluctuations
-        if df is None:
-            d_ij, C_ij = np.ndarray([]), np.ndarray([])
-        else:
+        # get distances vector
+        d_ij = self.get_distances_vector(graph)
 
-            # get distances vector
-            d_ij = self.get_distances_vector(df, y_only=y_only)
-
-            # get covariance vector
-            expression = df[channel].values
-            if raw is True and channel != 'ratio':
-                expression *= df[cells.normalization].values
-            C_ij = self.get_covariance_vector(expression.reshape(-1, 1))
+        # get covariance vector
+        attribute_values = graph.df[attribute].values.reshape(-1, 1)
+        if log:
+            attribute_values = np.log(attribute_values)
+        C_ij = self.get_covariance_vector(attribute_values)
 
         # instantiate parent object
         CorrelationData.__init__(self, d_ij, C_ij)
@@ -326,15 +373,13 @@ class SpatialCorrelation(CorrelationData):
         return matrix[np.triu_indices(len(matrix), k=1)]
 
     @classmethod
-    def get_distances_vector(cls, df, y_only=False):
+    def get_distances_vector(cls, graph):
         """
         Get upper triangular portion of pairwise distance matrix.
 
         Args:
 
-            df (pd.Dataframe) - cell measurements including position data
-
-            y_only (bool) - if True, only use y-component of cell positions
+            graph (spatial.Graph derivative) - graph object
 
         Returns:
 
@@ -342,16 +387,11 @@ class SpatialCorrelation(CorrelationData):
 
         """
 
-        # if no measurements are included, return None
-        if len(df) == 0:
-            return None
-
         # compute pairwise distances between cells
-        x = df.centroid_x.values.reshape((len(df), 1))
-        y = df.centroid_y.values.reshape((len(df), 1))
+        x, y = graph.node_positions_arr.T
+        x = x.reshape(-1, 1)
+        y = y.reshape(-1, 1)
         x_component = np.repeat(x**2, x.size, axis=1) + np.repeat(x.T**2, x.size, axis=0) - 2*np.dot(x, x.T)
-        if y_only is True:
-            x_component *= 0
         y_component = np.repeat(y**2, y.size, axis=1) + np.repeat(y.T**2, y.size, axis=0) - 2*np.dot(y, y.T)
 
         # get upper triangular portion (excludes self edges and duplicates)
@@ -366,7 +406,7 @@ class SpatialCorrelation(CorrelationData):
 
         Args:
 
-            vector (1D np.ndarray) - expression levels for each cell
+            vector (1D np.ndarray) - attribute values for each measurement
 
         Returns:
 
@@ -374,13 +414,91 @@ class SpatialCorrelation(CorrelationData):
 
         """
 
-        # if vector is of length zero, return None
-        if len(vector) == 0:
-            return None
-
         # compute correlation matrix and return upper triangular portion
         v = (vector - vector.mean())
         covariance_matrix = np.dot(v, v.T) / np.var(vector)
         covariance = cls.get_matrix_upper(covariance_matrix)
         return covariance
 
+
+class CharacteristicLength:
+    """
+    Class for determining the characteristic length over which correlations decay.
+    """
+
+    def __init__(self, correlation, fraction_of_max=0.1):
+        """
+        Args:
+
+            correlation (SpatialCorrelation)
+
+            fraction_of_max (float) - fraction of peak correlation used to fit exponential decay
+
+        """
+
+        self.fraction_of_max = fraction_of_max
+
+        # extract correlation decay dynamics
+        xmax, x, y = self.extract_decay(correlation, fraction_of_max)
+        self.xmax = xmax
+        self.x = x
+        self.y = y
+
+        # fit exponential decay
+        popt, perr = self.fit(self.x_normed, self.y, self.model)
+        self.popt = popt
+        self.perr = perr
+
+    @property
+    def x_normed(self):
+        """ Distance vector normalized by maximum value. """
+        return self.x / self.xmax
+
+    @property
+    def yp(self):
+        """ Predicted correlation values. """
+        return self.model(self.x_normed, *self.popt)
+
+    @property
+    def characteristic_length(self):
+        """ Characteristic decay length. """
+        return self.xmax / self.popt[1]
+
+    @staticmethod
+    def extract_decay(correlation, fraction_of_max):
+        """ Extract decay. """
+
+        x = correlation.d_av
+        y = correlation.C_av
+        ymin = fraction_of_max * y.max()
+        max_idx = (y < ymin).nonzero()[0][0]
+
+        return x[max_idx], x[0:max_idx], y[0:max_idx]
+
+    @staticmethod
+    def model(x, a, b):
+        """ Exponential decay model. """
+        return a * np.exp(-b*x)
+
+    @staticmethod
+    def fit(x, y, model):
+        """ Fit exponential decay model to decay vectors. """
+        popt, pcov = curve_fit(model, x, y, p0=(1., 1.))
+        perr = np.sqrt(np.diag(pcov))
+        return popt, perr
+
+    def plot_measured(self, ax, **kwargs):
+        """ Plot measured correlation decay. """
+        ax.plot(self.x, self.y, label='Measured', **kwargs)
+
+    def plot_fit(self, ax, **kwargs):
+        """ Plot model fit. """
+        ax.plot(self.x, self.yp, label='Fit', **kwargs)
+
+    @default_figure
+    def plot(self, ax=None, **kwargs):
+        """ Plot measured correlation decay alongside model fit. """
+        self.plot_measured(ax, color='k', **kwargs)
+        self.plot_fit(ax, color='r', **kwargs)
+        ax.set_ylabel('Correlation')
+        ax.set_xlabel('Distance')

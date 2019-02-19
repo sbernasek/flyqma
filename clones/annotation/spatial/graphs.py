@@ -7,9 +7,91 @@ from collections import Counter
 
 from .triangulation import LocalTriangulation
 from .infomap import InfoMap
+from .correlation import SpatialCorrelation
 
 
-class Graph:
+class GraphProperties:
+    """ Properties for Graph objects. """
+
+    @property
+    def nodes(self):
+        """ Uniqe nodes in graph. """
+        return np.array(sorted(np.unique(self.edges)), dtype=int)
+
+    @property
+    def nodes_order(self):
+        """ Indices that sort nodes by position in self.df """
+        return np.argsort(self.position_map(self.nodes))
+
+    @property
+    def node_positions(self):
+        """ Assign 2D coordinate positions to nodes. """
+        node_positions = {}
+        for k in self.nodes:
+            i = self.position_map(k)
+            node_positions[k] = np.array([self.tri.x[i], self.tri.y[i]])
+        return node_positions
+
+    @property
+    def node_positions_arr(self):
+        """ N x 2 array of node coordinates."""
+        return np.vstack(list(self.node_positions.values()))
+
+    @property
+    def edges(self):
+        """ Distance-filtered edges. """
+        return self.node_map(self.tri.edges)
+
+    @property
+    def edge_list(self):
+        """ Distance-filtered edges as (from, to) tuples. """
+        return [(int(e[0]), int(e[1]), None) for e in self.edges]
+
+    @property
+    def adjacency(self):
+        """ Adjacency matrix ordered by <self.nodes>. """
+        return nx.to_numpy_array(self.G, nodelist=self.nodes)
+
+    @property
+    def adjacency_positional(self):
+        """ Adjacency matrix ordered by positional index in <self.df> """
+        return self.adjacency[self.nodes_order, :][:, self.nodes_order]
+
+    @property
+    def distance_matrix(self):
+        """ Euclidean distance matrix between all nodes. """
+
+        x, y = self.node_positions_arr.T
+        x = x.reshape(-1, 1)
+        y = y.reshape(-1, 1)
+        x_component = np.repeat(x**2, x.size, axis=1) + np.repeat(x.T**2, x.size, axis=0) - 2*np.dot(x, x.T)
+        y_component = np.repeat(y**2, y.size, axis=1) + np.repeat(y.T**2, y.size, axis=0) - 2*np.dot(y, y.T)
+
+        return np.sqrt(x_component + y_component)
+
+    @staticmethod
+    def get_matrix_upper(matrix):
+        """
+        Return upper triangular portion of a 2-D matrix.
+
+        Parameters:
+
+            matrix (2D np.ndarray)
+
+        Returns:
+
+            upper (1D np.ndarray) - upper triangle, ordered row then column
+
+        """
+        return matrix[np.triu_indices(len(matrix), k=1)]
+
+    @property
+    def distances_vector(self):
+        """ Upper triangular portion of euclidean distance matrix. """
+        return self.get_matrix_upper(self.distance_matrix)
+
+
+class Graph(GraphProperties):
     """
     Object provides an undirected unweighted graph connecting adjacent cells.
 
@@ -48,45 +130,6 @@ class Graph:
         # build networkx graph instance
         self.G = self.get_networkx()
 
-    @property
-    def nodes(self):
-        """ Uniqe nodes in graph. """
-        return np.array(sorted(np.unique(self.edges)), dtype=int)
-
-    @property
-    def nodes_order(self):
-        """ Indices that sort nodes by position in self.df """
-        return np.argsort(self.position_map(self.nodes))
-
-    @property
-    def node_positions(self):
-        """ Assign 2D coordinate positions to nodes. """
-        node_positions = {}
-        for k in self.nodes:
-            i = self.position_map(k)
-            node_positions[k] = np.array([self.tri.x[i], self.tri.y[i]])
-        return node_positions
-
-    @property
-    def edges(self):
-        """ Distance-filtered edges. """
-        return self.node_map(self.tri.edges)
-
-    @property
-    def edge_list(self):
-        """ Distance-filtered edges as (from, to) tuples. """
-        return [(int(e[0]), int(e[1]), None) for e in self.edges]
-
-    @property
-    def adjacency(self):
-        """ Adjacency matrix ordered by <self.nodes>. """
-        return nx.to_numpy_array(self.G, nodelist=self.nodes)
-
-    @property
-    def adjacency_positional(self):
-        """ Adjacency matrix ordered by positional index in <self.df> """
-        return self.adjacency[self.nodes_order, :][:, self.nodes_order]
-
     def get_subgraph(self, ind):
         """ Instantiate subgraph from DataFrame indices. """
         return Graph(self.df.loc[ind])
@@ -110,6 +153,10 @@ class Graph:
                 nx.set_node_attributes(G, name=attr, values=values_dict)
 
         return G
+
+    def get_correlations(self, attribute, log=True):
+        """ Returns SpatialCorrelation object for <attribute>. """
+        return SpatialCorrelation(self, attribute, log=log)
 
     @staticmethod
     def _construct_triangulation(df, **kwargs):
