@@ -7,7 +7,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from ..utilities.io import IO
-from ..annotation.classifiers import CellClassifier
+#from ..annotation.classifiers import CellClassifier
 from .layers import Layer
 
 

@@ -17,6 +17,8 @@ class Graph:
 
         df (pd.DataFrame) - cell measurement data (nodes)
 
+        G (nx.Graph) - undirected graph instance
+
         nodes (np.ndarray[int]) - node indices
 
         edges (np.ndarray[int]) - pairs of connected node indices
@@ -43,10 +45,18 @@ class Graph:
         # triangulate
         self.tri = self._construct_triangulation(data)
 
+        # build networkx graph instance
+        self.G = self.get_networkx()
+
     @property
     def nodes(self):
         """ Uniqe nodes in graph. """
         return np.array(sorted(np.unique(self.edges)), dtype=int)
+
+    @property
+    def nodes_order(self):
+        """ Indices that sort nodes by position in self.df """
+        return np.argsort(self.position_map(self.nodes))
 
     @property
     def node_positions(self):
@@ -66,6 +76,16 @@ class Graph:
     def edge_list(self):
         """ Distance-filtered edges as (from, to) tuples. """
         return [(int(e[0]), int(e[1]), None) for e in self.edges]
+
+    @property
+    def adjacency(self):
+        """ Adjacency matrix ordered by <self.nodes>. """
+        return nx.to_numpy_array(self.G, nodelist=self.nodes)
+
+    @property
+    def adjacency_positional(self):
+        """ Adjacency matrix ordered by positional index in <self.df> """
+        return self.adjacency[self.nodes_order, :][:, self.nodes_order]
 
     def get_subgraph(self, ind):
         """ Instantiate subgraph from DataFrame indices. """
@@ -210,7 +230,12 @@ class Graph:
             assert self.df[colorby].dtype in (np.integer, int), msg
 
         # construct graph
-        G = self.get_networkx(colorby)
+        if colorby is not None:
+            G = self.get_networkx(colorby)
+        else:
+            G = self.G
+
+        # disconnect nodes not sharing the <colorby> attribute
         if disconnect:
             is_different = lambda u,v: G.node[u][colorby] != G.node[v][colorby]
             removed_edges = [edge for edge in G.edges if is_different(*edge)]
@@ -267,11 +292,14 @@ class WeightedGraph(Graph):
 
         """
 
-        super().__init__(data)
+        # set attributes
         self.weighted_by = weighted_by
-        self.community_labels = None
         self.logratio = logratio
         self.distance = distance
+
+        # instantiate graph
+        super().__init__(data)
+        self.community_labels = None
 
     @property
     def edge_list(self):
@@ -299,20 +327,23 @@ class WeightedGraph(Graph):
                             distance=self.distance)
         return wf.assess_weights(self.edges, logratio=self.logratio)
 
-    def find_communities(self, **kwargs):
+    def find_communities(self, level=None, **kwargs):
         """
         Assign communities using InfoMap clustering.
 
-        kwargs: keyword arguments for InfoMap (default is two-level)
+        Args:
+
+            depth (int) - module level at which aggregation occurs
+
+            kwargs: keyword arguments for InfoMap (default is two-level)
 
         """
         community_detector = InfoMap(self.edge_list, **kwargs)
-        labels = community_detector(self.nodes)
+        labels = community_detector(self.nodes, level)
         self.community_labels = labels
 
         # add labels to dataframe
         index = np.arange(len(self.df))
-        #self.df.iloc[index, 'community'] = labels[self.node_map(index)]
         self.df['community'] = labels[self.node_map(index)]
 
 

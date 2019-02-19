@@ -77,7 +77,7 @@ class MixtureVisualization:
 
     @figure
     def plot_data(self, log=True, ax=None, **kwargs):
-        """ Plots PDF for mixture model as well as each weighted component. """
+        """ Plot binned values. """
 
         if log:
             data = self.values
@@ -181,7 +181,9 @@ class BivariateVisualization:
 
         return fig
 
-    def scatter(self, ax, **kwargs):
+    @figure
+    def plot_data(self, ax=None, **kwargs):
+        """ Scatter datapoints on <ax>. """
         ax.scatter(*self.values.T, **kwargs)
 
     def format_joint_ax(self, ax):

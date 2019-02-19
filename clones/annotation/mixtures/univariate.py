@@ -7,55 +7,33 @@ from sklearn.mixture import GaussianMixture
 from .visualization import MixtureVisualization
 
 
-"""
-    Univariate mixed log-normal model classifier.
-
-    Attributes:
-
-        model (mixtures.UnivariateMixture) - frozen univariate mixture model
-
-        weights (np.ndarray[float]) - 1D array of component weights
-
-    Inherited attributes:
-
-        values (array like) - basis for clustering
-
-        log (bool) - indicates whether clustering performed on log values
-
-        n (int) - number of clusters
-
-        num_labels (int) - number of output labels
-
-        classifier (vectorized func) - maps value to group_id
-
-        labels (np.ndarray[int]) - predicted labels
-
-        cmap (matplotlib.colors.ColorMap) - colormap for group_id
-
-        parameters (dict) - {param name: param value} pairs
-
-        fig (matplotlib.figures.Figure) - histogram figure
-
-    """
-
-
-
 class MixtureProperties:
+    """ Properties for guassian mixture models. """
+
+    @property
+    def means(self):
+        """ Mean value of each component. """
+        return self.means_[:, 0].ravel()
+
+    @property
+    def stds(self):
+        """ Standard deviation of each component. """
+        return np.sqrt(self.covariances_[:, 0].ravel())
 
     @property
     def lbound(self):
         """ Lower bound of support. """
-        return np.percentile(self.values, q=0.1)
+        return np.percentile(self.values[:, 0], q=0.1)
 
     @property
     def ubound(self):
         """ Upper bound of support. """
-        return np.percentile(self.values, q=99.9)
+        return np.percentile(self.values[:, 0], q=99.9)
 
     @property
     def bounds(self):
         """ Low and upper bounds of support. """
-        return np.percentile(self.values, q=[.1, 99.9])
+        return np.percentile(self.values[:, 0], q=[.1, 99.9])
 
     @property
     def support(self):
@@ -66,16 +44,6 @@ class MixtureProperties:
     def num_components(self):
         """ Number of model components. """
         return self.n_components
-
-    @property
-    def means(self):
-        """ Mean value of each component. """
-        return self.means_.ravel()
-
-    @property
-    def stds(self):
-        """ Standard deviation of each component. """
-        return np.sqrt(self.covariances_.ravel())
 
     @property
     def log_likelihood(self):
@@ -136,7 +104,18 @@ class MixtureProperties:
 class UnivariateMixture(GaussianMixture,
                         MixtureProperties,
                         MixtureVisualization):
-    """ Class for representing a Gaussian mixture model. """
+    """
+    Univariate Gaussian mixture model.
+
+    Attributes:
+
+        values (array like) - values to which model was fit
+
+    Inherited attributes:
+
+        See sklearn.mixture.GaussianMixture
+
+    """
 
     dim = 1
 

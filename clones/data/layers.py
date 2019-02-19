@@ -12,10 +12,10 @@ from collections import Counter
 from .images import ImageRGB
 from ..measurement.segmentation import Segmentation
 from ..measurement.measure import Measurements
-from ..spatial.graphs import WeightedGraph
-from ..annotation.community import InfomapLabeler
+from ..annotation.spatial.graphs import WeightedGraph
+from ..annotation.spatial.community import InfomapLabeler
 from ..annotation.labelers import CelltypeLabeler
-from ..annotation.concurrency import ConcurrencyLabeler
+from ..annotation.spatial.concurrency import ConcurrencyLabeler
 from ..annotation.visualization import CloneBoundaries
 from ..bleedthrough.correction import LayerCorrection
 from ..utilities.io import IO

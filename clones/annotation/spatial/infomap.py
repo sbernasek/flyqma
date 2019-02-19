@@ -14,6 +14,8 @@ class InfoMap:
 
         classifier (vectorized func) - maps nodes to modules
 
+        aggregator (CommunityAggregator)
+
     """
 
     def __init__(self, edges, **kwargs):
@@ -33,10 +35,11 @@ class InfoMap:
         node_to_module, classifier = self.build_classifier()
         self.node_to_module = node_to_module
         self.classifier = classifier
+        self.aggregator = CommunityAggregator(self.infomap)
 
-    def __call__(self, x):
+    def __call__(self, x, level=None):
         """ Returns predicted class labels for values. """
-        return self.classifier(x)
+        return self.aggregator(self.classifier(x), level)
 
     @staticmethod
     def build_network(edges, twolevel=False):
@@ -91,3 +94,58 @@ class InfoMap:
         for node in self.infomap.iterLeafNodes():
             node_to_module[node.physicalId] = node.moduleIndex()
         return node_to_module, np.vectorize(node_to_module.get)
+
+
+class CommunityAggregator:
+    """ Tool for hierarchical aggregation of communities. """
+
+    def __init__(self, infomap):
+        self.infomap = infomap
+        self.max_depth = self.infomap.maxTreeDepth()
+
+    def __getitem__(self, depth):
+        """ Returns dictionary mapping low level modules to higher modules. """
+        return self.group_modules(depth)
+
+    def __call__(self, modules, level=None):
+        return self.group(modules, level)
+
+    @property
+    def module_to_paths(self):
+        return {m.moduleIndex(): m.path() for m in self.infomap.iterModules() if m.isLeafModule()}
+
+    @property
+    def node_to_leaf_module(self):
+        return {n.physical_Id: n.moduleIndex() for n in self.infomap.iterLeafNodes()}
+
+    @staticmethod
+    def consolidate_values(adict):
+        value_to_unique = {v:k for k,v in dict(enumerate(set(list(adict.values())))).items()}
+        return {k: value_to_unique[v] for k,v in adict.items()}
+
+    def group_modules(self, depth):
+        module_to_cut_path = {m: self._cut_path(p, depth) for m, p in self.module_to_paths.items()}
+        module_to_cut_module = self.consolidate_values(module_to_cut_path)
+        return module_to_cut_module
+
+    def _cut_path(self, path, depth):
+
+        if len(path) <= depth:
+            return path
+
+        elif len(path)-1 == depth:
+            return path[:-1]
+
+        else:
+            return self._cut_path(path[:-1], depth)
+
+    def group(self, modules, level=0):
+
+        if level is None:
+            level = 0
+
+        depth = self.max_depth - level - 1
+
+        module_map = np.vectorize(self.group_modules(depth).get)
+
+        return module_map(modules)

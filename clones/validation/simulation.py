@@ -5,7 +5,7 @@ from matplotlib.colors import Normalize
 from ..annotation.bayesian import BayesianClassifier
 from ..annotation.model_selection import ModelSelection
 from ..annotation.community import InfomapLabeler, KatzLabeler
-from ..spatial.graphs import WeightedGraph
+from ..annotation.spatial.graphs import WeightedGraph
 from .scoring import Scoring
 
 # import warnings

@@ -10,6 +10,14 @@ class MixtureVisualization:
     """ Methods for visualizing a mixture-model based classifier. """
 
     @property
+    def label_colors(self):
+        """ RGB color for each class label. """
+        component_to_label = np.vectorize(self.component_to_label.get)
+        labels = component_to_label(np.arange(self.num_components))
+        label_colors = self.cmap(labels)[:, :-1]
+        return label_colors
+
+    @property
     def support(self):
         """ Model support. """
         return self.model.support
@@ -216,22 +224,41 @@ class BivariateMixtureVisualization:
 
         pdfs = self.model.component_pdfs
 
-        # define label colors
-        component_to_label = np.vectorize(self.component_to_label.get)
-        labels = component_to_label(np.arange(self.num_components))
-        label_colors = self.cmap(labels)[:, :-1]
-
         # plot each bivariate pdf, colored by label
         norm = Normalize(pdfs.min(), pdfs.max())
         fig.ax_joint.set_facecolor(bg)
         for idx, pdf in enumerate(pdfs):
-            ccm = build_transparent_cmap(label_colors[idx], bg=bg)
+            ccm = build_transparent_cmap(self.label_colors[idx], bg=bg)
             fig.ax_joint.imshow(norm(pdf), cmap=ccm, extent=self.model.extent)
 
         # plot marginal pdfs
-        self.model.plot_margin(0, ax=fig.ax_xmargin, component_color=label_colors)
-        self.model.plot_margin(1, invert=True, ax=fig.ax_ymargin, component_color=label_colors)
+        self.model.plot_margin(0, ax=fig.ax_xmargin, component_color=self.label_colors)
+        self.model.plot_margin(1, invert=True, ax=fig.ax_ymargin, component_color=self.label_colors)
 
+        fig.ax_xmargin.set_xlim(self.model.lbound, self.model.ubound)
+        fig.ax_ymargin.set_ylim(self.model.lbound, self.model.ubound)
+
+        return fig
+
+    @joint_figure
+    def plot_bivariate_data(self, fig, bg='w', **kwargs):
+        """ Plot bivariate data, with each sample shaded by its label. """
+
+        # define label colors
+        marker_labels = self.classifier(self.model.values)
+        marker_colors = self.cmap(marker_labels)[:, :-1]
+
+        # plot each bivariate pdf, colored by label
+        fig.ax_joint.set_facecolor(bg)
+        self.model.plot_data(ax=fig.ax_joint, c=marker_colors, **kwargs)
+        fig.ax_joint.set_xlim(self.model.lbound, self.model.ubound)
+        fig.ax_joint.set_ylim(self.model.lbound, self.model.ubound)
+        fig.ax_joint.invert_yaxis()
+        fig.ax_joint.set_yticks(fig.ax_joint.get_xticks())
+
+        # plot marginal pdfs
+        self.model.plot_margin(0, ax=fig.ax_xmargin, component_color=self.label_colors)
+        self.model.plot_margin(1, invert=True, ax=fig.ax_ymargin, component_color=self.label_colors)
         fig.ax_xmargin.set_xlim(self.model.lbound, self.model.ubound)
         fig.ax_ymargin.set_ylim(self.model.lbound, self.model.ubound)
 
@@ -245,14 +272,9 @@ class BivariateMixtureVisualization:
         labels = labels.reshape(self.model.support_size)
         fig.ax_joint.imshow(self.cmap(labels))
 
-        # define label colors
-        component_to_label = np.vectorize(self.component_to_label.get)
-        component_labels = component_to_label(np.arange(self.num_components))
-        label_colors = self.cmap(component_labels)[:, :-1]
-
         # plot marginal pdfs
-        self.model.plot_margin(0, ax=fig.ax_xmargin, component_color=label_colors)
-        self.model.plot_margin(1, invert=True, ax=fig.ax_ymargin, component_color=label_colors)
+        self.model.plot_margin(0, ax=fig.ax_xmargin, component_color=self.label_colors)
+        self.model.plot_margin(1, invert=True, ax=fig.ax_ymargin, component_color=self.label_colors)
 
         fig.ax_xmargin.set_xlim(self.model.lbound, self.model.ubound)
         fig.ax_ymargin.set_ylim(self.model.lbound, self.model.ubound)

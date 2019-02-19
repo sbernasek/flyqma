@@ -5,7 +5,7 @@ from scipy.spatial import Voronoi
 from matplotlib.collections import PolyCollection
 
 from matplotlib.colors import Normalize
-from ..spatial.alpha import AlphaShapes
+from .spatial.alpha import AlphaShapes
 
 
 class CloneBoundaries:

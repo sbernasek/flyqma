@@ -11,17 +11,11 @@ class BivariateMixtureProperties:
     """ Extension properties for bivariate mixtures. """
 
     @property
-    def means(self):
-        return self.means_[:, 0].ravel()
-
-    @property
-    def stds(self):
-        return np.sqrt(self.covariances_[:, 0].ravel())
-
-    @property
     def supportx(self):
-        max_val = np.percentile(self.values[:, 0], q=99.9)
-        return np.linspace(self.values[:, 0].min(), max_val, num=100)
+        """ Support for first dimension. """
+        return super().support
+        #max_val = np.percentile(self.values[:, 0], q=99.9)
+        #return np.linspace(self.values[:, 0].min(), max_val, num=100)
 
     @property
     def supporty(self):
@@ -34,7 +28,8 @@ class BivariateMixtureProperties:
 
     @property
     def extent(self):
-        return np.array([self.supportx.min(), self.supportx.max(), self.supporty.max(), self.supporty.min()])
+        """ Extent for x and y axes. """
+        return np.array([self.lbound, self.ubound, self.ubound, self.lbound])
 
     @property
     def scale_factor(self):
@@ -50,9 +45,18 @@ class BivariateMixtureProperties:
 
 
 class BivariateMixture(BivariateMixtureProperties,
-                       UnivariateMixture,
-                       BivariateVisualization):
-    """ Class for representing a bivariate Gaussian mixture model. """
+                       BivariateVisualization,
+                       UnivariateMixture):
+    """
+    Bivariate Gaussian mixture model.
+
+    Inherited attributes:
+
+        values (array like) - values to which model was fit
+
+        See sklearn.mixture.GaussianMixture
+
+    """
 
     dim = 2
 
@@ -105,6 +109,4 @@ class BivariateMixture(BivariateMixtureProperties,
             pdf *= self.weights_[idx]
 
         return pdf
-
-
 

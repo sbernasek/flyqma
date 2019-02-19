@@ -247,7 +247,7 @@ class Classifier(ClassifierProperties):
         """ Visualize classification. """
         pass
 
-    def set_cmap(self, cmap=None):
+    def set_cmap(self, cmap=None, vmin=0, vmax=None):
         """
         Set colormap for class labels.
 
@@ -255,14 +255,21 @@ class Classifier(ClassifierProperties):
 
             cmap (matplotlib.colormap)
 
+            vmin (int) - lower bound for color scale
+
+            vmax (int) - upper bound for color scale
+
         """
 
         # select colormap
         if cmap is None:
             cmap = plt.cm.viridis
 
+        if vmax is None:
+            vmax = self.num_labels - 1
+
         # normalize
-        norm = Normalize(vmin=0, vmax=self.num_labels-1)
+        norm = Normalize(vmin=vmin, vmax=vmax)
         self.cmap = lambda x: cmap(norm(x))
 
     def build_colormap(self, cmap, vmin=-1):
