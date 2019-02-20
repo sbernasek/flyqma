@@ -1,13 +1,70 @@
+from os.path import join, exists
+from os import mkdir
+import pickle
 from copy import deepcopy
 import numpy as np
 import matplotlib.pyplot as plt
 
-from .classifiers import Classifier
+from ...utilities.io import IO
+
+from .classifiers import Classifier, ClassifierIO
 from ..mixtures import UnivariateMixture, BivariateMixture
 from .visualization import MixtureVisualization, BivariateMixtureVisualization
 
 
-class MixtureModelClassifier(Classifier, MixtureVisualization):
+class MixtureModelIO(ClassifierIO):
+    """
+    Methods for saving and loading classifier objects.
+    """
+
+    def save(self, dirpath, image=True, **kwargs):
+        """
+        Save classifier to specified path.
+
+        Args:
+
+            dirpath (str) - directory in which classifier is to be saved
+
+            image (bool) - if True, save labeled histogram image
+
+            kwargs: keyword arguments for image rendering
+
+        """
+        path = super().save(dirpath, image, **kwargs)
+
+        # save model
+        if self.model is not None:
+            with open(join(path, 'model.pkl'), 'wb') as file:
+                pickle.dump(file, self.model)
+
+        return path
+
+    @classmethod
+    def load(cls, path):
+        """
+        Load classifier from file.
+
+        Args:
+
+            path (str) - path to classifier directory
+
+        Returns:
+
+            classifier (Classifier derivative)
+
+        """
+        io = IO()
+        values = io.read_npy(join(path, 'values.npy'))
+        parameters = io.read_json(join(path, 'parameters.json'))
+
+        # load model
+        with open(join(path, 'model.pkl'), 'rb') as file:
+            model = pickle.load(file)
+
+        return cls(values, model=model, **parameters)
+
+
+class MixtureModelClassifier(MixtureModelIO, Classifier, MixtureVisualization):
     """
     Univariate mixed log-normal model classifier.
 
@@ -67,6 +124,7 @@ class MixtureModelClassifier(Classifier, MixtureVisualization):
         # instantiate classifier
         super().__init__(values, num_labels=num_labels, log=True, **kwargs)
         self.parameters['num_components'] = num_components
+        self.parameters['fit_kw'] = fit_kw
 
         # fit model
         if model is None:

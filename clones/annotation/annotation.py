@@ -1,14 +1,82 @@
+from os.path import join, exists
+from os import mkdir
 from copy import deepcopy
 import numpy as np
 import networkx as nx
 from collections import Counter
 
-from .spatial.sampling import NeighborSampler, CommunitySampler
-from .labelers import AttributeLabeler
+from .spatial.sampling import NeighborSampler, CommunitySampler, RadialSampler
+from .classification.mixtures import BivariateMixtureClassifier
 from .model_selection import BivariateModelSelection
 
+from ..utilities.io import IO
 
-class Annotation(AttributeLabeler):
+
+class AnnotationIO:
+    """
+    Methods for saving and loading an Annotation instance.
+    """
+
+    @property
+    def parameters(self):
+        """ Dictionary of parameter values. """
+        return {k:v for k,v in self.__dict__.items() if k != 'classifier'}
+
+    def save(self, dirpath, image=False, **kwargs):
+        """
+        Save annotator to specified path.
+
+        Args:
+
+            dirpath (str) - directory in which annotator is to be saved
+
+            image (bool) - if True, save classifier image
+
+            kwargs: keyword arguments for image rendering
+
+        """
+
+        # save parameters
+        io = IO()
+        io.write_json(join(dirpath, 'annotation.json'), self.parameters)
+
+        # save classifier
+        if self.classifier is not None:
+            self.classifier.save(dirpath, image=image, **kwargs)
+
+    @classmethod
+    def load(cls, path):
+        """
+        Load annotator from file.
+
+        Args:
+
+            path (str) - path to annotation directory
+
+        Returns:
+
+            annotator (Annotation derivative)
+
+        """
+
+        io = IO()
+
+        # load parameters
+        parameters = io.read_json(join(path, 'annotation.json'))
+        attribute = parameters.pop('attribute')
+
+        # instantiate annotator
+        annotator = cls(attribute, **parameters)
+
+        # load classifier
+        classifier_path = join(path, 'classifier')
+        if exists(classifier_path):
+            annotator.classifier = BivariateMixtureClassifier.load(classifier_path)
+
+        return annotator
+
+
+class Annotation(AnnotationIO):
     """
     Object for assigning labels to measurements. Object is trained on one or more graphs by fitting a bivariate mixture model and using a model selection procedure to select an optimal number of components.
 
@@ -18,21 +86,27 @@ class Annotation(AttributeLabeler):
 
         classifier (Classifier derivative) - callable object
 
-    Inherited attributes:
+        attribute (str) - cell attribute used to determine labels
 
-        label (str) - name of label field to be added
+    Parameters:
 
-        attribute (str) - existing cell attribute used to determine labels
+        sampler_type (str) - either 'radial', 'neighbors', 'community'
+
+        sampler_kwargs (dict) - keyword arguments for sampler
+
+        min_num_components (int) - minimum number of mixture components
+
+        max_num_components (int) - maximum number of mixture components
+
+        kwargs: keyword arguments for Classifier
 
     """
 
     def __init__(self, attribute,
-                 label='genotype',
-                 sampler_type='neighbors',
+                 sampler_type='radial',
                  sampler_kwargs={},
                  min_num_components=3,
-                 max_num_components=8,
-                 **kwargs):
+                 max_num_components=5):
         """
         Instantiate annotation object.
 
@@ -40,9 +114,7 @@ class Annotation(AttributeLabeler):
 
             attribute (str) - name of attribute used to classify cells
 
-            label (str) - name of label attribute to be added
-
-            sampler_type (str) - either 'neighbors' or 'community'
+            sampler_type (str) - either 'radial', 'neighbors', 'community'
 
             sampler_kwargs (dict) - keyword arguments for sampler
 
@@ -50,23 +122,19 @@ class Annotation(AttributeLabeler):
 
             max_num_components (int) - maximum number of mixture components
 
-            kwargs: keyword arguments for Classifier
-
         """
         self.attribute = attribute
-        self.label = label
         self.sampler_type = sampler_type
         self.sampler_kwargs = sampler_kwargs
         self.min_num_components = min_num_components
         self.max_num_components = max_num_components
-        self.kwargs = kwargs
 
-    def __call__(self, graph):
-        """ Annotate graph of measurements. """
-        return self.annotate(graph)
+    def __call__(self, graph, **kwargs):
+        """ Returns labels for a graph of measurements. """
+        return self.annotate(graph, **kwargs)
 
     @classmethod
-    def from_data(cls, data, attribute, label, **kwargs):
+    def from_data(cls, data, attribute, **kwargs):
         """
         Instantiate annotation object from measurement data.
 
@@ -85,22 +153,20 @@ class Annotation(AttributeLabeler):
             annotator (Annotation derivative)
 
         """
-        annotator = cls(attribute, label, **kwargs)
+        annotator = cls(attribute, **kwargs)
         annotator.train(WeightedGraph(data, attribute))
         return annotator
 
     @classmethod
-    def from_layer(cls, layer, attribute, label, **kwargs):
+    def from_layer(cls, layer, attribute, **kwargs):
         """
         Instantiate from layer.
 
         Args:
 
-            layer (data.Layer)
+            layer (data.Layer) - image layer instance
 
             attribute (str) - name of attribute used to classify cells
-
-            label (str) - name of label attribute to be added
 
             kwargs: keyword arguments for Annotation
 
@@ -109,7 +175,7 @@ class Annotation(AttributeLabeler):
             annotator (Annotation derivative)
 
         """
-        annotator = cls(attribute, label, **kwargs)
+        annotator = cls(attribute, **kwargs)
         annotator.train(layer.graph)
         return annotator
 
@@ -131,15 +197,23 @@ class Annotation(AttributeLabeler):
         """
 
         # generate sample
-        if self.sampler_type == 'community':
+        if self.sampler_type == 'radial':
+            data, keys = RadialSampler.multisample(self.attribute,
+                                                *graphs,
+                                                **self.sampler_kwargs)
+
+        elif self.sampler_type == 'community':
             data, keys = CommunitySampler.multisample(self.attribute,
                                                 *graphs,
                                                 **self.sampler_kwargs)
 
-        else:
+        elif self.sampler_type == 'neighbors':
             data, keys = NeighborSampler.multisample(self.attribute,
                                                *graphs,
                                                **self.sampler_kwargs)
+
+        else:
+            raise ValueError('Sampler type ''{:s}'' not recognized.'.format(self.sampler_type))
 
         # run model selection
         selector = BivariateModelSelection(data,
@@ -152,6 +226,43 @@ class Annotation(AttributeLabeler):
 
         return selector
 
+    def get_sampler(self, graph, sampler_type=None, sampler_kwargs=None):
+        """
+        Instantiate sampler.
+
+        Args:
+
+            graph (spatial.WeightedGraph)
+
+            sampler_type (str) - either 'radial', 'neighbors' or 'community'
+
+            sampler_kwargs (dict) - keyword arguments for sampling
+
+        Returns:
+
+            sampler
+
+        """
+
+        # use default sampler configuration if none is specified
+        if sampler_type is None:
+            sampler_type = self.sampler_type
+
+        if sampler_kwargs is None:
+            sampler_kwargs = self.sampler_kwargs
+
+        # instantiate sampler
+        if sampler_type == 'radial':
+            sampler = RadialSampler(graph, self.attribute, **sampler_kwargs)
+        elif sampler_type == 'community':
+            sampler = CommunitySampler(graph, self.attribute, **sampler_kwargs)
+        elif sampler_type == 'neighbors':
+            sampler = NeighborSampler(graph, self.attribute, **sampler_kwargs)
+        else:
+            raise ValueError('Sampler type ''{:s}'' not recognized.'.format(sampler_type))
+
+        return sampler
+
     def get_sample(self, graph, sampler_type, sampler_kwargs):
         """
         Get sample to be annotated. A sample consists of a columns of measured levels adjoined to a column of levels averaged over the neighborhood of each measurement.
@@ -160,7 +271,7 @@ class Annotation(AttributeLabeler):
 
             graph (spatial.WeightedGraph)
 
-            sampler_type (str) - either 'neighbors' or 'community'
+            sampler_type (str) - either 'radial', 'neighbors' or 'community'
 
             sampler_kwargs (dict) - keyword arguments for sampling
 
@@ -170,17 +281,8 @@ class Annotation(AttributeLabeler):
 
         """
 
-        # use default sampler configuration if none is specified
-        if sampler_type is None:
-            sampler_type = self.sampler_type
-        if sampler_kwargs is None:
-            sampler_kwargs = self.sampler_kwargs
-
         # instantiate sampler
-        if sampler_type == 'community':
-            sampler = CommunitySampler(graph, self.attribute, **sampler_kwargs)
-        else:
-            sampler = NeighborSampler(graph, self.attribute, **sampler_kwargs)
+        sampler = self.get_sampler(graph, sampler_type, sampler_kwargs)
 
         # generate sample
         sample = sampler.sample
@@ -280,7 +382,7 @@ class Annotation(AttributeLabeler):
 
             alpha (float) - attenuation factor
 
-            sampler_type (str) - either 'neighbors' or 'community'
+            sampler_type (str) - either 'radial', 'neighbors' or 'community'
 
             sampler_kwargs (dict) - keyword arguments for sampling
 

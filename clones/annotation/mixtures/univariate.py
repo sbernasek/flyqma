@@ -160,7 +160,7 @@ class UnivariateMixture(GaussianMixture,
         """ Instantiate model from parameter vectors. """
 
         model = cls(len(mu), values=values, covariance_type='diag', **kwargs)
-        model.fit(np.random.rand(5, 1))  # train on false data
+        model.fit(np.random.rand(50, 1))  # train on false data
 
         if type(mu) == list:
             mu = np.array(mu).reshape(-1, 1)

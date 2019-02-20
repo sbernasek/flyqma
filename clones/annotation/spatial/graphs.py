@@ -10,8 +10,8 @@ from .infomap import InfoMap
 from .correlation import SpatialCorrelation
 
 
-class GraphProperties:
-    """ Properties for Graph objects. """
+class TopologicalProperties:
+    """ Topological properties for Graph objects. """
 
     @property
     def nodes(self):
@@ -22,20 +22,6 @@ class GraphProperties:
     def nodes_order(self):
         """ Indices that sort nodes by position in self.df """
         return np.argsort(self.position_map(self.nodes))
-
-    @property
-    def node_positions(self):
-        """ Assign 2D coordinate positions to nodes. """
-        node_positions = {}
-        for k in self.nodes:
-            i = self.position_map(k)
-            node_positions[k] = np.array([self.tri.x[i], self.tri.y[i]])
-        return node_positions
-
-    @property
-    def node_positions_arr(self):
-        """ N x 2 array of node coordinates."""
-        return np.vstack(list(self.node_positions.values()))
 
     @property
     def edges(self):
@@ -56,6 +42,24 @@ class GraphProperties:
     def adjacency_positional(self):
         """ Adjacency matrix ordered by positional index in <self.df> """
         return self.adjacency[self.nodes_order, :][:, self.nodes_order]
+
+
+class SpatialProperties:
+    """ Spatial properties for Graph objects. """
+
+    @property
+    def node_positions(self):
+        """ Assign 2D coordinate positions to nodes. """
+        node_positions = {}
+        for k in self.nodes:
+            i = self.position_map(k)
+            node_positions[k] = np.array([self.tri.x[i], self.tri.y[i]])
+        return node_positions
+
+    @property
+    def node_positions_arr(self):
+        """ N x 2 array of node coordinates."""
+        return np.vstack(list(self.node_positions.values()))
 
     @property
     def distance_matrix(self):
@@ -86,12 +90,52 @@ class GraphProperties:
         return matrix[np.triu_indices(len(matrix), k=1)]
 
     @property
-    def distances_vector(self):
+    def unique_distances(self):
         """ Upper triangular portion of euclidean distance matrix. """
         return self.get_matrix_upper(self.distance_matrix)
 
+    @staticmethod
+    def evaluate_fluctuations(values):
+        """
+        Construct pairwise fluctuation matrix for <values>.
 
-class Graph(GraphProperties):
+        Args:
+
+            values (1D np.ndarray[float]) - attribute values
+
+        Returns:
+
+            fluctuations (2D np.ndarray[float]) - pairwise fluctuations
+
+        """
+
+        # compute correlation matrix and return upper triangular portion
+        v = (values - values.mean())
+        fluctuations = np.dot(v, v.T) / np.var(values)
+        return fluctuations
+
+    def get_fluctuations_matrix(self, attribute, log=True):
+        """
+        Returns normalized pairwise fluctuations of <attribute> value for each node in the graph.
+
+        Args:
+
+            attribute (str) - name of attribute
+
+            log (bool) - if True, log-transform attribute values
+
+        Returns:
+
+            fluctuations (2D np.ndarray[float]) - pairwise fluctuations
+
+        """
+        attribute_values = self.df[attribute].values.reshape(-1, 1)
+        if log:
+            attribute_values = np.log(attribute_values)
+        return self.evaluate_fluctuations(attribute_values)
+
+
+class Graph(TopologicalProperties, SpatialProperties):
     """
     Object provides an undirected unweighted graph connecting adjacent cells.
 
@@ -155,8 +199,24 @@ class Graph(GraphProperties):
         return G
 
     def get_correlations(self, attribute, log=True):
-        """ Returns SpatialCorrelation object for <attribute>. """
-        return SpatialCorrelation(self, attribute, log=log)
+        """
+        Returns SpatialCorrelation object for <attribute>.
+
+        Args:
+
+            attribute (str) - name of attribute
+
+            log (bool) - if True, log-transform attribute values
+
+        Returns:
+
+            correlations (SpatialCorrelation)
+
+        """
+        d_ij = self.unique_distances
+        C = self.get_fluctuations_matrix(attribute, log=log)
+        C_ij = self.get_matrix_upper(C)
+        return SpatialCorrelation(d_ij, C_ij)
 
     @staticmethod
     def _construct_triangulation(df, **kwargs):
@@ -521,9 +581,9 @@ class GraphVisualization:
 
     def draw(self,
              ax=None,
-             colorby='community',
-             edge_color=None,
-             node_color=None,
+             colorby=None,
+             edge_color='k',
+             node_color='k',
              cmap=None,
              **kwargs):
         """

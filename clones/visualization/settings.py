@@ -17,6 +17,20 @@ def default_figure(func):
     return wrapper
 
 
+def square_figure(func):
+    """ Decorator for creating square axis without spines. """
+    def wrapper(*args, ax=None, figsize=(2., 2.), **kwargs):
+        if ax is None:
+            fig, ax = plt.subplots(figsize=figsize)
+            ax.spines['top'].set_visible(False)
+            ax.spines['right'].set_visible(False)
+        output = func(*args, ax=ax, **kwargs)
+        ax.set_aspect(1)
+        ax.axis('off')
+        return output
+    return wrapper
+
+
 def joint_figure(func):
     """ Decorator for creating joint distribution figure. """
 

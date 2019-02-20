@@ -73,11 +73,15 @@ class CelltypeLabeler(AttributeLabeler):
 
     """
 
-    def __init__(self, labels=None):
+    def __init__(self, label='celltype', attribute='genotype', labels=None):
         """
         Instantiate celltype labeler.
 
         Args:
+
+            label (str) - name of label attribute to be added
+
+            attribute (str) - existing cell attribute used to determine labels
 
             labels (dict) - {genotype value: label} pairs
 
@@ -86,4 +90,5 @@ class CelltypeLabeler(AttributeLabeler):
         # use default genotype labels
         if labels is None:
             labels = {0:'m', 1:'h', 2:'w', -1:'none'}
-        super().__init__('celltype', 'genotype', labels)
+
+        super().__init__(label, attribute, labels)

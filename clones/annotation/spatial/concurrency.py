@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.spatial.distance import cdist
 
-from .labelers import AttributeLabeler
+from ..labelers import AttributeLabeler
 
 
 class ConcurrencyLabeler(AttributeLabeler):

@@ -16,6 +16,16 @@ class CorrelationProperties:
     window_frac = 0.01
 
     @property
+    def num_fluctuations(self):
+        """ Number of pairwise fluctuations. """
+        return len(self.d_ij)
+
+    @property
+    def ubound(self):
+        """ Upper bound on pairwise distances. """
+        return np.percentile(self.d_ij, 99)
+
+    @property
     def num_measurements(self):
         """ Estimated number of measurements. """
         return np.sqrt(self.d_ij.size)
@@ -41,152 +51,8 @@ class CorrelationProperties:
         return CharacteristicLength(self).characteristic_length
 
 
-class CorrelationData(CorrelationProperties):
-    """
-    Container for correlations between 1-D timeseries.
-
-    Attributes:
-
-        d_ij (np array) - pairwise separation distances between measurements
-
-        C_ij (np array) - normalized pairwise fluctuations between measurements
-
-    """
-
-    def __init__(self, d_ij=None, C_ij=None):
-        """
-        Instantiate container for correlations between 1-D timeseries.
-
-        Args:
-
-            d_ij (np.ndarray) - pairwise separation distances
-
-            C_ij (np.ndarray) - normalized pairwise fluctuations
-
-        """
-
-        if d_ij is None:
-            d_ij = np.empty(0)
-        if C_ij is None:
-            C_ij = np.empty(0)
-
-        ind = np.argsort(d_ij)
-        self.d_ij = d_ij[ind]
-        self.C_ij = C_ij[ind]
-
-    def __add__(self, correlation):
-        """
-        Concatenate current instance with a second CorrelationData instance.
-
-        Args:
-
-            correlation (analysis.correlation.CorrelationData)
-
-        Returns:
-
-            self (analysis.correlation.CorrelationData) - updated correlations
-
-        """
-
-        # concatenate distanced and fluctuations
-        d_ij = np.hstack((self.d_ij, correlation.d_ij))
-        C_ij = np.hstack((self.C_ij, correlation.C_ij))
-
-        # sort by distance
-        ind = np.argsort(d_ij)
-        self.d_ij = d[ind]
-        self.C_ij = C_ij[ind]
-
-        return self
-
-    @property
-    def num_fluctuations(self):
-        """ Number of pairwise fluctuations. """
-        return len(self.d_ij)
-
-    @property
-    def ubound(self):
-        """ Upper bound on pairwise distances. """
-        return np.percentile(self.d_ij, 99)
-
-    @staticmethod
-    def get_binned_stats(x, y, bins, statistic='mean'):
-        """
-        Group samples into x-bins and evaluate aggregate statistic of y-values.
-
-        Args:
-
-            x (np array) - values upon which samples are grouped
-
-            y (np array) - values upon which aggregate statistics are evaluated
-
-            bins (np array) - bin edges
-
-            statistic (str) - aggregation statistic applied to each bin
-
-        Returns:
-
-            centers (np array) - bin centers
-
-            stats (np array) - aggregate statistic for each bin
-
-        """
-
-        # if None, break into 10 intervals
-        if bins is None:
-            bins = np.arange(x.min(), x.max(), x.max()/10)
-
-        # evaluate statistic
-        stats, _, _ = binned_statistic(x, y, statistic=statistic, bins=bins)
-
-        # compute bin centers
-        centers = [bins[i]+(bins[i+1]-bins[i])/2 for i in range(0,len(bins)-1)]
-
-        return centers, stats
-
-    @classmethod
-    def bootstrap(cls, x, y,
-                  confidence=95,
-                  N=1000,
-                  bins=None):
-        """
-        Evaluate confidence interval for aggregation statistic.
-
-        Args:
-
-            x (np array) - values upon which samples are grouped
-
-            y (np array) - values upon which aggregate statistics are evaluated
-
-            N (int) - number of repeated samples
-
-            confidence (int) - confidence interval, between 0 and 100
-
-            bins (np array) - bins within which the statistic is applied
-
-        Returns:
-
-            centers (np array) - centers of distance bins
-
-            uppers, lowers (np array) - statistic confidence interval bounds
-
-        """
-
-        # get indices for bootstrap resampling
-        indices = np.random.randint(0, len(x), size=(N, len(x)))
-
-        # evaluate aggregation statistic
-        stats = []
-        for ind in indices:
-            centers, stat = cls.get_binned_stats(x[ind], y[ind], bins=bins)
-            stats.append(stat)
-        stats = np.array(stats)
-
-        # evaluate confidence interval
-        uppers = np.nanpercentile(stats, q=(100+confidence)/2, axis=0)
-        lowers = np.nanpercentile(stats, q=(100-confidence)/2, axis=0)
-
-        return centers, uppers, lowers
+class CorrelationVisualization:
+    """ Visualization methods for SpatialCorrelation. """
 
     @default_figure
     def histogram_distances(self, ax=None, **kwargs):
@@ -308,17 +174,11 @@ class CorrelationData(CorrelationProperties):
         ax.set_ylabel('Correlation')
 
 
-class SpatialCorrelation(CorrelationData):
+class SpatialCorrelation(CorrelationProperties, CorrelationVisualization):
     """
-    Object for evaluating spatial correlation of expression between measurements.
+    Container for correlations between 1-D timeseries.
 
     Attributes:
-
-        attribute (str) - name of correlated attribute
-
-        log (bool) - if True, log-transform attribute values
-
-    Inherited attributes:
 
         d_ij (np array) - pairwise separation distances between measurements
 
@@ -326,99 +186,51 @@ class SpatialCorrelation(CorrelationData):
 
     """
 
-    def __init__(self, graph, attribute, log=False):
+    def __init__(self, d_ij=None, C_ij=None):
         """
-        Instantiate object for evaluating spatial correlation of expression between cells.
+        Instantiate container for correlations between 1-D timeseries.
 
         Args:
 
-            graph (spatial.Graph derivative) - graph object
+            d_ij (np.ndarray) - pairwise separation distances
 
-            attribute (str) - name of correlated attribute
-
-            log (bool) - if True, log-transform attribute values
+            C_ij (np.ndarray) - normalized pairwise fluctuations
 
         """
 
-        # store parameters
-        self.attribute = attribute
-        self.log = log
+        if d_ij is None:
+            d_ij = np.empty(0)
+        if C_ij is None:
+            C_ij = np.empty(0)
 
-        # get distances vector
-        d_ij = self.get_distances_vector(graph)
+        ind = np.argsort(d_ij)
+        self.d_ij = d_ij[ind]
+        self.C_ij = C_ij[ind]
 
-        # get covariance vector
-        attribute_values = graph.df[attribute].values.reshape(-1, 1)
-        if log:
-            attribute_values = np.log(attribute_values)
-        C_ij = self.get_covariance_vector(attribute_values)
-
-        # instantiate parent object
-        CorrelationData.__init__(self, d_ij, C_ij)
-
-    @staticmethod
-    def get_matrix_upper(matrix):
+    def __add__(self, correlation):
         """
-        Return upper triangular portion of a 2-D matrix.
-
-        Parameters:
-
-            matrix (2D np.ndarray)
-
-        Returns:
-
-            upper (1D np.ndarray) - upper triangle, ordered row then column
-
-        """
-        return matrix[np.triu_indices(len(matrix), k=1)]
-
-    @classmethod
-    def get_distances_vector(cls, graph):
-        """
-        Get upper triangular portion of pairwise distance matrix.
+        Concatenate current instance with a second SpatialCorrelation instance.
 
         Args:
 
-            graph (spatial.Graph derivative) - graph object
+            correlation (SpatialCorrelation)
 
         Returns:
 
-            distances (1D np.ndarray) - pairwise distances, ordered row then column
+            self (SpatialCorrelation) - updated correlations
 
         """
 
-        # compute pairwise distances between cells
-        x, y = graph.node_positions_arr.T
-        x = x.reshape(-1, 1)
-        y = y.reshape(-1, 1)
-        x_component = np.repeat(x**2, x.size, axis=1) + np.repeat(x.T**2, x.size, axis=0) - 2*np.dot(x, x.T)
-        y_component = np.repeat(y**2, y.size, axis=1) + np.repeat(y.T**2, y.size, axis=0) - 2*np.dot(y, y.T)
+        # concatenate distanced and fluctuations
+        d_ij = np.hstack((self.d_ij, correlation.d_ij))
+        C_ij = np.hstack((self.C_ij, correlation.C_ij))
 
-        # get upper triangular portion (excludes self edges and duplicates)
-        distances = cls.get_matrix_upper(np.sqrt(x_component + y_component))
+        # sort by distance
+        ind = np.argsort(d_ij)
+        self.d_ij = d[ind]
+        self.C_ij = C_ij[ind]
 
-        return distances
-
-    @classmethod
-    def get_covariance_vector(cls, vector):
-        """
-        Get upper triangular portion of pairwise expression covariance matrix.
-
-        Args:
-
-            vector (1D np.ndarray) - attribute values for each measurement
-
-        Returns:
-
-            covariance (1D np.ndarray) - pairwise fluctuations, ordered row then column
-
-        """
-
-        # compute correlation matrix and return upper triangular portion
-        v = (vector - vector.mean())
-        covariance_matrix = np.dot(v, v.T) / np.var(vector)
-        covariance = cls.get_matrix_upper(covariance_matrix)
-        return covariance
+        return self
 
 
 class CharacteristicLength:

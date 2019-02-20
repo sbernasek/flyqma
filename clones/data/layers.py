@@ -10,14 +10,19 @@ from matplotlib.path import Path
 from collections import Counter
 
 from .images import ImageRGB
+
 from ..measurement.segmentation import Segmentation
 from ..measurement.measure import Measurements
 from ..annotation.spatial.graphs import WeightedGraph
-from ..annotation.spatial.community import InfomapLabeler
-from ..annotation.labelers import CelltypeLabeler
+from ..annotation.annotation import Annotation
 from ..annotation.spatial.concurrency import ConcurrencyLabeler
 from ..annotation.visualization import CloneBoundaries
+from ..annotation.labelers import CelltypeLabeler
+
 from ..bleedthrough.correction import LayerCorrection
+
+from ..visualization.settings import *
+
 from ..utilities.io import IO
 from .defaults import Defaults
 defaults = Defaults()
@@ -25,6 +30,36 @@ defaults = Defaults()
 
 class LayerVisualization:
     """ Methods for visualizing a layer. """
+
+    @default_figure
+    def plot_graph(self,
+                   channel='r',
+                   figsize=(15, 15),
+                   image_kw={},
+                   graph_kw={},
+                   ax=None):
+        """
+        Plot graph on top of relevant channel from RGB image.
+
+        Args:
+
+            channel (str) - RGB channel to visualize
+
+            figsize (tuple) - figure size
+
+            image_kw (dict) - keyword arguments for scalar image visualization
+
+            graph_kw (dict) - keyword arguments for scalar image visualization
+
+        """
+
+        # add image
+        if channel is not None:
+            image = self.get_channel(channel)
+            image.show(ax=ax, segments=False, **image_kw)
+
+        # add graph
+        self.graph.show(ax=ax, **graph_kw)
 
     def plot_boundary(self, ax,
                         label,
@@ -143,105 +178,10 @@ class LayerVisualization:
                                 **kwargs)
 
 
-class Layer(ImageRGB, LayerVisualization):
+class LayerIO:
     """
-    Object represents a single RGB image layer.
-
-    Attributes:
-
-        measurements (pd.DataFrame) - raw cell measurement data
-
-        data (pd.DataFrame) - processed cell measurement data
-
-        path (str) - path to layer directory
-
-        _id (int) - layer ID
-
-        subdirs (dict) - {name: path} pairs for all subdirectories
-
-        metadata (dict) - layer metadata
-
-        labels (np.ndarray[int]) - segment ID mask
-
-        classifier (CellClassifier) - callable that assigns genotypes to cells
-
-        graph (Graph) - graph connecting cell centroids
-
-        include (bool) - if True, layer was manually marked for inclusion
-
-    Inherited attributes:
-
-        im (np.ndarray[float]) - 2D array of RGB pixel values
-
-        channels (dict) - {color: channel_index} pairs
-
-        shape (array like) - image dimensions
-
-        mask (np.ndarray[bool]) - image mask
-
-        labels (np.ndarray[int]) - segment ID mask
-
+    Methods for saving and loading Layer objects and their subcomponents.
     """
-
-    def __init__(self, path, im=None, classifier=None):
-        """
-        Instantiate layer.
-
-        Args:
-
-            path (str) - path to layer directory
-
-            im (np.ndarray[float]) - 2D array of RGB pixel values
-
-            classifier (CellClassifier) - callable that assigns genotypes to cells
-
-        """
-
-        # set layer ID
-        layer_id = int(path.rsplit('/', maxsplit=1)[-1])
-        self._id = layer_id
-
-        # set path and subdirectories
-        self.path = path
-        self.find_subdirs()
-
-        # load inclusion; defaults to True
-        if 'selection' in self.subdirs.keys():
-            self.load_inclusion()
-        else:
-            self.include = True
-
-        # set classifier
-        self.classifier = classifier
-
-        # load labels and instantiate RGB image if image was provided
-        if im is not None:
-            self.load_labels()
-            super().__init__(im, labels=self.labels)
-
-    def initialize(self):
-        """
-        Initialize layer directory by:
-
-            - Creating a layer directory
-            - Removing existing segmentation directory
-            - Saving metadata to file
-
-        """
-
-        # make layers directory
-        if not exists(self.path):
-            mkdir(self.path)
-
-        # remove existing segmentation directory
-        if 'segmentation' in self.subdirs.keys():
-            rmtree(self.subdirs['segmentation'])
-
-        # make metadata file
-        io = IO()
-        segmentation_kw = dict(preprocessing_kws={}, seed_kws={}, seg_kws={})
-        params = dict(segmentation_kw=segmentation_kw, graph_kw={})
-        metadata = dict(bg='', params=params)
 
     def make_subdir(self, dirname):
         """ Make subdirectory. """
@@ -262,20 +202,108 @@ class Layer(ImageRGB, LayerVisualization):
             if isdir(dirpath):
                 self.add_subdir(dirname, dirpath)
 
-    def load(self):
-        """ Load layer. """
+    def save_metadata(self):
+        """ Save metadata. """
+        io = IO()
+        io.write_json(join(self.path, 'metadata.json'), self.metadata)
 
-        # load metadata and extract background channel
-        self.load_metadata()
+    def save_segmentation(self, image, **kwargs):
+        """
+        Save segment labels, and optionally save a segmentation image.
 
-        # check whether segmentation exists
-        if 'segmentation' in self.subdirs.keys():
+        Args:
 
-            # load raw measurements
-            self.load_measurements()
+            image (bool) - if True, save segmentation image
 
-            # process raw measurement data
-            self.data = self.process_measurements(self.measurements)
+            kwargs: keyword arguments for image rendering
+
+        """
+        dirpath = self.subdirs['segmentation']
+
+        # save segment labels
+        np.save(join(dirpath, 'labels.npy'), self.labels)
+
+        # save segmentation image
+        if image:
+            bg = self.get_channel(self.metadata['bg'], copy=False)
+            fig = bg.show(segments=True)
+            fig.axes[0].axis('off')
+            fig.savefig(join(dirpath, 'segmentation.png'), **kwargs)
+            fig.clf()
+            plt.close(fig)
+            gc.collect()
+
+    def save_measurements(self):
+        """ Save raw measurements. """
+
+        # get segmentation directory
+        path = join(self.subdirs['measurements'], 'measurements.hdf')
+
+        # save raw measurements
+        self.measurements.to_hdf(path, 'measurements', mode='w')
+
+    def save_annotator(self, image=False, **kwargs):
+        """
+        Save annotator instance.
+
+        Args:
+
+            image (bool) - if True, save annotation images
+
+            kwargs: keyword arguments for image rendering
+
+        """
+        path = self.subdirs['annotation']
+        self.annotator.save(path, image=image, **kwargs)
+
+    def save(self,
+             segmentation=True,
+             measurements=True,
+             annotator=True,
+             segmentation_image=False,
+             annotation_image=False):
+        """
+        Save segmentation parameters and results.
+
+        Args:
+
+            segmentation (bool) - if True, save segmentation
+
+            measurements (bool) - if True, save measurement data
+
+            annotator (bool) - if True, save annotator
+
+            segmentation_image (bool) - if True, save segmentation image
+
+            annotation_image (bool) - if True, save annotation image
+
+        """
+
+        # set image keyword arguments
+        image_kw = dict(format='png',
+                     dpi=100,
+                     bbox_inches='tight',
+                     pad_inches=0,
+                     transparent=True,
+                     rasterized=True)
+
+        # save segmentation
+        if segmentation:
+            self.make_subdir('segmentation')
+            self.save_segmentation(image=segmentation_image, **image_kw)
+
+        # save measurements
+        if measurements:
+            self.make_subdir('measurements')
+            self.save_measurements()
+
+        # save annotation
+        if annotator and self.annotator is not None:
+            self.make_subdir('annotation')
+            self.save_annotator(image=annotation_image, **image_kw)
+
+        # save metadata
+        self.save_metadata()
 
     def load_metadata(self):
         """ Load metadata. """
@@ -296,8 +324,12 @@ class Layer(ImageRGB, LayerVisualization):
 
     def load_measurements(self):
         """ Load raw measurements. """
-        path = join(self.subdirs['segmentation'], 'measurements.hdf')
+        path = join(self.subdirs['measurements'], 'measurements.hdf')
         self.measurements = pd.read_hdf(path, 'measurements')
+
+    def load_annotator(self):
+        """ Load annotator instance. """
+        self.annotator = Annotation.load(self.subdirs['annotation'])
 
     def load_inclusion(self):
         """ Load inclusion flag. """
@@ -316,6 +348,133 @@ class Layer(ImageRGB, LayerVisualization):
 
         """
         return LayerCorrection.load(self)
+
+    def load(self):
+        """ Load layer. """
+
+        # load metadata and extract background channel
+        self.load_metadata()
+
+        # check whether segmentation exists
+        if 'measurements' in self.subdirs.keys():
+
+            # load raw measurements
+            self.load_measurements()
+
+            # process raw measurement data
+            self.data = self.process_measurements(self.measurements)
+
+        # check whether annotation exists
+        if 'annotation' in self.subdirs.keys():
+
+            # load annotator
+            self.load_annotator()
+
+
+class Layer(LayerIO, ImageRGB, LayerVisualization):
+    """
+    Object represents a single RGB image layer.
+
+    Attributes:
+
+        measurements (pd.DataFrame) - raw cell measurement data
+
+        data (pd.DataFrame) - processed cell measurement data
+
+        path (str) - path to layer directory
+
+        _id (int) - layer ID
+
+        subdirs (dict) - {name: path} pairs for all subdirectories
+
+        metadata (dict) - layer metadata
+
+        labels (np.ndarray[int]) - segment ID mask
+
+        annotator (Annotation) - object that assigns labels to measurements
+
+        graph (Graph) - graph connecting cell centroids
+
+        include (bool) - if True, layer was manually marked for inclusion
+
+    Inherited attributes:
+
+        im (np.ndarray[float]) - 2D array of RGB pixel values
+
+        channels (dict) - {color: channel_index} pairs
+
+        shape (array like) - image dimensions
+
+        mask (np.ndarray[bool]) - image mask
+
+        labels (np.ndarray[int]) - segment ID mask
+
+    """
+
+    def __init__(self, path, im=None, annotator=None):
+        """
+        Instantiate layer.
+
+        Args:
+
+            path (str) - path to layer directory
+
+            im (np.ndarray[float]) - 2D array of RGB pixel values
+
+            annotator (Annotation) - object that assigns labels to measurements
+
+        """
+
+        # set layer ID
+        layer_id = int(path.rsplit('/', maxsplit=1)[-1])
+        self._id = layer_id
+
+        # set path and subdirectories
+        self.path = path
+        self.find_subdirs()
+
+        # load inclusion; defaults to True
+        if 'selection' in self.subdirs.keys():
+            self.load_inclusion()
+        else:
+            self.include = True
+
+        # set annotator
+        self.annotator = annotator
+
+        # load labels and instantiate RGB image if image was provided
+        if im is not None:
+            self.load_labels()
+            super().__init__(im, labels=self.labels)
+
+    def initialize(self):
+        """
+
+        Initialize layer directory by:
+
+            - Creating a layer directory
+            - Removing existing segmentation directory
+            - Saving metadata to file
+
+        """
+
+        # make layers directory
+        if not exists(self.path):
+            mkdir(self.path)
+
+        # remove existing segmentation/annotation/measurement directories
+        for key in ('segmentation', 'measurements', 'annotation'):
+            if key in self.subdirs.keys():
+                rmtree(self.subdirs[key])
+
+        # make metadata file
+        segmentation_kw = dict(preprocessing_kws={}, seed_kws={}, seg_kws={})
+        params = dict(segmentation_kw=segmentation_kw, graph_kw={})
+        metadata = dict(bg='', params=params)
+
+        # save metadata
+        io = IO()
+        io.write_json(join(self.path, 'metadata.json'), metadata)
 
     def process_measurements(self, measurements):
         """
@@ -355,10 +514,12 @@ class Layer(ImageRGB, LayerVisualization):
         if 'correction' in self.subdirs.keys():
             self.apply_correction(data)
 
+        # construct graph
+        self.build_graph(data, **self.metadata['params']['graph_kw'])
+
         # annotate measurements
-        if self.classifier is not None:
+        if self.annotator is not None:
             self.apply_annotation(data)
-            self.build_graph(data, **self.metadata['params']['graph_kw'])
             self.mark_boundaries(data, basis='genotype', max_edges=1)
             self.apply_concurrency(data)
 
@@ -409,7 +570,7 @@ class Layer(ImageRGB, LayerVisualization):
 
     def apply_correction(self, data):
         """
-        Adds a "selected" attribute to the measurements dataframe. The attribute is true for cells that fall within the selection boundary.
+        Adds bleedthrough-corrected fluorescence levels to the measurements dataframe.
 
         Args:
 
@@ -452,7 +613,7 @@ class Layer(ImageRGB, LayerVisualization):
         self.metadata['params']['graph_kw'] = graph_kw
         self.graph = WeightedGraph(data, weighted_by, **graph_kw)
 
-    def apply_annotation(self, data, cluster=False):
+    def apply_annotation(self, data, **kwargs):
         """
         Assign genotype and celltype labels to cell measurements.
 
@@ -460,21 +621,12 @@ class Layer(ImageRGB, LayerVisualization):
 
             data (pd.DataFrame) - processed cell measurement data
 
-            cluster (bool) - if True, add community and community genotype labels
+            kwargs: keyword arguments for Annotator.annotate()
 
         """
-
-        # assign single-cell classifier label
-        data['genotype'] = self.classifier(data)
-
-        # assign cluster labels
-        if cluster:
-            annotator = InfomapLabeler.from_layer(self)
-            annotator(data)
-
-        # assign celltype labels
-        celltype_labels = {0:'m', 1:'h', 2:'w', -1:'none'}
-        assign_celltypes = CelltypeLabeler(labels=celltype_labels)
+        if self.annotator is not None and self.graph is not None:
+            data['genotype'] = self.annotator(self.graph, **kwargs)
+        assign_celltypes = CelltypeLabeler('celltype', 'genotype')
         assign_celltypes(data)
 
     def apply_concurrency(self, data, min_pop=5, max_distance=10):
@@ -588,110 +740,4 @@ class Layer(ImageRGB, LayerVisualization):
         # process raw measurement data
         self.data = self.process_measurements(self.measurements)
 
-    def plot_graph(self,
-                   channel='r',
-                   figsize=(15, 15),
-                   image_kw={},
-                   graph_kw={}):
-        """
-        Plot graph on top of relevant channel from RGB image.
 
-        Args:
-
-            channel (str) - RGB channel to visualize
-
-            figsize (tuple) - figure size
-
-            image_kw (dict) - keyword arguments for scalar image visualization
-
-            graph_kw (dict) - keyword arguments for scalar image visualization
-
-        Returns:
-
-            fig (matplotlib.figures.Figure)
-
-        """
-
-        # create axis
-        fig, ax = plt.subplots(figsize=figsize)
-
-        # add image
-        if channel is not None:
-            image = self.get_channel(channel)
-            image.show(ax=ax, segments=False, **image_kw)
-
-        # add graph
-        self.graph.show(ax=ax, **graph_kw)
-
-        return fig
-
-    def save_metadata(self):
-        """ Save metadata. """
-        io = IO()
-        io.write_json(join(self.path, 'metadata.json'), self.metadata)
-
-    def save_measurements(self):
-        """ Save raw measurements. """
-
-        # get segmentation directory
-        path = join(self.subdirs['segmentation'], 'measurements.hdf')
-
-        # save raw measurements
-        self.measurements.to_hdf(path, 'measurements', mode='w')
-
-    def save_segmentation(self, **image_kw):
-        """
-        Save segmentation.
-
-        image_kw: keyword arguments for segmentation image
-
-        """
-
-        # add segmentation directory
-        self.make_subdir('segmentation')
-        dirpath = self.subdirs['segmentation']
-
-        # save labels
-        np.save(join(dirpath, 'labels.npy'), self.labels)
-
-        # save measurements
-        self.save_measurements()
-
-        # save segmentation image
-        bg = self.get_channel(self.metadata['bg'], copy=False)
-        fig = bg.show(segments=True)
-        fig.axes[0].axis('off')
-        fig.savefig(join(dirpath, 'segmentation.png'), **image_kw)
-        fig.clf()
-        plt.close(fig)
-        gc.collect()
-
-    def save(self,
-             segmentation=True,
-             annotation=False,
-             dpi=100):
-        """
-        Save segmentation parameters and results.
-
-        Args:
-
-            segmentation (bool) - if True, save segmentation
-
-            annotation (bool) - if True, save annotation
-
-            dpi (int) - image resolution
-
-        """
-
-        # set image keyword arguments
-        image_kw = dict(format='png',
-                     dpi=dpi,
-                     bbox_inches='tight',
-                     pad_inches=0)
-
-        # save segmentation
-        if segmentation:
-            self.save_segmentation(**image_kw)
-
-        # save metadata
-        self.save_metadata()

@@ -1,7 +1,9 @@
 import numpy as np
 import networkx as nx
+from copy import deepcopy
 
 from ...visualization.settings import *
+from .infomap import InfoMap
 
 
 class NeighborSampler:
@@ -76,6 +78,16 @@ class NeighborSampler:
         return np.vstack(samples), sampler.keys
 
     @property
+    def N(self):
+        """ Number of nodes. """
+        return len(self.df)
+
+    @property
+    def xykeys(self):
+        """ Attribute names for node X/Y positions. """
+        return ['centroid_x', 'centroid_y']
+
+    @property
     def df(self):
         """ Graph data. """
         return self.graph.df
@@ -87,6 +99,14 @@ class NeighborSampler:
 
     @property
     def node_values(self):
+        """ Vector of attribute values for each node. """
+        values = self.df[self.attr].values
+        if self.log:
+            values = np.log(values)
+        return values
+
+    @property
+    def node_values_dict(self):
         """ Dictionary of attribute values, keyed by node index. """
         values = self.df[self.attr]
         if self.log:
@@ -98,7 +118,7 @@ class NeighborSampler:
         """ Dictionary of neighbor indices keyed by node indices. """
         kwargs = dict(depth_limit=self.depth)
         bfs = lambda n: [e[1] for e in nx.bfs_edges(self.G, n, **kwargs)]
-        return {node: bfs(node) for node in G.nodes}
+        return {node: bfs(node) for node in self.G.nodes}
 
     @property
     def size_attr(self):
@@ -130,7 +150,7 @@ class NeighborSampler:
 
     def add_attribute_to_graph(self):
         """ Add attribute to networkx graph object. """
-        nx.set_node_attributes(self.G, self.node_values, name=self.attr_used)
+        nx.set_node_attributes(self.G, self.node_values_dict, name=self.attr_used)
 
     @staticmethod
     def _neighbor_average(G, node_values, depth=1):
@@ -165,7 +185,7 @@ class NeighborSampler:
         """
 
         # average attribute over neighbors
-        neighbor_dict = self._neighbor_average(self.G, self.node_values, self.depth)
+        neighbor_dict = self._neighbor_average(self.G, self.node_values_dict, self.depth)
 
         # extract average and sample size for each node
         keys, values = list(zip(*neighbor_dict.items()))
@@ -186,14 +206,53 @@ class NeighborSampler:
         sizes = self.df[self.size_attr].values
         _ = ax.hist(sizes, bins=np.arange(sizes.max()+1))
 
-    @default_figure
-    def plot_neigborhood(self, node, ax=None, figsize=(2, 2)):
+    @square_figure
+    def plot_neigborhood(self, node, ax=None, **kwargs):
         """ Visualize neighborhood surrounding <node>. """
         neighbors = self.neighbors[node]
         colors = np.array(['k' for _ in range(self.graph.nodes.size)])
         colors[self.graph.position_map(node)] = 'g'
         colors[self.graph.position_map(neighbors)] = 'r'
-        ax.scatter(*self.graph.df[['x','y']].values.T, s=2, c=colors)
+        ax.scatter(*self.graph.df[self.xykeys].values.T, c=colors, **kwargs)
+
+    @default_figure
+    def plot_autocorrelation(self, ax=None, xmax=10, **kwargs):
+        """ Plot autocorrelation versus path length. """
+
+        # evaluate distance between all nodes
+        paths = dict(nx.all_pairs_shortest_path_length(self.G, cutoff=xmax))
+
+        if xmax is None:
+            max_depth = max([max(v.values()) for v in paths.values()])
+        else:
+            max_depth = xmax
+
+        # get node levels and evaluate global mean/variance
+        levels = self.node_values
+        mu, sigma2 = levels.mean(), levels.var()
+
+        def eval_flux(edge_list):
+            """ Evaluate mean fluctuation in edge_list. """
+            idx = self.graph.position_map(np.array(edge_list))
+            flux = ((levels[idx[:, 0]]-mu) * (levels[idx[:, 1]] - mu)) / sigma2
+            return flux.mean(), flux.std(), flux.size
+
+        # compute pairwise fluctuations between nodes
+        edges = {i: [] for i in range(max_depth+1)}
+        for node, neighbors in paths.items():
+            for neighbor, distance in neighbors.items():
+                edges[distance].append((node, neighbor))
+
+        # compile autocorrelation function
+        means, _, sizes = list(zip(*[eval_flux(e) for e in edges.values()]))
+        means, sizes = np.array(means), np.array(sizes)
+
+        # plot autocorrelation
+        ax.plot(range(max_depth+1), means, '.-k', **kwargs)
+        ax.set_ylim(-0.1, 1)
+        ax.set_xlim(0, max_depth+1)
+        ax.set_ylabel('Correlation')
+        ax.set_xlabel('Path length')
 
 
 class CommunitySampler(NeighborSampler):
@@ -289,3 +348,150 @@ class CommunitySampler(NeighborSampler):
         # store outcome
         self.df[self.averaged_attr] = means
         self.df[self.size_attr] = get_community_size(self.df.index.values)
+
+    @default_figure
+    def plot_autocorrelation(self, ax=None):
+        """ Plot autocorrelation versus community depth. """
+
+        # construct dataframe
+        df = deepcopy(self.df[['community']])
+        df['levels'] = self.node_values
+        df['zscore'] = (df.levels-df.levels.mean())/df.levels.std()
+
+        # define functions for evaluation fluctuations
+        f = lambda x: sum([sum([a * b for b in x if a!=b]) for a in x]) / 2
+        g = lambda x: len(x)*(len(x)-1) / 2
+        evaluate_mean_fluctuation = lambda key: df.groupby(key)['zscore'].agg(f).sum() / df.groupby(key)['zscore'].agg(g).sum()
+
+        # instantiate infomap clustering
+        detector = InfoMap(self.graph.edge_list)
+
+        # evaluate autocorrelation function
+        autocorrelation = []
+        for level in range(detector.aggregator.max_depth):
+            key = '{:d}'.format(level)
+            df[key] = detector.aggregator(df.community, level=level)
+            mean_fluctuation = evaluate_mean_fluctuation(key)
+            autocorrelation.append((level, mean_fluctuation))
+
+        # plot autocorrelation
+        ax.plot(*list(zip(*autocorrelation)), '.-k')
+        ax.set_ylim(-0.1, 1)
+        ax.set_ylabel('Correlation')
+        ax.set_xlabel('Hierarchical level')
+
+
+class RadialSampler(NeighborSampler):
+    """
+    Class for sampling node attributes averaged within a predetermined radius of each node.
+
+    Attributes:
+
+        graph (spatial.Graph) - graph instance
+
+        G (nx.Graph) - graph with node attribute
+
+        attr (str) - attribute to be averaged over neighbors
+
+        depth (int) - hierarchical level to which communities are merged
+
+        log (bool) - if True, log-transform values before averaging
+
+        twolevel (bool) - if True, use two-level community clustering
+
+    """
+
+    def __init__(self, graph, attr, depth=1., log=True):
+        """
+        Instantiate sampler for averaging <attr> value over all nodes within a predetermined radius of each node. The radius is defined by <depth> multiples of the characteristic length over which correlations in the attribute value decay.
+
+        Args:
+
+            graph (spatial.Graph) - graph instance
+
+            attr (str) - attribute to be averaged over neighbors
+
+            depth (int) - hierarchical level to which communities are merged
+
+            log (bool) - if True, log-transform values before averaging
+
+        """
+
+        # store attributes
+        self.graph = graph
+        self.attr = attr
+        self.depth = depth
+        self.log = log
+
+        # determine characteristic length scale and set sampling radius
+        length_scale = graph.get_correlations(attr, log).characteristic_length
+        self.length_scale = length_scale
+        self.radius = depth * length_scale
+        self.neighbor_mask = self._neighbor_mask
+
+        # sample over neigbors
+        self.average_over_neighbors()
+
+    @property
+    def distance_matrix(self):
+        """ Euclidean distance matrix between nodes. """
+        return self.graph.distance_matrix
+
+    @property
+    def _neighbor_mask(self):
+        """ Boolean adjacency mask (True for neighbors). """
+        neighbor_mask = (self.distance_matrix < self.radius)
+        np.fill_diagonal(neighbor_mask, False)
+        return neighbor_mask
+
+    @property
+    def neighbors(self):
+        """ Dictionary of neighbor indices keyed by node indices. """
+        return {n: r.nonzero()[0] for n, r in enumerate(self.neighbor_mask)}
+
+    @property
+    def size_attr(self):
+        """ Neighborhood size attribute name. """
+        return 'sampling_radius'
+
+    @property
+    def averaged_attr(self):
+        """ Name of averaged attribute. """
+        return '{:s}_radial'.format(self.attr)
+
+    def average_over_neighbors(self):
+        """
+        Average attribute value over all nodes within the specified radius of each node.
+        """
+
+        # average within each neighborhood
+        matrix = np.repeat(self.node_values.reshape(1, -1), self.N, axis=0)
+        masked_values = np.ma.masked_array(matrix, mask=~self.neighbor_mask)
+        means = masked_values.mean(axis=1).data
+
+        # log transform average
+        if self.log:
+            means = np.exp(means)
+
+        # store outcome
+        self.df[self.averaged_attr] = means
+        self.df[self.size_attr] = (~masked_values.mask).sum(axis=1)
+
+    @square_figure
+    def plot_neigborhood(self, node, ax=None, **kwargs):
+        """ Visualize neighborhood surrounding <node>. """
+
+        # draw selection boundary
+        idx = self.graph.position_map(node)
+        center = self.graph.df[self.xykeys].values[idx]
+        circle = plt.Circle(center, self.radius, color='r', alpha=0.2)
+        ax.add_artist(circle)
+
+        # scatter points
+        super().plot_neigborhood(node, ax=ax, **kwargs)
+
+    @default_figure
+    def plot_autocorrelation(self, ax=None, **kwargs):
+        """ Plot autocorrelation versus community depth. """
+        correlations = self.graph.get_correlations(self.attr, self.log)
+        correlations.visualize(ax=ax, **kwargs)

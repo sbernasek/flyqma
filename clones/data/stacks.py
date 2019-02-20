@@ -7,11 +7,64 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from ..utilities.io import IO
-#from ..annotation.classifiers import CellClassifier
+from ..annotation.annotation import Annotation
+
 from .layers import Layer
 
 
-class Stack:
+class StackIO:
+    """ Methods for saving and loading a Stack instance. """
+
+    def save_metadata(self):
+        """ Save metadata. """
+        io = IO()
+        io.write_json(join(self.path, 'metadata.json'), self.metadata)
+
+    def load_metadata(self):
+        """ Load available metadata. """
+        metadata_path = join(self.path, 'metadata.json')
+        if exists(metadata_path):
+            io = IO()
+            self.metadata = io.read_json(metadata_path)
+            self.depth = self.metadata['depth']
+
+    def load_annotator(self):
+        """ Load annotator from annotation directory. """
+        if exists(self.annotator_path):
+            self.annotator = Annotation.load(self.annotator_path)
+
+    def load_image(self):
+        """ Load 3D image from tif file. """
+
+        # load 3D RGB tif
+        self.stack = self._read_tif(self.tif_path) / (2**self.metadata['bits'])
+
+        # set stack shape
+        self.depth = self.stack.shape[0]
+        self.metadata['depth'] = self.stack.shape[0]
+
+    @staticmethod
+    def _read_tif(path, bits=12):
+        """
+        Read 3D RGB tif file.
+
+        Args:
+
+            bits (int) - tif resolution
+
+        Note: images are flipped from BGR to RGB
+
+        """
+        io = IO()
+        stack = io.read_tiff(path)
+        if len(stack.shape) == 3:
+            stack = stack.reshape(1, *stack.shape)
+        stack = np.swapaxes(stack, 1, 2)
+        stack = np.swapaxes(stack, 2, 3)
+        return stack[:, :, :, ::-1]
+
+
+class Stack(StackIO):
     """
     Object represents a 3D RGB image stack.
 
@@ -27,7 +80,7 @@ class Stack:
 
         depth (int) - number of layers in stack
 
-        classifier (CellClassifier) - callable cell classifier
+        annotator (Annotation) - object that assigns labels to measurements
 
         metadata (dict) - stack metadata
 
@@ -35,7 +88,7 @@ class Stack:
 
         layers_path (str) - path to layers directory
 
-        classifier_path (str) - path to cell classifier directory
+        annotator_path (str) - path to annotation directory
 
     """
 
@@ -57,15 +110,18 @@ class Stack:
         self._id = int(path.rsplit('/', maxsplit=1)[-1])
         self.tif_path = join(path, '{:d}.tif'.format(self._id))
         self.layers_path = join(self.path, 'layers')
-        self.classifier_path = join(self.path, 'cell_classifier')
+        self.annotator_path = join(self.path, 'annotation')
 
         # initialize stack if layers directory doesn't exist
         if not isdir(self.layers_path):
             self.initialize()
 
-        # load metadata and classifier
+        # load metadata
         self.load_metadata()
-        self.load_classifier()
+
+        # load annotator
+        self.annotator = None
+        self.load_annotator()
 
         # reset layer iterator count
         self.count = 0
@@ -120,87 +176,6 @@ class Stack:
             layer = Layer(layer_path)
             layer.initialize()
 
-    def load_metadata(self):
-        """ Load available metadata. """
-        metadata_path = join(self.path, 'metadata.json')
-        if exists(metadata_path):
-            io = IO()
-            self.metadata = io.read_json(metadata_path)
-            self.depth = self.metadata['depth']
-
-    def load_classifier(self):
-        """ Load cell classifier from cell_classifier directory. """
-        if exists(self.classifier_path):
-            self.classifier = CellClassifier.load(self.classifier_path)
-
-    def load_image(self):
-        """ Load 3D image from tif file. """
-
-        # load 3D RGB tif
-        self.stack = self._read_tif(self.tif_path) / (2**self.metadata['bits'])
-
-        # set stack shape
-        self.depth = self.stack.shape[0]
-        self.metadata['depth'] = self.stack.shape[0]
-
-    @staticmethod
-    def _read_tif(path, bits=12):
-        """
-        Read 3D RGB tif file.
-
-        Args:
-
-            bits (int) - tif resolution
-
-        Note: images are flipped from BGR to RGB
-
-        """
-        io = IO()
-        stack = io.read_tiff(path)
-        if len(stack.shape) == 3:
-            stack = stack.reshape(1, *stack.shape)
-        stack = np.swapaxes(stack, 1, 2)
-        stack = np.swapaxes(stack, 2, 3)
-        return stack[:, :, :, ::-1]
-
-    def load_layer(self, layer_id=0, full=True):
-        """
-        Load individual layer.
-
-        Args:
-
-            layer_id (int) - layer index
-
-            full (bool) - if True, load fully labeled RGB image
-
-        Returns:
-
-            layer (Layer)
-
-        """
-
-        # define layer path
-        layer_path = join(self.layers_path, '{:d}'.format(layer_id))
-
-        # if performing light load, don't pass image
-        if full and self.stack is not None:
-            im = self.stack[layer_id, :, :, :]
-        else:
-            im = None
-
-        # instantiate layer
-        layer = Layer(layer_path, im, self.classifier)
-
-        # load layer
-        layer.load()
-
-        return layer
-
-    def save_metadata(self):
-        """ Save metadata. """
-        io = IO()
-        io.write_json(join(self.path, 'metadata.json'), self.metadata)
-
     def aggregate_measurements(self, raw=False):
         """
         Aggregate measurements from each layer.
@@ -234,3 +209,36 @@ class Stack:
         data = pd.concat(data, join='inner')
 
         return data
+
+    def load_layer(self, layer_id=0, full=True):
+        """
+        Load individual layer.
+
+        Args:
+
+            layer_id (int) - layer index
+
+            full (bool) - if True, load fully labeled RGB image
+
+        Returns:
+
+            layer (Layer)
+
+        """
+
+        # define layer path
+        layer_path = join(self.layers_path, '{:d}'.format(layer_id))
+
+        # if performing light load, don't pass image
+        if full and self.stack is not None:
+            im = self.stack[layer_id, :, :, :]
+        else:
+            im = None
+
+        # instantiate layer
+        layer = Layer(layer_path, im, self.annotator)
+
+        # load layer
+        layer.load()
+
+        return layer

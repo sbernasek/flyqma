@@ -9,6 +9,72 @@ from matplotlib.colors import Normalize
 from ...utilities.io import IO
 
 
+class ClassifierIO:
+    """
+    Methods for saving and loading classifier objects.
+    """
+
+    def save(self, dirpath, image=True, **kwargs):
+        """
+        Save classifier to specified path.
+
+        Args:
+
+            dirpath (str) - directory in which classifier is to be saved
+
+            image (bool) - if True, save labeled histogram image
+
+            kwargs: keyword arguments for image rendering
+
+        """
+
+        # create directory for classifier
+        path = join(dirpath, 'classifier')
+        if not exists(path):
+            mkdir(path)
+
+        # save values
+        np.save(join(path, 'values.npy'), self._values)
+
+        # save parameters
+        io = IO()
+        io.write_json(join(path, 'parameters.json'), self.parameters)
+
+        # save image
+        if image:
+            pass
+
+            # # visualize classification
+            # self.show()
+
+            # # save image
+            # self.fig.savefig(join(path, 'classifier.pdf'), **kwargs)
+            # self.fig.clf()
+            # plt.close(self.fig)
+            # gc.collect()
+
+        return path
+
+    @classmethod
+    def load(cls, path):
+        """
+        Load classifier from file.
+
+        Args:
+
+            path (str) - path to classifier directory
+
+        Returns:
+
+            classifier (Classifier derivative)
+
+        """
+        io = IO()
+        values = io.read_npy(join(path, 'values.npy'))
+        parameters = io.read_json(join(path, 'parameters.json'))
+        return cls(values, **parameters)
+
+
 class ClassifierProperties:
     """
     Properties for classifier objects.
@@ -63,7 +129,7 @@ class ClassifierProperties:
         return component_to_label
 
 
-class Classifier(ClassifierProperties):
+class Classifier(ClassifierProperties, ClassifierIO):
     """
     Classifier base class. Children of this class must possess a means attribute, as well as a predict method.
 
@@ -186,62 +252,6 @@ class Classifier(ClassifierProperties):
             groupby = ('disc_genotype', 'disc_id', 'layer', 'im_label')
         values = df.groupby(by=groupby)[classify_on].mean().values
         return cls(values, classify_on, **kwargs)
-
-    def save(self, dirpath, image=True):
-        """
-        Save classifier to specified path.
-
-        Args:
-
-            dirpath (str) - directory in which classifier is to be saved
-
-            image (bool) - if True, save labeled histogram image
-
-        """
-
-        # create directory for classifier
-        path = join(dirpath, 'classifier')
-        if not exists(path):
-            mkdir(path)
-
-        # save values
-        np.save(join(path, 'values.npy'), self._values)
-
-        # save parameters
-        io = IO()
-        io.write_json(join(path, 'parameters.json'), self.parameters)
-
-        # save image
-        if image:
-
-            # visualize classification
-            self.show()
-
-            # save image
-            kw = dict(dpi=100, format='pdf', transparent=True, rasterized=True)
-            self.fig.savefig(join(path, 'classifier.pdf'), **kw)
-            self.fig.clf()
-            plt.close(self.fig)
-            gc.collect()
-
-    @classmethod
-    def load(cls, path):
-        """
-        Load classifier from file.
-
-        Args:
-
-            path (str) - path to classifier directory
-
-        Returns:
-
-            classifier (Classifier derivative)
-
-        """
-        io = IO()
-        values = io.read_npy(join(path, 'values.npy'))
-        parameters = io.read_json(join(path, 'parameters.json'))
-        return cls(values, **parameters)
 
     def show(self):
         """ Visualize classification. """
