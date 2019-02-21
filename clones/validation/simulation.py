@@ -2,67 +2,72 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 
-from ..annotation.bayesian import BayesianClassifier
-from ..annotation.model_selection import ModelSelection
-from ..annotation.community import InfomapLabeler, KatzLabeler
-from ..annotation.spatial.graphs import WeightedGraph
+from .training import Training
 from .scoring import Scoring
 
 # import warnings
 # warnings.filterwarnings('error')
 
 
+
+
+
 class BenchmarkProperties:
     """ Properties for Benchmark class. """
 
     @property
+    def xykey(self):
+        """ Attribute key for spatial coordinates. """
+        return ['centroid_x', 'centroid_y']
+
+    @property
     def xy(self):
         """ Measurement spatial coordinates. """
-        return self.df[['centroid_x', 'centroid_y']].values
+        return self.df[self.xykey].values
 
     @property
-    def cell_classifier(self):
-        return self.annotator.cell_classifier
-
-    @property
-    def true_genotypes(self):
-        """ True genotypes. """
-        return self.df.ground.values
-
-    @property
-    def simple_genotypes(self):
-        """ Cell-based classifier genotypes. """
-        return self.df.simple_genotype.values
-
-    @property
-    def community_genotypes(self):
-        """ Community-based classifier genotypes. """
-        return self.df.community_genotype.values
-
-    @property
-    def katz_genotypes(self):
-        """ Genotype based on Katz centrality. """
-        return self.df.katz_genotype.values
+    def classifier(self):
+        return self.annotator.classifier
 
     @property
     def fluorescence(self):
         """ Measured fluorescence. """
-        return self.df[self.annotator.cell_classifier.classify_on].values
+        return self.df[self.attribute].values
 
     @property
-    def simple_MAE(self):
-        """ Mean absolute error of cell-based classifier labels. """
-        return self.scores['simple'].MAE
+    def ground_truth(self):
+        """ True labels. """
+        return self.df.ground.values
 
     @property
-    def community_MAE(self):
-        """ Mean absolute error of community-based classifier labels. """
-        return self.scores['community'].MAE
+    def labels(self):
+        """ Labels assigned by bivariate classifier. """
+        return self.df.labels.values
 
     @property
-    def katz_MAE(self):
-        """ Mean absolute error of Katz classifier labels. """
-        return self.scores['katz'].MAE
+    def level_only(self):
+        """ Labels assigned by univariate fluorescence classifier. """
+        return self.df.level_only.values
+
+    @property
+    def spatial_only(self):
+        """ Labels assigned by univariate spatial classifier. """
+        return self.df.spatial_only.values
+
+    @property
+    def MAE(self):
+        """ Mean absolute error of labels. """
+        return self.scores['labels'].MAE
+
+    @property
+    def MAE_levels(self):
+        """ Mean absolute error of level-only labels. """
+        return self.scores['level_only'].MAE
+
+    @property
+    def MAE_spatial(self):
+        """ Mean absolute error of space-only labels. """
+        return self.scores['spatial_only'].MAE
 
 
 class BenchmarkVisualization:
@@ -76,8 +81,7 @@ class BenchmarkVisualization:
     @property
     def fnorm(self):
         """ Fluorescence normalization. """
-        max_fluorescence = np.percentile(self.cell_classifier.values, 99)
-        return Normalize(vmin=0, vmax=max_fluorescence)
+        return Normalize(*self.annotator.classifier.model.bounds)
 
     def _scatter(self, ax, c,
                  s=5,
@@ -110,35 +114,37 @@ class BenchmarkVisualization:
     def show(self, **kwargs):
         """ Plot visual comparison of cell classifiers. """
         fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(6, 6))
-        self._scatter(axes[0, 0], c=self.true_genotypes, title='Ground Truth', **kwargs)
+        self._scatter(axes[0, 0], c=self.ground_truth, title='Ground Truth', **kwargs)
         self._scatter(axes[0, 1], c=self.fluorescence, norm=self.fnorm, title='Fluorescence', **kwargs)
-        self._scatter(axes[1, 0], c=self.simple_genotypes, title='Cell-based classifier', **kwargs)
-        self._scatter(axes[1, 1], c=self.community_genotypes, title='Community-based classifier', **kwargs)
+        self._scatter(axes[1, 0], c=self.level_only, title='Level only', **kwargs)
+        self._scatter(axes[1, 1], c=self.labels, title='Assigned labels', **kwargs)
 
     def show_classifiers(self, **kwargs):
         """ Plot visual comparison of cell classifiers. """
         fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(6, 6))
-        self._scatter(axes[0, 0], c=self.true_genotypes, title='Ground Truth', **kwargs)
-        self._scatter(axes[0, 1], c=self.simple_genotypes, title='Cell-based classifier', **kwargs)
-        self._scatter(axes[1, 0], c=self.community_genotypes, title='Infomap classifier', **kwargs)
-        self._scatter(axes[1, 1], c=self.katz_genotypes, title='Katz centrality classifier', **kwargs)
+        self._scatter(axes[0, 0], c=self.ground_truth, title='Ground Truth', **kwargs)
+        self._scatter(axes[0, 1], c=self.labels, title='Assigned labels', **kwargs)
+        self._scatter(axes[1, 0], c=self.level_only, title='Level only', **kwargs)
+        self._scatter(axes[1, 1], c=self.spatial_only, title='Spatial only', **kwargs)
 
     def show_measurements(self, **kwargs):
         """ Plot visual comparison of genotypes and measurements. """
         fig, axes = plt.subplots(ncols=2, figsize=(6, 3))
-        self._scatter(axes[0], c=self.true_genotypes, title='Ground Truth', **kwargs)
+        self._scatter(axes[0], c=self.ground_truth, title='Ground Truth', **kwargs)
         self._scatter(axes[1], c=self.fluorescence, norm=self.fnorm, title='Fluorescence', **kwargs)
 
     def show_comparison(self, **kwargs):
         """ Plot visual comparison of cell classifiers. """
         fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(6, 6))
-        self._scatter(axes[0, 0], c=self.simple_genotypes, title='Cell-based classifier', **kwargs)
-        self._scatter(axes[1, 0], c=self.community_genotypes, title='Community-based classifier', **kwargs)
-        self.scores['simple'].plot_matrix(ax=axes[0, 1])
-        self.scores['community'].plot_matrix(ax=axes[1, 1])
+        self._scatter(axes[0, 0], c=self.level_only, title='Level only', **kwargs)
+        self._scatter(axes[1, 0], c=self.labels, title='Assigned labels', **kwargs)
+        self.scores['level_only'].plot_matrix(ax=axes[0, 1])
+        self.scores['labels'].plot_matrix(ax=axes[1, 1])
 
 
-class SimulationBenchmark(BenchmarkProperties, BenchmarkVisualization):
+class SimulationBenchmark(Training,
+                          BenchmarkProperties,
+                          BenchmarkVisualization):
     """
     Class for benchmarking a synthetic simulation.
 
@@ -146,84 +152,69 @@ class SimulationBenchmark(BenchmarkProperties, BenchmarkVisualization):
 
         df (pd.DataFrame) - synthetic measurement data
 
-        annotator (InfomapLabeler) - cluster-based annotator
+        attribute (str) - attribute on which cell measurements are classified
 
-        classify_on (str) - attribute on which cell measurements are classified
+        annotator (Annotation) - object that assigns labels to measurements
 
     """
 
     def __init__(self, measurements,
-                 classifier=None,
-                 classify_on='fluorescence',
-                 logratio=False,
-                 twolevel=False,
-                 rule='proportional',
-                 katz_kwargs={}):
+                 annotator=None,
+                 graph=None,
+                 attribute='fluorescence',
+                 logratio=True,
+                 training_kw={},
+                 testing_kw={}):
         """
         Args:
 
             measurements (pd.DataFrame) - synthetic measurement data
 
-            classifier (BayesianClassifier) - if None, fit to measurements
+            annotator (Annotation) - if None, fit annotator to measurements
 
-            classify_on (str) - attribute on which measurements are classified
+            graph (WeightedGraph) - if None, create a new graph
 
-            logratio (bool) - if True, weight edges by logratio
+            attribute (str) - attribute on which measurements are classified
 
-            twolevel (bool) - if True, perform two-level clustering
+            logratio (bool) - if True, weight graph edges by log-ratio of attribute level. otherwise, use the absolute difference
 
-            rule (str) - voting rule, e.g. 'proportional', 'weighted' or 'majority'
+            training_kw (dict) - keyword arguments for annotator training
 
-            katz_kwargs (dict) - keyword arguments for KatzClassifier
+            testing_kw (dict) - keyword arguments for annotator application
 
         """
 
-        # fit cell classifier and graph
-        if classifier is None:
-            classifier = self.fit_cell_classifier(measurements, classify_on)
-
-        # assign cell-based labels
-        measurements.loc[:, 'simple_genotype'] = classifier(measurements)
+        self.attribute = attribute
 
         # build graph
-        graph = self.build_graph(measurements, classify_on, logratio)
+        if graph is None:
+            graph = self.build_graph(measurements, attribute, logratio)
 
-        # annotate measurements using infomap cluster-based labeler
-        kw = dict(rule=rule, twolevel=twolevel)
-        self.annotator = InfomapLabeler(graph, classifier, **kw)
-        self.annotator(measurements)
+        # train annotator
+        if annotator is None:
+            annotator = self.train(graph, attribute=attribute, **training_kw)
+        self.annotator = annotator
 
-        # annotate measurements using Katz centrality-based labeler
-        katz_annotator = KatzLabeler(graph, classifier, **katz_kwargs)
-        katz_annotator(measurements)
+        # apply graph-based annotation
+        measurements['labels'] = annotator.annotate(graph, **testing_kw)
+
+        # apply univariate annotation using only fluorescence levels
+        level_cl = annotator.classifier[0]
+        measurements['level_only'] = level_cl.classifier(level_cl.values)
+
+        # apply univariate annotation using only spatial context
+        space_cl = annotator.classifier[1]
+        measurements['spatial_only'] = space_cl.classifier(space_cl.values)
 
         # store measurements
         self.df = measurements
 
         # score annotation performance
         self.scores = {}
-        self.scores['simple'] = self.score(self.simple_genotypes)
-        self.scores['community'] = self.score(self.community_genotypes)
-        self.scores['katz'] = self.score(self.katz_genotypes)
-
-    @staticmethod
-    def fit_cell_classifier(measurements, classify_on='fluorescence'):
-        """ Returns BayesianClassifier object. """
-        values = measurements[classify_on].values
-        selector = ModelSelection(values, classify_on, max_num_components=6)
-
-        # check that BIC optimal model contains at least three components
-        num_components = selector.BIC_optimal.num_components
-        if num_components < 3:
-            raise UserWarning('Optimal model has {:d} components.'.format())
-
-        return selector.BIC_optimal
-
-    @staticmethod
-    def build_graph(measurements, weighted_by='fluorescence', logratio=False):
-        """ Returns WeightedGraph object. """
-        return WeightedGraph(measurements, weighted_by=weighted_by, logratio=logratio)
+        self.scores['labels'] = self.score(self.labels)
+        self.scores['level_only'] = self.score(self.level_only)
+        self.scores['spatial_only'] = self.score(self.spatial_only)
 
     def score(self, labels):
         """ Assess accuracy of <labels>. """
-        return Scoring(self.true_genotypes, labels)
+        return Scoring(self.ground_truth, labels)

@@ -1,0 +1,1 @@
+{"num_labels": 3, "log": true, "classify_on": ["r", "r_radial"], "num_components": 4, "fit_kw": {}}

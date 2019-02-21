@@ -1,2 +1,3 @@
 from .classification import MixtureModelClassifier, BivariateMixtureClassifier
 from .model_selection import UnivariateModelSelection, BivariateModelSelection
+from .annotation import Annotation

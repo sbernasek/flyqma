@@ -242,6 +242,12 @@ class LayerIO:
         # save raw measurements
         self.measurements.to_hdf(path, 'measurements', mode='w')
 
+    def save_processed_data(self):
+        """ Save processed measurement data. """
+
+        path = join(self.subdirs['measurements'], 'processed.hdf')
+        self.data.to_hdf(path, 'data', mode='w')
+
     def save_annotator(self, image=False, **kwargs):
         """
         Save annotator instance.
@@ -259,7 +265,8 @@ class LayerIO:
     def save(self,
              segmentation=True,
              measurements=True,
-             annotator=True,
+             processed_data=True,
+             annotator=False,
              segmentation_image=False,
              annotation_image=False):
         """
@@ -270,6 +277,8 @@ class LayerIO:
             segmentation (bool) - if True, save segmentation
 
             measurements (bool) - if True, save measurement data
+
+            processed_data (bool) - if True, save processed measurement data
 
             annotator (bool) - if True, save annotator
 
@@ -296,6 +305,10 @@ class LayerIO:
         if measurements:
             self.make_subdir('measurements')
             self.save_measurements()
+
+        # save processed data
+        if processed_data and self.data is not None:
+            self.save_processed_data()
 
         # save annotation
         if annotator and self.annotator is not None:
@@ -327,6 +340,11 @@ class LayerIO:
         path = join(self.subdirs['measurements'], 'measurements.hdf')
         self.measurements = pd.read_hdf(path, 'measurements')
 
+    def load_processed_data(self):
+        """ Load processed data from file. """
+        path = join(self.subdirs['measurements'], 'processed.hdf')
+        self.data = pd.read_hdf(path, 'data')
+
     def load_annotator(self):
         """ Load annotator instance. """
         self.annotator = Annotation.load(self.subdirs['annotation'])
@@ -349,11 +367,27 @@ class LayerIO:
         """
         return LayerCorrection.load(self)
 
-    def load(self):
-        """ Load layer. """
+    def load(self, process=False):
+        """
+        Load layer.
+
+        Args:
+
+            process (bool) - if True, re-process the measurement data
+
+        """
 
         # load metadata and extract background channel
         self.load_metadata()
+
+        # check whether annotation exists
+        if 'annotation' in self.subdirs.keys():
+
+            if self.annotator is not None:
+                raise UserWarning('Layer was instantiated with a stack-level annotation instance, but a second annotation instance was found within the layer directory. Resolve this conflict before continuing.')
+
+            # load annotator
+            self.load_annotator()
 
         # check whether segmentation exists
         if 'measurements' in self.subdirs.keys():
@@ -361,14 +395,14 @@ class LayerIO:
             # load raw measurements
             self.load_measurements()
 
-            # process raw measurement data
+        # load existing data
+        available = exists(join(self.subdirs['measurements'], 'processed.hdf'))
+        if not process and available:
+            self.load_processed_data()
+
+        # otherwise, process raw measurement data
+        else:
             self.data = self.process_measurements(self.measurements)
-
-        # check whether annotation exists
-        if 'annotation' in self.subdirs.keys():
-
-            # load annotator
-            self.load_annotator()
 
 
 class Layer(LayerIO, ImageRGB, LayerVisualization):
@@ -517,9 +551,9 @@ class Layer(LayerIO, ImageRGB, LayerVisualization):
         # construct graph
         self.build_graph(data, **self.metadata['params']['graph_kw'])
 
-        # annotate measurements
+        # annotate measurements (opt to load labels rather than annotate again)
         if self.annotator is not None:
-            self.apply_annotation(data)
+            self._apply_annotation(data)
             self.mark_boundaries(data, basis='genotype', max_edges=1)
             self.apply_concurrency(data)
 
@@ -613,7 +647,46 @@ class Layer(LayerIO, ImageRGB, LayerVisualization):
         self.metadata['params']['graph_kw'] = graph_kw
         self.graph = WeightedGraph(data, weighted_by, **graph_kw)
 
-    def apply_annotation(self, data, **kwargs):
+    def train_annotator(self, attribute, save_models=False, **kwargs):
+        """
+        Train an Annotation model on the measurements in this layer.
+
+        Args:
+
+            attribute (str) - measured attribute used to determine labels
+
+            save_models (bool) - if True, save model selection routine
+
+            kwargs: keyword arguments for Annotation, including:
+
+                sampler_type (str) - either 'radial', 'neighbors', 'community'
+
+                sampler_kwargs (dict) - keyword arguments for sampler
+
+                min_num_components (int) - minimum number of mixture components
+
+                max_num_components (int) - maximum number of mixture components
+
+                addtl_kwargs: keyword arguments for Classifier
+
+        Returns:
+
+            selector (ModelSelection object)
+
+        """
+
+        # train annotator
+        self.annotator = Annotation(attribute, **kwargs)
+        selector = self.annotator.train(self.graph)
+
+        # save models
+        if save_models:
+            self.make_subdir('annotation')
+            selector.save(self.subdirs['annotation'])
+
+        return selector
+
+    def _apply_annotation(self, data, label='genotype', **kwargs):
         """
         Assign genotype and celltype labels to cell measurements.
 
@@ -621,13 +694,30 @@ class Layer(LayerIO, ImageRGB, LayerVisualization):
 
             data (pd.DataFrame) - processed cell measurement data
 
+            label (str) - attribute name for predicted genotype
+
             kwargs: keyword arguments for Annotator.annotate()
 
         """
         if self.annotator is not None and self.graph is not None:
-            data['genotype'] = self.annotator(self.graph, **kwargs)
-        assign_celltypes = CelltypeLabeler('celltype', 'genotype')
+            data[label] = self.annotator(self.graph, **kwargs)
+
+        # assign cell types (e.g. 'w', 'h', 'm' string labels)
+        assign_celltypes = CelltypeLabeler('celltype', label)
         assign_celltypes(data)
+
+    def apply_annotation(self, label='genotype', **kwargs):
+        """
+        Assign genotype and celltype labels to cell measurements in place.
+
+        Args:
+
+            label (str) - attribute name for predicted genotype
+
+            kwargs: keyword arguments for Annotator.annotate()
+
+        """
+        self._apply_annotation(self.data, label=label, **kwargs)
 
     def apply_concurrency(self, data, min_pop=5, max_distance=10):
         """

@@ -19,7 +19,7 @@ class BenchmarkingResults:
         """
 
         if methods is None:
-            methods = ['simple', 'community', 'katz']
+            methods = ['labels', 'level_only', 'spatial_only']
             methods = [m for m in methods if m in data.columns]
         self.methods = {m: i for i, m in enumerate(methods)}
 
@@ -66,8 +66,8 @@ class BenchmarkingResults:
 
     def plot_relative_error(self,
                             ax=None,
-                            method='katz',
-                            reference_method='simple',
+                            method='labels',
+                            reference_method='level_only',
                             row_id=0,
                             vmin=-3,
                             vmax=3,
@@ -104,7 +104,7 @@ class BenchmarkingResults:
 
     def plot_absolute_error(self,
                             ax=None,
-                            method='katz',
+                            method='labels',
                             row_id=0,
                             log=True,
                             vmin=0.,

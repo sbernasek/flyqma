@@ -63,6 +63,10 @@ def joint_figure(func):
         # invert yaxis (after all plotting is done)
         fig.ax_joint.invert_yaxis()
 
+        # set axis limits
+        fig.ax_joint.set_xlim(fig.ax_joint.get_ylim())
+        fig.ax_xmargin.set_xlim(fig.ax_joint.get_ylim())
+
         return output
 
     return wrapper

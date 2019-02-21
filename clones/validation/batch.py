@@ -3,12 +3,12 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from ..annotation.bayesian import BayesianClassifier
+from .training import Training
 from .simulation import SimulationBenchmark
 from .io import Pickler
 
 
-class BatchBenchmark(Pickler):
+class BatchBenchmark(Pickler, Training):
     """
     Class for benchmarking a batch of simulations.
 
@@ -22,9 +22,13 @@ class BatchBenchmark(Pickler):
 
         data (pd.DataFrame) - synthetic measurement data
 
-        classifier (BayesianClassifier) - classifier fit to all replicates
+        attribute (str) - attribute on which cell measurements are classified
 
-        results (pd.DataFrame) - classifier scores for each replicate
+        graphs (dict) - graph objects for each replicate, keyed by replicate_id
+
+        annotator (Annotation) - object that assigns labels to measurements
+
+        results (pd.DataFrame) - classification scores for each replicate
 
         runtime (float) - total benchmark evaluation runtime
 
@@ -33,11 +37,10 @@ class BatchBenchmark(Pickler):
     def __init__(self, batch,
                  ambiguity=0.1,
                  num_replicates=1,
-                 classify_on='fluorescence',
+                 attribute='fluorescence',
                  logratio=False,
-                 rule='weighted',
-                 twolevel=False,
-                 katz_kwargs={}):
+                 training_kw={},
+                 testing_kw={}):
         """
         Instantiate batch benchmark.
 
@@ -49,29 +52,27 @@ class BatchBenchmark(Pickler):
 
             num_replicates (int) - number of fluorescence replicates
 
-            classify_on (str) - attribute on which cells are classified
+            attribute (str) - attribute on which measurements are classified
 
-            logratio (bool) - if True, weight edges by logratio
+            logratio (bool) - if True, weight graph edges by log-ratio of attribute level. otherwise, use the absolute difference
 
-            rule (str) - rule used for vote aggregation
+            training_kw (dict) - keyword arguments for annotator training
 
-            twolevel (bool) - if True, use two-level clustering
-
-            katz_kwargs (dict) - keyword arguments for KatzClassifier
+            testing_kw (dict) - keyword arguments for annotator application
 
         """
         self.batch = batch
         self.ambiguity = ambiguity
         self.num_replicates = num_replicates
-        self.classify_on = classify_on
+        self.attribute = attribute
         self.logratio = logratio
-        self.rule = rule
-        self.twolevel = twolevel
-        self.katz_kwargs = katz_kwargs
+
+        self.training_kw = training_kw
+        self.testing_kw = testing_kw
 
         # initialize attributes
         self.data = None
-        self.classifier = None
+        self.annotator = None
         self.results = None
         self.runtime = None
 
@@ -98,25 +99,30 @@ class BatchBenchmark(Pickler):
     @property
     def params(self):
         """ Parameters for SimulationBenchmark. """
-        return dict(classifier=self.classifier,
+        return dict(annotator=self.annotator,
+                    attribute=self.attribute,
                     logratio=self.logratio,
-                    rule=self.rule,
-                    twolevel=self.twolevel,
-                    katz_kwargs=self.katz_kwargs)
+                    training_kw=self.training_kw,
+                    testing_kw=self.testing_kw)
+
+    @property
+    def multiindex(self):
+        """ Multilevel index for replicates. """
+        return ['growth_replicate', 'fluorescence_replicate']
 
     @property
     def replicates(self):
         """ Replicates iterator (pd.GroupBy) """
-        columns = ['growth_replicate', 'fluorescence_replicate']
-        return self.data.groupby(columns)
+        return self.data.groupby(self.multiindex)
+
+    def build_graphs(self):
+        """ Build graph objects for each replicate. """
+        kw = dict(attribute=self.attribute, logratio=self.logratio)
+        return {_id: self.build_graph(df, **kw) for _id, df in self.replicates}
 
     def measure(self):
         """ Returns dataframe of synthetic measurements. """
         return self.batch.measure(self.ambiguity, self.num_replicates)
-
-    @staticmethod
-    def fit_classifier(values, classify_on):
-        return BayesianClassifier(values, classify_on=classify_on)
 
     def evaluate_benchmarks(self):
         """
@@ -125,20 +131,21 @@ class BatchBenchmark(Pickler):
 
         # iterate over replicates
         results = {}
-        columns = ['growth_replicate', 'fluorescence_replicate']
         for replicate_id, replicate in self.replicates:
 
             # evaluate benchmark for current replicate
-            benchmark = SimulationBenchmark(replicate.copy(), **self.params)
+            benchmark = SimulationBenchmark(replicate.copy(),
+                                            graph=self.graphs[replicate_id],
+                                            **self.params)
 
             # store results
-            results[replicate_id] = dict(simple=benchmark.simple_MAE,
-                                         community=benchmark.community_MAE,
-                                         katz=benchmark.katz_MAE)
+            results[replicate_id] = dict(labels=benchmark.MAE,
+                                         levels_only=benchmark.MAE_levels,
+                                         spatial_only=benchmark.MAE_spatial)
 
         # compile dataframe
         results = pd.DataFrame.from_dict(results, orient='index')
-        results.index.set_names(columns, inplace=True)
+        results.index.set_names(self.multiindex, inplace=True)
 
         return results
 
@@ -149,9 +156,13 @@ class BatchBenchmark(Pickler):
         start = time()
         self.data = self.measure()
 
-        # fit bayesian cell-based classifier
-        values = self.data[self.classify_on].values
-        self.classifier = self.fit_classifier(values, self.classify_on)
+        # build graphs
+        self.graphs = self.build_graphs()
+
+        # train annotation object
+        self.annotator = self.train(*list(graphs.values()),
+                                    attribute=self.attribute,
+                                    **self.training_kw)
 
         # evaluate benchmarks
         self.results = self.evaluate_benchmarks()
@@ -161,7 +172,8 @@ class BatchBenchmark(Pickler):
         """
         Returns SimulationBenchmark for <replicate_id>.
 
-        This is separate from the large batch of measurement data generated by the run method.
+        This is separate from the large batch of measurement data generated by the run method because the annotator is only trained on an individual replicate.
+
         """
         sim = self.batch[replicate_id]
         measurements = sim.measure(ambiguity=self.ambiguity)

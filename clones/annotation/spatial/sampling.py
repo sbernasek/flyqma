@@ -380,6 +380,43 @@ class CommunitySampler(NeighborSampler):
         ax.set_ylabel('Correlation')
         ax.set_xlabel('Hierarchical level')
 
+    @default_figure
+    def plot_autocorrelation_with_distance(self, ax=None):
+        """ Plot autocorrelation versus community depth. """
+
+        # construct dataframe
+        df = deepcopy(self.df[['community']])
+        df['levels'] = self.node_values
+        xykey = ['centroid_x', 'centroid_y']
+
+        # define functions for evaluation fluctuations
+        f = lambda x: sum([sum([a * b for b in x if a!=b]) for a in x]) / 2
+        g = lambda x: len(x)*(len(x)-1) / 2
+        d = lambda x: np.mean([[np.sqrt((a-b)**2) for b in x if a != b] for a in x])
+
+        def evaluate_mean_fluctuation(bin_id):
+            total_fluctuations = df.groupby(bin_id)['zscore'].agg(f).sum()
+            bin_size = df.groupby(bin_id)['zscore'].agg(g).sum()
+            return total_fluctuations / bin_size
+
+        def evaluate_mean_distance(bin_id):
+            return df.groupby(bin_id)[xykey].agg(d).mean()
+
+        # instantiate infomap clustering
+        detector = InfoMap(self.graph.edge_list)
+
+        # evaluate autocorrelation function
+        distances, autocorrelation = [], []
+        for level in range(detector.aggregator.max_depth):
+            key = '{:d}'.format(level)
+            df[key] = detector.aggregator(df.community, level=level)
+            mean_fluctuation = evaluate_mean_fluctuation(key)
+            autocorrelation.append((level, mean_fluctuation))
+            distances.append(evaluate_mean_distance(key))
+
+        return distances, autocorrelation
+
+
 
 class RadialSampler(NeighborSampler):
     """
@@ -495,3 +532,70 @@ class RadialSampler(NeighborSampler):
         """ Plot autocorrelation versus community depth. """
         correlations = self.graph.get_correlations(self.attr, self.log)
         correlations.visualize(ax=ax, **kwargs)
+
+
+
+# """
+# COMPUTE DISTANCE CORRELATIONS WITHIN COMMUNITY BINS:
+# """
+
+# from clones.annotation.spatial.sampling import CommunitySampler
+# from copy import deepcopy
+# import pandas as pd
+
+# class Test(CommunitySampler):
+
+#     @staticmethod
+#     def evaluate_distances(xy):
+#         """ Euclidean distance matrix between all nodes. """
+#         x, y = xy.T
+#         x = x.reshape(-1, 1)
+#         y = y.reshape(-1, 1)
+#         x_component = np.repeat(x**2, x.size, axis=1) + np.repeat(x.T**2, x.size, axis=0) - 2*np.dot(x, x.T)
+#         y_component = np.repeat(y**2, y.size, axis=1) + np.repeat(y.T**2, y.size, axis=0) - 2*np.dot(y, y.T)
+#         distance_matrix = np.sqrt(x_component + y_component)
+#         return distance_matrix[np.triu_indices(len(distance_matrix), k=1)].tolist()
+
+#     @staticmethod
+#     def evaluate_fluctuations(values):
+#         """ Euclidean distance matrix between all nodes. """
+#         fluctuations_matrix = np.dot(values.reshape(-1, 1), values.reshape(1, -1))
+#         return fluctuations_matrix[np.triu_indices(len(fluctuations_matrix), k=1)].tolist()
+
+#     def plot_autocorrelation_with_distance(self, ax=None):
+#         """ Plot autocorrelation versus community depth. """
+
+#         # construct dataframe
+#         df = deepcopy(self.df[['community', 'centroid_x', 'centroid_y']])
+#         df['levels'] = self.node_values
+#         df['zscore'] = (df.levels-df.levels.mean())/df.levels.std()
+#         xykey = ['centroid_x', 'centroid_y']
+
+#         def get_fluctuations(bin_id):
+#             #f = lambda x: pd.Series({'fluctuations': self.evaluate_fluctuations(x.values)})
+#             f = lambda x: self.evaluate_fluctuations(x.values)
+#             fluctuations = []
+#             for vector in df.groupby(bin_id)['zscore'].apply(f).values:
+#                 fluctuations += vector
+#             return fluctuations
+
+#         def get_distances(bin_id):
+#             d = lambda x: pd.Series({'distances': self.evaluate_distances(x.values)})
+#             distances = []
+#             for vector in df.groupby(bin_id)[xykey].apply(d)['distances']:
+#                 distances += vector
+#             return distances
+
+#         # instantiate infomap clustering
+#         detector = InfoMap(self.graph.edge_list)
+
+#         # evaluate autocorrelation function
+#         distances, fluctuations = [], []
+#         for level in range(detector.aggregator.max_depth):
+#             bin_id = '{:d}'.format(level)
+#             df[bin_id] = detector.aggregator(df.community, level=level)
+
+#             distances.append(get_distances(bin_id))
+#             fluctuations.append(get_fluctuations(bin_id))
+
+#         return distances, fluctuations

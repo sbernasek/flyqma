@@ -94,20 +94,6 @@ class SweepArguments(RunArguments):
                               default=False,
                               required=False)
 
-          # add keyword argument for sweep density
-          self.add_argument('-t', '--twolevel',
-                              help='Use two-level clustering.',
-                              type=str2bool,
-                              default=True,
-                              required=False)
-
-          # add keyword argument for vote aggregation rule
-          self.add_argument('-r', '--rule',
-                              help='Vote aggregation rule.',
-                              type=str,
-                              default='proportional',
-                              required=False)
-
           # add keyword argument for estimated run time
           self.add_argument('-w', '--walltime',
                               help='Estimated run time.',

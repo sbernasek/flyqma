@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 from ...visualization.settings import *
 from .timeseries import plot_mean, plot_mean_interval
-from .timeseries import smoothed_moving_average
+from .timeseries import smooth
 
 
 class CorrelationProperties:
@@ -38,12 +38,12 @@ class CorrelationProperties:
     @property
     def d_av(self):
         """ Smoothed moving average distances. """
-        return smoothed_moving_average(self.d_ij, self.window)
+        return smooth(self.d_ij, self.window)
 
     @property
     def C_av(self):
         """ Smoothed moving average correlation. """
-        return smoothed_moving_average(self.C_ij, self.window)
+        return smooth(self.C_ij, self.window)
 
     @property
     def characteristic_length(self):
@@ -238,7 +238,7 @@ class CharacteristicLength:
     Class for determining the characteristic length over which correlations decay.
     """
 
-    def __init__(self, correlation, fraction_of_max=0.1):
+    def __init__(self, correlation, fraction_of_max=0.01):
         """
         Args:
 

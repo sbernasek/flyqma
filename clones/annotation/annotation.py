@@ -106,7 +106,7 @@ class Annotation(AnnotationIO):
                  sampler_type='radial',
                  sampler_kwargs={},
                  min_num_components=3,
-                 max_num_components=5):
+                 max_num_components=10):
         """
         Instantiate annotation object.
 
@@ -415,60 +415,6 @@ class Annotation(AnnotationIO):
         return labels
 
 
-# class DiffusionAnnotation(MixtureModelAnnotation):
-#     """
-#     Object for assigning labels to measurements. Object is trained on one or more graphs by fitting a bivariate mixture model and using a model selection procedure to select an optimal number of components.
-
-#     The trained model may then be used to label measurements in other graphs by estimating the posterior probability that each sample belongs to each component. These probabilities are then allowed to diffuse among neighboring cells.
-
-#     Attributes:
-
-#         classifier (Classifier derivative) - callable object
-
-#     Inherited attributes:
-
-#         label (str) - name of label field to be added
-
-#         attribute (str) - existing cell attribute used to determine labels
-
-#     """
-
-#     def annotate(self, graph,
-#                  sampler_type=None,
-#                  sampler_kwargs=None,
-#                  alpha=0.9):
-#         """
-#         Annotate graph of measurements.
-
-#         Args:
-
-#             graph (spatial.WeightedGraph)
-
-#             sampler_type (str) - either 'neighbors' or 'community'
-
-#             sampler_kwargs (dict) - keyword arguments for sampling
-
-#             alpha (float) - attenuation factor
-
-#         Returns:
-
-#             labels (np.ndarray[int]) - labels for each measurement in graph
-
-#         """
-
-#         # get sample data
-#         sample = self.get_sample(graph=graph,
-#                                  sampler_type=sampler_type,
-#                                  sampler_kwargs=sampler_kwargs)
-
-#         # evaluate posterior label distribution for each node
-#         posterior = self.classifier.posterior(sample)
-
-#         # diffuse posteriors
-#         posterior = self.diffuse_posteriors(graph, posterior, alpha=alpha)
-
-#         return posterior.argmax(axis=1)
-
 
 
 
@@ -583,12 +529,6 @@ class Annotation(AnnotationIO):
 #     community_to_genotype = communities.apply(voter).to_dict()
 #     community_to_genotype[-1] = -1
 # return np.vectorize(community_to_genotype.get)
-
-
-
-
-
-
 
 
 

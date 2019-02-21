@@ -14,7 +14,7 @@ class ClassifierIO:
     Methods for saving and loading classifier objects.
     """
 
-    def save(self, dirpath, image=True, **kwargs):
+    def save(self, dirpath, image=True, extension=None, **kwargs):
         """
         Save classifier to specified path.
 
@@ -24,12 +24,17 @@ class ClassifierIO:
 
             image (bool) - if True, save labeled histogram image
 
+            extension (str) - directory name extension
+
             kwargs: keyword arguments for image rendering
 
         """
 
         # create directory for classifier
-        path = join(dirpath, 'classifier')
+        dirname = 'classifier'
+        if extension is not None:
+            dirname += '_{:s}'.format(str(extension))
+        path = join(dirpath, dirname)
         if not exists(path):
             mkdir(path)
 

@@ -15,10 +15,22 @@ from .layers import Layer
 class StackIO:
     """ Methods for saving and loading a Stack instance. """
 
+    def save(self):
+        """ Save stack metadata and annotator. """
+        self.save_metadata()
+        if self.annotator is not None:
+            self.save_annotator()
+
     def save_metadata(self):
         """ Save metadata. """
         io = IO()
         io.write_json(join(self.path, 'metadata.json'), self.metadata)
+
+    def save_annotator(self):
+        """ Save annotator to annotation directory. """
+        if not isdir(self.annotator_path):
+            mkdir(self.annotator_path)
+        self.annotator.save(self.annotator_path)
 
     def load_metadata(self):
         """ Load available metadata. """
@@ -128,7 +140,7 @@ class Stack(StackIO):
 
     def __getitem__(self, layer_id):
         """ Load layer. """
-        return self.load_layer(layer_id)
+        return self.load_layer(layer_id, process=False, full=True)
 
     def __iter__(self):
         """ Iterate across layers. """
@@ -143,6 +155,11 @@ class Stack(StackIO):
             return layer
         else:
             raise StopIteration
+
+    @property
+    def graphs(self):
+        """ All included graphs in stack. """
+        return [layer.graph for layer in self if layer.include]
 
     def initialize(self, bits=12):
         """
@@ -175,6 +192,40 @@ class Stack(StackIO):
             layer_path = join(self.layers_path, '{:d}'.format(layer_id))
             layer = Layer(layer_path)
             layer.initialize()
+
+    def train_annotator(self, attribute, save=False, **kwargs):
+        """
+        Train an Annotation model on all layers in this stack.
+
+        Args:
+
+            attribute (str) - measured attribute used to determine labels
+
+            save (bool) - if True, save annotator and model selection routine
+
+            kwargs: keyword arguments for Annotation, including:
+
+                sampler_type (str) - either 'radial', 'neighbors', 'community'
+
+                sampler_kwargs (dict) - keyword arguments for sampler
+
+                min_num_components (int) - minimum number of mixture components
+
+                max_num_components (int) - maximum number of mixture components
+
+                addtl_kwargs: keyword arguments for Classifier
+
+        """
+
+        # train annotator
+        annotator = Annotation(attribute, **kwargs)
+        selector = annotator.train(*self.graphs)
+        self.annotator = annotator
+
+        # save models
+        if save:
+            self.save_annotator()
+            selector.save(self.annotator_path)
 
     def aggregate_measurements(self, raw=False):
         """
@@ -210,13 +261,15 @@ class Stack(StackIO):
 
         return data
 
-    def load_layer(self, layer_id=0, full=True):
+    def load_layer(self, layer_id=0, process=False, full=True):
         """
         Load individual layer.
 
         Args:
 
             layer_id (int) - layer index
+
+            process (bool) - if True, re-process the layer measurement data
 
             full (bool) - if True, load fully labeled RGB image
 
@@ -239,6 +292,6 @@ class Stack(StackIO):
         layer = Layer(layer_path, im, self.annotator)
 
         # load layer
-        layer.load()
+        layer.load(process=process)
 
         return layer

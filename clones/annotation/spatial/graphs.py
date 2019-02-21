@@ -58,8 +58,8 @@ class SpatialProperties:
 
     @property
     def node_positions_arr(self):
-        """ N x 2 array of node coordinates."""
-        return np.vstack(list(self.node_positions.values()))
+        """ N x 2 array of node coordinates, ordered by positional index."""
+        return self.df[['centroid_x', 'centroid_y']].values
 
     @property
     def distance_matrix(self):

@@ -17,7 +17,7 @@ class MixtureModelIO(ClassifierIO):
     Methods for saving and loading classifier objects.
     """
 
-    def save(self, dirpath, image=True, **kwargs):
+    def save(self, dirpath, image=True, extension=None, **kwargs):
         """
         Save classifier to specified path.
 
@@ -27,15 +27,19 @@ class MixtureModelIO(ClassifierIO):
 
             image (bool) - if True, save labeled histogram image
 
+            extension (str) - directory name extension
+
             kwargs: keyword arguments for image rendering
 
         """
-        path = super().save(dirpath, image, **kwargs)
+
+        # instantiate Classifier
+        path = super().save(dirpath, image, extension, **kwargs)
 
         # save model
         if self.model is not None:
             with open(join(path, 'model.pkl'), 'wb') as file:
-                pickle.dump(file, self.model)
+                pickle.dump(self.model, file)
 
         return path
 
@@ -121,7 +125,9 @@ class MixtureModelClassifier(MixtureModelIO, Classifier, MixtureVisualization):
 
         """
 
-        # instantiate classifier
+        # instantiate classifier (remove redundant log parameter)
+        if 'log' in kwargs.keys():
+            _ = kwargs.pop('log')
         super().__init__(values, num_labels=num_labels, log=True, **kwargs)
         self.parameters['num_components'] = num_components
         self.parameters['fit_kw'] = fit_kw
