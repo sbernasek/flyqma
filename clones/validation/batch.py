@@ -3,9 +3,10 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+from ..utilities import Pickler
+
 from .training import Training
 from .simulation import SimulationBenchmark
-from .io import Pickler
 
 
 class BatchBenchmark(Pickler, Training):
@@ -118,7 +119,7 @@ class BatchBenchmark(Pickler, Training):
     def build_graphs(self):
         """ Build graph objects for each replicate. """
         kw = dict(attribute=self.attribute, logratio=self.logratio)
-        return {_id: self.build_graph(df, **kw) for _id, df in self.replicates}
+        return {_id: self.build_graph(r, **kw) for _id, r in self.replicates}
 
     def measure(self):
         """ Returns dataframe of synthetic measurements. """

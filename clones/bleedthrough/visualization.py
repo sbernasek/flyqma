@@ -5,9 +5,10 @@ import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 import seaborn as sns
 
+from ..visualization import *
+
 from .resampling import resample_uniformly
 from .background import BackgroundExtraction
-from ..visualization.settings import *
 
 
 class CorrectionVisualization:
@@ -21,23 +22,23 @@ class CorrectionVisualization:
 
         # compile dataframe
         bg_xy = np.vstack((self.x, self.y)).T
-        df = pd.DataFrame.from_records(bg_xy, columns=['x', 'y'])
+        data = pd.DataFrame.from_records(bg_xy, columns=['x', 'y'])
 
         # add data to plot
-        df['bin'] = (df.x // bin_size)
+        data['bin'] = (data.x // bin_size)
         if mode == 'strip':
-            sns.stripplot(x='bin', y='y', data=df, ax=ax, size=1, color='k')
+            sns.stripplot(x='bin', y='y', data=data, ax=ax, size=1, color='k')
         elif mode == 'box':
-            sns.boxplot(x='bin', y='y', data=df, color='grey', ax=ax, width=.6, fliersize=2)
+            sns.boxplot(x='bin', y='y', data=data, color='grey', ax=ax, width=.6, fliersize=2)
         elif mode == 'violin':
-            sns.violinplot(x='bin', y='y', data=df, color='grey', ax=ax, width=.6)
+            sns.violinplot(x='bin', y='y', data=data, color='grey', ax=ax, width=.6)
         elif mode == 'scatter':
-            sns.scatterplot(x='bin', y='y', data=df)
+            sns.scatterplot(x='bin', y='y', data=data)
         elif mode == 'raw':
-            ax.plot(df.x, df.y, '.k', markersize=1)
+            ax.plot(data.x, data.y, '.k', markersize=1)
 
         # set limits
-        xlim = (-0.5, df.bin.max()+0.5)
+        xlim = (-0.5, data.bin.max()+0.5)
         ax.set_xlim(*xlim)
 
         # format axes

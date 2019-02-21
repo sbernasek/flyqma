@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 from scipy.spatial import Voronoi
 from matplotlib.collections import PolyCollection
-
 from matplotlib.colors import Normalize
+
 from .spatial.alpha import AlphaShapes
 
 
@@ -18,13 +18,25 @@ class CloneBoundaries:
 
     """
 
-    def __init__(self, df, label_by='genotype', alpha=50):
-        self.shapes = self.build_shapes(df, label_by, alpha)
+    def __init__(self, graph, label_by='genotype', alpha=50):
+        """
+        Instantiate clone boundary object.
+
+        Args:
+
+            graph (spatial.Graph)
+
+            label_by (str) - attribute used to label clones
+
+            alpha (float) - shape parameter for alpha shapes
+
+        """
+        self.shapes = self.build_shapes(graph, label_by, alpha)
 
     @classmethod
     def from_layer(cls, layer, label_by='genotype', **kwargs):
         """ Instantiate from clones.Layer instance. """
-        return cls(layer.data, label_by=label_by, **kwargs)
+        return cls(layer.graph, label_by=label_by, **kwargs)
 
     @property
     def norm(self):
@@ -32,11 +44,11 @@ class CloneBoundaries:
         return Normalize(vmin=0, vmax=len(self.shapes)-1)
 
     @staticmethod
-    def build_shapes(df, label_by, alpha):
+    def build_shapes(graph, label_by, alpha):
         """ Compile shapes. """
         shapes_dict = {}
-        for label in df[label_by].unique():
-            xy = df[df[label_by]==label][['centroid_x', 'centroid_y']].values
+        for label in graph.data[label_by].unique():
+            xy = graph.data[graph.data[label_by]==label][graph.xykey].values
             shapes_dict[label] = AlphaShapes(xy, alpha=alpha)
         return shapes_dict
 
@@ -143,8 +155,6 @@ class CloneVisualization(Tessellation):
     Object for visualizing clones by shading Voronoi cells.
     """
 
-    def __init__(self, df, label='genotype', **kw):
-        xy = df[['centroid_x', 'centroid_y']].values
-        labels = df[label].values
-        Tessellation.__init__(self, xy, labels, **kw)
-
+    def __init__(self, graph, label='genotype', **kw):
+        labels = graph.data[label].values
+        Tessellation.__init__(self, graph.node_positions_arr, labels, **kw)

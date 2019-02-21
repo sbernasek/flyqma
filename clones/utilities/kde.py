@@ -5,11 +5,24 @@ from sklearn.cluster import k_means
 
 class KDE:
     """
-    Kernel density fit to cell coordinates.
+    Kernel density fit to node coordinates.
     """
 
-    def __init__(self, df, bandwidth=100, n=2):
-        self.xy = df[['centroid_x', 'centroid_y']].values
+    def __init__(self, xy, bandwidth=100, n=2):
+        """
+        Instantiate KDE object.
+
+        Args:
+
+            xy (2D np.ndarray[float]) - node positions
+
+            bandwidth (float) - bandwidth for KernelDensity
+
+            n (int) - number of clusters
+
+        """
+
+        self.xy = xy
         self.bandwidth = bandwidth
         self.kde = self.fit_kde(self.xy, bandwidth)
         self.density = self.evaluate_density()

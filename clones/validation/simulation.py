@@ -9,16 +9,13 @@ from .scoring import Scoring
 # warnings.filterwarnings('error')
 
 
-
-
-
 class BenchmarkProperties:
     """ Properties for Benchmark class. """
 
     @property
     def xykey(self):
         """ Attribute key for spatial coordinates. """
-        return ['centroid_x', 'centroid_y']
+        return ['x', 'y']
 
     @property
     def xy(self):

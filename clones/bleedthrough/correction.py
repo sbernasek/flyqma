@@ -4,12 +4,14 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from ..utilities.io import IO
+from ..utilities import IO
+from ..visualization import *
+
 from .models import GLM
 from .resampling import resample_uniformly
 from .background import BackgroundExtraction
-from .visualization import CorrectionVisualization,LayerCorrectionVisualization
-from ..visualization.settings import *
+from .visualization import CorrectionVisualization
+from .visualization import LayerCorrectionVisualization
 
 
 class Correction(GLM, CorrectionVisualization):

@@ -3,6 +3,7 @@ from os import mkdir
 import shutil
 import json
 import numpy as np
+import dill as pickle
 
 
 def safeload(loader):
@@ -73,9 +74,9 @@ class IO:
         return pd.read_csv(path, index_col=0)
 
     @staticmethod
-    def write_csv(path, df):
-        if df is not None:
-            df.to_csv(path)
+    def write_csv(path, data):
+        if data is not None:
+            data.to_csv(path)
 
     @safeload
     def read_npy(path):
@@ -86,3 +87,18 @@ class IO:
         if arr is not None:
             np.save(path, arr)
 
+
+class Pickler:
+    """ Methods for pickling an object instance. """
+
+    def save(self, filepath):
+        """ Save serialized instance. """
+        with open(filepath, 'wb') as file:
+            pickle.dump(self, file, protocol=0)
+
+    @staticmethod
+    def load(filepath):
+        """ Save serialized instance. """
+        with open(filepath, 'rb') as file:
+            batch = pickle.load(file)
+        return batch

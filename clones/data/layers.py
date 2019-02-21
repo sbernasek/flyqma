@@ -9,21 +9,27 @@ import matplotlib.pyplot as plt
 from matplotlib.path import Path
 from collections import Counter
 
+from ..visualization import *
+from ..utilities import IO
+
+# import measurement objects
+from ..measurement import Segmentation
+from ..measurement import Measurements
+
+# import annotation objects
+from ..annotation import WeightedGraph
+from ..annotation import Annotation
+from ..annotation import ConcurrencyLabeler
+from ..annotation import CloneBoundaries
+from ..annotation import CelltypeLabeler
+
+# import bleedthrough correction objects
+from ..bleedthrough import LayerCorrection
+
+# import image base class
 from .images import ImageRGB
 
-from ..measurement.segmentation import Segmentation
-from ..measurement.measure import Measurements
-from ..annotation.spatial.graphs import WeightedGraph
-from ..annotation.annotation import Annotation
-from ..annotation.spatial.concurrency import ConcurrencyLabeler
-from ..annotation.visualization import CloneBoundaries
-from ..annotation.labelers import CelltypeLabeler
-
-from ..bleedthrough.correction import LayerCorrection
-
-from ..visualization.settings import *
-
-from ..utilities.io import IO
+# import default parameters
 from .defaults import Defaults
 defaults = Defaults()
 
@@ -599,7 +605,7 @@ class Layer(LayerIO, ImageRGB, LayerVisualization):
             path = Path(bounds, closed=False)
 
             # mark cells as within or outside the selection boundary
-            cell_positions = data[['centroid_x', 'centroid_y']].values
+            cell_positions = data[self.graph.xykey].values
             data['selected'] = path.contains_points(cell_positions)
 
     def apply_correction(self, data):

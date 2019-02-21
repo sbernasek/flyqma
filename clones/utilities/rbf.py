@@ -6,19 +6,26 @@ import matplotlib.pyplot as plt
 
 class RBF:
     """
-    Radial basis function fit to cell coordinates.
+    Radial basis function fit to scalar field.
     """
 
-    def __init__(self, df,
-                 basis='r',
-                 smooth=1,
-                 function='multiquadric'):
-        """ Instantiate RBF """
-        xy = df[['centroid_x', 'centroid_y']].values.T
-        z = df[basis].values
+    def __init__(self, xy, z, smooth=1, function='multiquadric'):
+        """
+        Instantiate RBF object.self
+
+        Args:
+
+            xy (2D np.ndarray[float]) - node coordinates (2xN)
+
+            z (1D np.ndarray[float]) - scalar values
+
+            smooth (float) - RBF smoothing parameter
+
+            function (str) - RBF kernel
+
+        """
         self.xy = xy
         self.z = z
-
         self.rbf = self.fit(smooth, function)
         self.evaluate()
         self.cluster()

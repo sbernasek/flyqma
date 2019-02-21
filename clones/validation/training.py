@@ -1,5 +1,5 @@
-from ..annotation.spatial.graphs import WeightedGraph
-from ..annotation.annotation import Annotation
+from ..annotation import WeightedGraph
+from ..annotation import Annotation
 
 
 class Training:
@@ -24,6 +24,7 @@ class Training:
 
         """
         return WeightedGraph(measurements,
+                             xykey=self.xykey,
                              weighted_by=weighted_by,
                              logratio=logratio)
 

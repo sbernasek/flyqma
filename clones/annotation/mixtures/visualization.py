@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 
-from ...visualization.settings import *
+from ...visualization import *
 
 
 def figure(func):

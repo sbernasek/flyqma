@@ -1,11 +1,10 @@
-__author__ = 'Sebastian Bernasek'
-
 import numpy as np
 from scipy.stats import binned_statistic
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 
-from ...visualization.settings import *
+from ...visualization import *
+
 from .timeseries import plot_mean, plot_mean_interval
 from .timeseries import smooth
 

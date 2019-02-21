@@ -2,7 +2,8 @@ import numpy as np
 import networkx as nx
 from copy import deepcopy
 
-from ...visualization.settings import *
+from ...visualization import *
+
 from .infomap import InfoMap
 
 
@@ -78,19 +79,14 @@ class NeighborSampler:
         return np.vstack(samples), sampler.keys
 
     @property
-    def N(self):
+    def num_nodes(self):
         """ Number of nodes. """
-        return len(self.df)
+        return self.graph.num_nodes
 
     @property
-    def xykeys(self):
-        """ Attribute names for node X/Y positions. """
-        return ['centroid_x', 'centroid_y']
-
-    @property
-    def df(self):
+    def data(self):
         """ Graph data. """
-        return self.graph.df
+        return self.graph.data
 
     @property
     def G(self):
@@ -100,7 +96,7 @@ class NeighborSampler:
     @property
     def node_values(self):
         """ Vector of attribute values for each node. """
-        values = self.df[self.attr].values
+        values = self.data[self.attr].values
         if self.log:
             values = np.log(values)
         return values
@@ -108,7 +104,7 @@ class NeighborSampler:
     @property
     def node_values_dict(self):
         """ Dictionary of attribute values, keyed by node index. """
-        values = self.df[self.attr]
+        values = self.data[self.attr]
         if self.log:
             values = np.log(values)
         return dict(values)
@@ -146,7 +142,7 @@ class NeighborSampler:
     @property
     def sample(self):
         """ Returns bivariate sample combining each node's attribute value with the average attribute value in its neighborhood. """
-        return self.df[self.keys].values
+        return self.data[self.keys].values
 
     def add_attribute_to_graph(self):
         """ Add attribute to networkx graph object. """
@@ -197,13 +193,13 @@ class NeighborSampler:
             means = np.exp(means)
 
         # store outcome
-        self.df.loc[node_indices, self.averaged_attr] = means
-        self.df.loc[node_indices, self.size_attr] = sizes
+        self.data.loc[node_indices, self.averaged_attr] = means
+        self.data.loc[node_indices, self.size_attr] = sizes
 
     @default_figure
     def histogram_sample_sizes(self, ax=None):
         """ Histogram sample sizes. """
-        sizes = self.df[self.size_attr].values
+        sizes = self.data[self.size_attr].values
         _ = ax.hist(sizes, bins=np.arange(sizes.max()+1))
 
     @square_figure
@@ -213,7 +209,7 @@ class NeighborSampler:
         colors = np.array(['k' for _ in range(self.graph.nodes.size)])
         colors[self.graph.position_map(node)] = 'g'
         colors[self.graph.position_map(neighbors)] = 'r'
-        ax.scatter(*self.graph.df[self.xykeys].values.T, c=colors, **kwargs)
+        ax.scatter(*self.data[self.graph.xykey].values.T, c=colors, **kwargs)
 
     @default_figure
     def plot_autocorrelation(self, ax=None, xmax=10, **kwargs):
@@ -309,9 +305,9 @@ class CommunitySampler(NeighborSampler):
     @property
     def neighbors(self):
         """ Dictionary of neighbor indices keyed by node indices. """
-        gb = self.df.groupby('community')
+        gb = self.data.groupby('community')
         exclude = lambda node, neighbors: neighbors[neighbors!=node]
-        neighbors = {n: exclude(n, gb.indices[c]) for n, c in dict(self.df.community).items()}
+        neighbors = {n: exclude(n, gb.indices[c]) for n, c in dict(self.data.community).items()}
         return neighbors
 
     @property
@@ -333,9 +329,9 @@ class CommunitySampler(NeighborSampler):
             agg = lambda x: x.mean()
 
         # average over each community
-        community_levels = self.df.groupby('community')[self.attr].aggregate(agg)
+        community_levels = self.data.groupby('community')[self.attr].aggregate(agg)
         community_to_mean_level = np.vectorize(dict(community_levels).get)
-        means = community_to_mean_level(self.df.community.values)
+        means = community_to_mean_level(self.data.community.values)
 
         # log transform average
         if self.log:
@@ -346,22 +342,22 @@ class CommunitySampler(NeighborSampler):
         get_community_size = np.vectorize(lambda n: len(neighbors[n]))
 
         # store outcome
-        self.df[self.averaged_attr] = means
-        self.df[self.size_attr] = get_community_size(self.df.index.values)
+        self.data[self.averaged_attr] = means
+        self.data[self.size_attr] = get_community_size(self.data.index.values)
 
     @default_figure
     def plot_autocorrelation(self, ax=None):
         """ Plot autocorrelation versus community depth. """
 
         # construct dataframe
-        df = deepcopy(self.df[['community']])
-        df['levels'] = self.node_values
-        df['zscore'] = (df.levels-df.levels.mean())/df.levels.std()
+        data = deepcopy(self.data[['community']])
+        data['levels'] = self.node_values
+        data['zscore'] = (data.levels-data.levels.mean())/data.levels.std()
 
         # define functions for evaluation fluctuations
         f = lambda x: sum([sum([a * b for b in x if a!=b]) for a in x]) / 2
         g = lambda x: len(x)*(len(x)-1) / 2
-        evaluate_mean_fluctuation = lambda key: df.groupby(key)['zscore'].agg(f).sum() / df.groupby(key)['zscore'].agg(g).sum()
+        evaluate_mean_fluctuation = lambda key: data.groupby(key)['zscore'].agg(f).sum() / data.groupby(key)['zscore'].agg(g).sum()
 
         # instantiate infomap clustering
         detector = InfoMap(self.graph.edge_list)
@@ -370,7 +366,7 @@ class CommunitySampler(NeighborSampler):
         autocorrelation = []
         for level in range(detector.aggregator.max_depth):
             key = '{:d}'.format(level)
-            df[key] = detector.aggregator(df.community, level=level)
+            data[key] = detector.aggregator(data.community, level=level)
             mean_fluctuation = evaluate_mean_fluctuation(key)
             autocorrelation.append((level, mean_fluctuation))
 
@@ -385,9 +381,8 @@ class CommunitySampler(NeighborSampler):
         """ Plot autocorrelation versus community depth. """
 
         # construct dataframe
-        df = deepcopy(self.df[['community']])
-        df['levels'] = self.node_values
-        xykey = ['centroid_x', 'centroid_y']
+        data = deepcopy(self.data[['community']])
+        data['levels'] = self.node_values
 
         # define functions for evaluation fluctuations
         f = lambda x: sum([sum([a * b for b in x if a!=b]) for a in x]) / 2
@@ -395,12 +390,12 @@ class CommunitySampler(NeighborSampler):
         d = lambda x: np.mean([[np.sqrt((a-b)**2) for b in x if a != b] for a in x])
 
         def evaluate_mean_fluctuation(bin_id):
-            total_fluctuations = df.groupby(bin_id)['zscore'].agg(f).sum()
-            bin_size = df.groupby(bin_id)['zscore'].agg(g).sum()
+            total_fluctuations = data.groupby(bin_id)['zscore'].agg(f).sum()
+            bin_size = data.groupby(bin_id)['zscore'].agg(g).sum()
             return total_fluctuations / bin_size
 
         def evaluate_mean_distance(bin_id):
-            return df.groupby(bin_id)[xykey].agg(d).mean()
+            return data.groupby(bin_id)[self.graph.xykey].agg(d).mean()
 
         # instantiate infomap clustering
         detector = InfoMap(self.graph.edge_list)
@@ -409,7 +404,7 @@ class CommunitySampler(NeighborSampler):
         distances, autocorrelation = [], []
         for level in range(detector.aggregator.max_depth):
             key = '{:d}'.format(level)
-            df[key] = detector.aggregator(df.community, level=level)
+            data[key] = detector.aggregator(data.community, level=level)
             mean_fluctuation = evaluate_mean_fluctuation(key)
             autocorrelation.append((level, mean_fluctuation))
             distances.append(evaluate_mean_distance(key))
@@ -502,7 +497,8 @@ class RadialSampler(NeighborSampler):
         """
 
         # average within each neighborhood
-        matrix = np.repeat(self.node_values.reshape(1, -1), self.N, axis=0)
+        node_values = self.node_values.reshape(1, -1)
+        matrix = np.repeat(node_values, self.num_nodes, axis=0)
         masked_values = np.ma.masked_array(matrix, mask=~self.neighbor_mask)
         means = masked_values.mean(axis=1).data
 
@@ -511,8 +507,8 @@ class RadialSampler(NeighborSampler):
             means = np.exp(means)
 
         # store outcome
-        self.df[self.averaged_attr] = means
-        self.df[self.size_attr] = (~masked_values.mask).sum(axis=1)
+        self.data[self.averaged_attr] = means
+        self.data[self.size_attr] = (~masked_values.mask).sum(axis=1)
 
     @square_figure
     def plot_neigborhood(self, node, ax=None, **kwargs):
@@ -520,7 +516,7 @@ class RadialSampler(NeighborSampler):
 
         # draw selection boundary
         idx = self.graph.position_map(node)
-        center = self.graph.df[self.xykeys].values[idx]
+        center = self.data[self.graph.xykey].values[idx]
         circle = plt.Circle(center, self.radius, color='r', alpha=0.2)
         ax.add_artist(circle)
 
@@ -566,23 +562,22 @@ class RadialSampler(NeighborSampler):
 #         """ Plot autocorrelation versus community depth. """
 
 #         # construct dataframe
-#         df = deepcopy(self.df[['community', 'centroid_x', 'centroid_y']])
-#         df['levels'] = self.node_values
-#         df['zscore'] = (df.levels-df.levels.mean())/df.levels.std()
-#         xykey = ['centroid_x', 'centroid_y']
+#         data = deepcopy(self.data[['community']+self.graph.xykey])
+#         data['levels'] = self.node_values
+#         data['zscore'] = (data.levels-data.levels.mean())/data.levels.std()
 
 #         def get_fluctuations(bin_id):
 #             #f = lambda x: pd.Series({'fluctuations': self.evaluate_fluctuations(x.values)})
 #             f = lambda x: self.evaluate_fluctuations(x.values)
 #             fluctuations = []
-#             for vector in df.groupby(bin_id)['zscore'].apply(f).values:
+#             for vector in data.groupby(bin_id)['zscore'].apply(f).values:
 #                 fluctuations += vector
 #             return fluctuations
 
 #         def get_distances(bin_id):
 #             d = lambda x: pd.Series({'distances': self.evaluate_distances(x.values)})
 #             distances = []
-#             for vector in df.groupby(bin_id)[xykey].apply(d)['distances']:
+#             for vector in data.groupby(bin_id)[self.graph.xykey].apply(d)['distances']:
 #                 distances += vector
 #             return distances
 
@@ -593,7 +588,7 @@ class RadialSampler(NeighborSampler):
 #         distances, fluctuations = [], []
 #         for level in range(detector.aggregator.max_depth):
 #             bin_id = '{:d}'.format(level)
-#             df[bin_id] = detector.aggregator(df.community, level=level)
+#             data[bin_id] = detector.aggregator(data.community, level=level)
 
 #             distances.append(get_distances(bin_id))
 #             fluctuations.append(get_fluctuations(bin_id))

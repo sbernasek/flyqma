@@ -1,3 +1,14 @@
+"""
+
+OBSOLETE:
+
+    - keeping so we can incorporate infomap aggregation strategy
+
+
+
+"""
+
+
 import numpy as np
 import networkx as nx
 from collections import Counter
@@ -196,12 +207,12 @@ class InfomapLabeler(AttributeLabeler):
         """
 
         # assign community labels
-        self.graph.df['community'] = -1
+        self.graph.data['community'] = -1
         ind = self.graph.nodes
-        self.graph.df.loc[ind, 'community'] = self.graph.community_labels
+        self.graph.data.loc[ind, 'community'] = self.graph.community_labels
 
         # build community classifier
-        classifier = InfomapClassifier(self.graph.df,
+        classifier = InfomapClassifier(self.graph.data,
                                          self.cell_classifier,
                                          **kwargs)
 

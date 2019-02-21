@@ -5,11 +5,11 @@ import numpy as np
 import networkx as nx
 from collections import Counter
 
+from ..utilities import IO
+
 from .spatial.sampling import NeighborSampler, CommunitySampler, RadialSampler
 from .classification.mixtures import BivariateMixtureClassifier
 from .model_selection import BivariateModelSelection
-
-from ..utilities.io import IO
 
 
 class AnnotationIO:
@@ -134,17 +134,17 @@ class Annotation(AnnotationIO):
         return self.annotate(graph, **kwargs)
 
     @classmethod
-    def from_data(cls, data, attribute, **kwargs):
+    def from_data(cls, data, attribute, xykey=None, **kwargs):
         """
         Instantiate annotation object from measurement data.
 
         Args:
 
-            data (pd.DataFrame) - measurement data containing <attribute>, as well as centroid_x and centroid_y fields
+            data (pd.DataFrame) - measurement data containing <attribute>, as well as <xykey> fields
 
             attribute (str) - name of attribute used to classify cells
 
-            label (str) - name of label attribute to be added
+            xykey (list) - name of attributes defining measurement x/y position
 
             kwargs: keyword arguments for Annotation
 
@@ -154,7 +154,7 @@ class Annotation(AnnotationIO):
 
         """
         annotator = cls(attribute, **kwargs)
-        annotator.train(WeightedGraph(data, attribute))
+        annotator.train(WeightedGraph(data, attribute, xykey=xykey))
         return annotator
 
     @classmethod
@@ -413,174 +413,3 @@ class Annotation(AnnotationIO):
         labels = posterior.argmax(axis=1)
 
         return labels
-
-
-
-
-
-# class ClusteringAnnotation(MixtureModelAnnotation):
-#     """
-#     Object for assigning labels to measurements. Object is trained on one or more graphs by fitting a bivariate mixture model and using a model selection procedure to select an optimal number of components.
-
-#     The trained model may then be used to label measurements in other graphs by assigning an initial label to each measurement. Measurements are then clustered via InfoMap and the most common measurement within each cluster is assigned to each constituent member of the group.
-
-#     Inherited attributes:
-
-#         classifier (Classifier derivative) - callable object
-
-#         label (str) - name of label field to be added
-
-#         attribute (str) - existing cell attribute used to determine labels
-
-#     """
-
-#     def annotate(self, graph, twolevel=True):
-#         """
-#         Annotate graph of measurements.
-
-#         Args:
-
-#             graph (spatial.WeightedGraph)
-
-#             twolevel (bool) - if True, perform two-level clustering
-
-#         Returns:
-
-#             labels (np.ndarray[int]) - labels for each measurement in graph
-
-#         """
-
-#         # get sample data
-#         sample = self.get_sample(graph=graph, resample=resample, depth=depth)
-
-#         # evaluate posterior label distribution for each node
-#         posterior = self.classifier.posterior(sample)
-
-#         # run community detection
-#         graph.find_communities(twolevel=twolevel)
-
-#         # diffuse posteriors
-#         posterior = self.diffuse_posteriors(graph, posterior)
-
-#         return posterior.argmax(axis=1)
-
-
-
-
-
-# @staticmethod
-# def get_mode(x):
-#     """ Returns most common value in an array. """
-#     mode, count = Counter(x).most_common(1)[0]
-#     return mode
-
-# @classmethod
-# def build_voter(cls, cell_classifier, rule='proportional'):
-#     """
-#     Build voting function.
-
-#     Args:
-
-#         cell_classifier (BayesianClassifier) - labels individual cells
-
-#         rule (str) - voting rule, e.g. 'weighted' or 'majority'
-
-#     """
-
-#     # aggregate votes via majority rules
-#     if rule == 'majority':
-#         def voter(x):
-#             return cls.get_mode(cell_classifier(x))
-
-#     # aggregate maximum mean posterior (proportional representation)
-#     elif rule == 'proportional':
-#         def voter(x):
-#             posterior = cell_classifier.evaluate_posterior(x)
-#             return posterior.mean(axis=0).argmax()
-
-#     # aggregate votes weighted by posterior probability of each label
-#     elif rule == 'weighted':
-#         def voter(x):
-#             posterior = cell_classifier.evaluate_posterior(x)
-#             confidence = posterior.max(axis=1)
-#             genotypes = posterior.argmax(axis=1)
-#             ind = np.argsort(genotypes)
-#             starts = np.searchsorted(genotypes[ind], np.arange(4))
-#             lengths = np.diff(starts)
-#             return np.argmax([confidence[ind][slice(s, s+l)].sum() for s, l in zip(starts[:-1], lengths)])
-
-#     else:
-#         raise ValueError('Voter rule not recognized.')
-
-#     return voter
-
-# @classmethod
-# def build_classifier(cls, cells, cell_classifier, rule='weighted'):
-#     """
-#     Build classifier assigning genotypes to graph communities.
-#     Args:
-#         cells (pd.DataFrame) - cell data including community labels
-#         cell_classifier (BayesianClassifier) - labels individual cells
-#         rule (str) - voting rule, e.g. 'weighted' or 'majority'
-#     """
-#     #majority_vote = lambda x: cls.get_mode(cell_classifier(x))
-#     voter = cls.build_voter(cell_classifier, rule=rule)
-#     communities = cells.groupby('community')
-#     community_to_genotype = communities.apply(voter).to_dict()
-#     community_to_genotype[-1] = -1
-# return np.vectorize(community_to_genotype.get)
-
-
-
-    # def assign_labels(self, data):
-    #     """
-    #     Assign labels by adding <label> field to cell measurement data.
-
-    #     Args:
-
-    #         data (pd.DataFrame) - cells measurement data
-
-    #     """
-    #     data[self.label] = self.labeler(data.index.values)
-
-    # @staticmethod
-    # def _build_classifier(graph, cell_classifier, alpha=0.9):
-    #     """
-    #     Construct classifier baed on the maximum Katz centrality of posterior distributions applied to undirected edges weighted by node similarity.
-
-    #     Args:
-
-    #         graph (Graph) - graph connecting adjacent cells
-
-    #         cell_classifier (BayesianClassifier) - labels individual cells
-
-    #         alpha (float) - attenuation factor
-
-    #     Returns:
-
-    #         genotypes_dict (dict) - maps measurement index to genotype
-
-    #     """
-
-    #     # build undirected graph weighted by node similarity
-    #     G = graph.get_networkx()
-
-    #     # evaluate posterior genotype distribution for each node
-    #     posterior = cell_classifier.evaluate_posterior(graph.df.loc[list(G.nodes)])
-
-    #     # compile normalized adjacency matrix
-    #     adjacency = nx.to_numpy_array(G)
-    #     adjacency /= adjacency.sum(axis=0)
-
-    #     # evaluate centrality
-    #     n = np.array(adjacency).shape[0]
-    #     centrality = np.linalg.solve(np.eye(n, n)-(alpha*adjacency), (1-alpha)*posterior)
-
-    #     # build classifier that maps model distributions to genotypes.
-    #     #get_label = np.vectorize(cell_classifier.component_to_label.get)
-    #     node_labels = centrality.argmax(axis=1)
-
-    #     # return genotype mapping
-    #     index_to_genotype = dict(zip(list(G.nodes), node_labels))
-
-    #     return np.vectorize(index_to_genotype.get)

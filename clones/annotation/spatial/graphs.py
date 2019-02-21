@@ -14,13 +14,18 @@ class TopologicalProperties:
     """ Topological properties for Graph objects. """
 
     @property
+    def num_nodes(self):
+        """ Number of nodes. """
+        return len(self.data)
+
+    @property
     def nodes(self):
-        """ Uniqe nodes in graph. """
+        """ Unique nodes in graph. """
         return np.array(sorted(np.unique(self.edges)), dtype=int)
 
     @property
     def nodes_order(self):
-        """ Indices that sort nodes by position in self.df """
+        """ Indices that sort nodes by positional index in <self.data>. """
         return np.argsort(self.position_map(self.nodes))
 
     @property
@@ -40,7 +45,7 @@ class TopologicalProperties:
 
     @property
     def adjacency_positional(self):
-        """ Adjacency matrix ordered by positional index in <self.df> """
+        """ Adjacency matrix ordered by positional index in <self.data>. """
         return self.adjacency[self.nodes_order, :][:, self.nodes_order]
 
 
@@ -59,7 +64,7 @@ class SpatialProperties:
     @property
     def node_positions_arr(self):
         """ N x 2 array of node coordinates, ordered by positional index."""
-        return self.df[['centroid_x', 'centroid_y']].values
+        return self.data[self.xykey].values
 
     @property
     def distance_matrix(self):
@@ -129,7 +134,7 @@ class SpatialProperties:
             fluctuations (2D np.ndarray[float]) - pairwise fluctuations
 
         """
-        attribute_values = self.df[attribute].values.reshape(-1, 1)
+        attribute_values = self.data[attribute].values.reshape(-1, 1)
         if log:
             attribute_values = np.log(attribute_values)
         return self.evaluate_fluctuations(attribute_values)
@@ -141,7 +146,9 @@ class Graph(TopologicalProperties, SpatialProperties):
 
     Attributes:
 
-        df (pd.DataFrame) - cell measurement data (nodes)
+        data (pd.DataFrame) - cell measurement data (nodes)
+
+        xykey (list) - attribute keys for node x/y positions
 
         G (nx.Graph) - undirected graph instance
 
@@ -157,8 +164,25 @@ class Graph(TopologicalProperties, SpatialProperties):
 
     """
 
-    def __init__(self, data):
-        self.df = data
+    def __init__(self, data, xykey=None):
+        """
+        Instantiate Graph object.
+
+        Args:
+
+            data (pd.DataFrame) - cell measurement data (nodes)
+
+            xykey (list) - attribute keys for node x/y positions
+
+        """
+
+        # set xykey
+        if xykey is None:
+            xykey = ['centroid_x', 'centroid_y']
+        self.xykey = xykey
+
+        # store data
+        self.data = data
 
         # define mapping from position to node index
         position_to_node = dict(enumerate(data.index))
@@ -169,14 +193,14 @@ class Graph(TopologicalProperties, SpatialProperties):
         self.position_map = np.vectorize(node_to_position.get)
 
         # triangulate
-        self.tri = self._construct_triangulation(data)
+        self.tri = self._construct_triangulation(data, xykey)
 
         # build networkx graph instance
         self.G = self.get_networkx()
 
     def get_subgraph(self, ind):
         """ Instantiate subgraph from DataFrame indices. """
-        return Graph(self.df.loc[ind])
+        return Graph(self.data.loc[ind])
 
     def get_networkx(self, *node_attributes):
         """
@@ -193,7 +217,7 @@ class Graph(TopologicalProperties, SpatialProperties):
         # add node attributes
         for attr in node_attributes:
             if attr is not None:
-                values_dict = dict(self.df.loc[self.nodes][attr])
+                values_dict = dict(self.data.loc[self.nodes][attr])
                 nx.set_node_attributes(G, name=attr, values=values_dict)
 
         return G
@@ -219,18 +243,20 @@ class Graph(TopologicalProperties, SpatialProperties):
         return SpatialCorrelation(d_ij, C_ij)
 
     @staticmethod
-    def _construct_triangulation(df, **kwargs):
+    def _construct_triangulation(data, xykey, **kwargs):
         """
         Construct Delaunay triangulation with edge filter.
 
         Args:
 
-            df (pd.DataFrame) - edge data
+            data (pd.DataFrame) - node measurement data
+
+            xykey (list) - attribute keys for node x/y coordinates
 
             kwargs: keyword arguments for triangulation
 
         """
-        pts = df[['centroid_x', 'centroid_y']].values
+        pts = data[xykey].values
         return LocalTriangulation(*pts.T, **kwargs)
 
     def plot_edges(self, ax=None, **kwargs):
@@ -269,7 +295,7 @@ class Graph(TopologicalProperties, SpatialProperties):
         if label_by == 'community':
             get_level = lambda node_id: self.community_labels[node_id]
         else:
-            get_level = lambda node_id: self.df[label_by].loc[node_id]
+            get_level = lambda node_id: self.data[label_by].loc[node_id]
 
         levels = np.apply_along_axis(get_level, axis=1, arr=vertices)
 
@@ -334,7 +360,7 @@ class Graph(TopologicalProperties, SpatialProperties):
         """
         if colorby is not None:
             msg = 'Colorby attribute must be an integer type.'
-            assert self.df[colorby].dtype in (np.integer, int), msg
+            assert self.data[colorby].dtype in (np.integer, int), msg
 
         # construct graph
         if colorby is not None:
@@ -369,7 +395,9 @@ class WeightedGraph(Graph):
 
     Inherited attributes:
 
-        df (pd.DataFrame) - cell measurement data (nodes)
+        data (pd.DataFrame) - cell measurement data (nodes)
+
+        xykey (list) - attribute keys for node x/y positions
 
         nodes (np.ndarray[int]) - node indices
 
@@ -383,7 +411,10 @@ class WeightedGraph(Graph):
 
     """
 
-    def __init__(self, data, weighted_by, logratio=True, distance=False):
+    def __init__(self, data, weighted_by,
+                 xykey=None,
+                 logratio=True,
+                 distance=False):
         """
         Instantiate weighted graph.
 
@@ -392,6 +423,8 @@ class WeightedGraph(Graph):
             data (pd.DataFrame) - cell measurement data
 
             weighted_by (str) - data attribute used to weight edges
+
+            xykey (list) - attribute keys for node x/y positions
 
             logratio (bool) - if True, weight edges by log ratio
 
@@ -405,7 +438,7 @@ class WeightedGraph(Graph):
         self.distance = distance
 
         # instantiate graph
-        super().__init__(data)
+        super().__init__(data, xykey)
         self.community_labels = None
 
     @property
@@ -429,7 +462,7 @@ class WeightedGraph(Graph):
             weights (np.ndarray[float]) - edge weights
 
         """
-        wf = WeightFunction(self.df,
+        wf = WeightFunction(self.data,
                             weighted_by=self.weighted_by,
                             distance=self.distance)
         return wf.assess_weights(self.edges, logratio=self.logratio)
@@ -450,8 +483,8 @@ class WeightedGraph(Graph):
         self.community_labels = labels
 
         # add labels to dataframe
-        index = np.arange(len(self.df))
-        self.df['community'] = labels[self.node_map(index)]
+        index = np.arange(len(self.data))
+        self.data['community'] = labels[self.node_map(index)]
 
 
 class WeightFunction:
@@ -460,7 +493,7 @@ class WeightFunction:
 
     Attributes:
 
-        df (pd.DataFrame) - nodes data
+        data (pd.DataFrame) - nodes data
 
         weighted_by (str) - node attribute used to assess similarity
 
@@ -470,22 +503,22 @@ class WeightFunction:
 
     """
 
-    def __init__(self, df, weighted_by='r', distance=False):
+    def __init__(self, data, weighted_by='r', distance=False):
         """
         Instantiate edge weighting function.
 
         Args:
 
-            df (pd.DataFrame) - nodes data
+            data (pd.DataFrame) - nodes data
 
             weighted_by (str) - node attribute used to assess similarity
 
             distance (bool) - if True, weights edges by distance
 
         """
-        self.df = df
+        self.data = data
         self.weighted_by = weighted_by
-        self.values = df[weighted_by]
+        self.values = data[weighted_by]
         self.distance = distance
 
     def difference(self, i, j):

@@ -6,12 +6,13 @@ import numpy as np
 import pandas as pd
 import dill as pickle
 
+from ..utilities import Pickler
+from .arguments import str2bool
+
 from growth.sweep.sweep import Sweep
 from .batch import BatchBenchmark
-from .io import Pickler
 from .visualization import SweepVisualization
 from .results import BenchmarkingResults
-from .arguments import str2bool
 
 
 class SweepBenchmark(Pickler, SweepVisualization):

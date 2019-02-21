@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 from matplotlib.gridspec import GridSpec
 
-from ..utilities.io import IO
+from ..utilities import IO
 
 
 class LayerVisualization:

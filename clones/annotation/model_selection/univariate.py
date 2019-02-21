@@ -2,10 +2,10 @@ from os.path import join, exists
 from os import mkdir
 import numpy as np
 
-from ..classification import MixtureModelClassifier
-from .visualization import ModelSelectionVisualization
+from ...utilities import IO
 
-from ...utilities.io import IO
+from ..classification import UnivariateMixtureClassifier
+from .visualization import ModelSelectionVisualization
 
 
 class SelectionIO:
@@ -51,7 +51,7 @@ class SelectionIO:
     @staticmethod
     def load_model(path):
         """ Load model from <path> directory. """
-        return MixtureModelClassifier.load(path)
+        return UnivariateMixtureClassifier.load(path)
 
     @classmethod
     def load(cls, path):
@@ -128,7 +128,7 @@ class UnivariateModelSelection(SelectionIO, ModelSelectionVisualization):
     @staticmethod
     def fit_model(values, num_components, **kwargs):
         """ Fit model with specified number of components. """
-        return MixtureModelClassifier(values,
+        return UnivariateMixtureClassifier(values,
                                     num_components=num_components,
                                     num_labels=num_components,
                                     **kwargs)

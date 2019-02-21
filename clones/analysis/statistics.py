@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.stats import ks_2samp, ttest_ind, mannwhitneyu
 
-from ..visualization.settings import *
+from ..visualization import *
 
 
 class PairwiseComparison:

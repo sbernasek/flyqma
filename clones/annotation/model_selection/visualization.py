@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from ...visualization.settings import default_figure
+from ...visualization import default_figure
 
 
 class ModelSelectionVisualization:

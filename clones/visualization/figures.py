@@ -211,7 +211,7 @@ class CellSelection(Figure):
         _ = layer.get_channel(channel).show(ax=ax, segments=False, cmap=None)
         _ = ax.axis('off')
 
-    def add_markers(self, data, color_by='genotype', **kwargs):
+    def add_markers(self, data, color_by='genotype', xykey=None, **kwargs):
         """
         Add cell position markers to axis.
 
@@ -221,12 +221,17 @@ class CellSelection(Figure):
 
             color_by (str) - cell measurement attribute used to color markers
 
+            xykey (list) - attribute keys for cell x/y positions
+
             kwargs: keyword arguments for markers
 
         """
 
+        if xykey is None:
+            xykey = ['centroid_x', 'centroid_y']
+
         # get cell coordinates and color vector
-        x, y = data.centroid_x, data.centroid_y
+        x, y = data[xykey].values.T
 
         # get color vector and colormap
         c = data[color_by]

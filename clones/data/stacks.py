@@ -6,8 +6,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from ..utilities.io import IO
-from ..annotation.annotation import Annotation
+from ..utilities import IO
+from ..annotation import Annotation
 
 from .layers import Layer
 

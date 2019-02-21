@@ -6,7 +6,7 @@ from sklearn.cluster import k_means
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
 
-from ...utilities.io import IO
+from ...utilities import IO
 
 
 class ClassifierIO:
@@ -255,7 +255,7 @@ class Classifier(ClassifierProperties, ClassifierIO):
 
         if groupby is None:
             groupby = ('disc_genotype', 'disc_id', 'layer', 'im_label')
-        values = df.groupby(by=groupby)[classify_on].mean().values
+        values = data.groupby(by=groupby)[classify_on].mean().values
         return cls(values, classify_on, **kwargs)
 
     def show(self):

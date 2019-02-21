@@ -5,10 +5,10 @@ from copy import deepcopy
 import numpy as np
 import matplotlib.pyplot as plt
 
-from ...utilities.io import IO
+from ...utilities import IO
+from ..mixtures import UnivariateMixture, BivariateMixture
 
 from .classifiers import Classifier, ClassifierIO
-from ..mixtures import UnivariateMixture, BivariateMixture
 from .visualization import MixtureVisualization, BivariateMixtureVisualization
 
 
@@ -68,7 +68,9 @@ class MixtureModelIO(ClassifierIO):
         return cls(values, model=model, **parameters)
 
 
-class MixtureModelClassifier(MixtureModelIO, Classifier, MixtureVisualization):
+class UnivariateMixtureClassifier(MixtureModelIO,
+                                  Classifier,
+                                  MixtureVisualization):
     """
     Univariate mixed log-normal model classifier.
 
@@ -144,9 +146,16 @@ class MixtureModelClassifier(MixtureModelIO, Classifier, MixtureVisualization):
         # assign labels
         self.labels = self.classifier(self.values)
 
-    def __call__(self, df):
-        """ Assign class labels to measurements <df>. """
-        return self.evaluate_classifier(df)
+    def __call__(self, data):
+        """
+        Assign class labels to <data>.
+
+        Args:
+
+            data (pd.DataFrame) - must contain necessary attributes
+
+        """
+        return self.evaluate_classifier(data)
 
     @property
     def num_components(self):
@@ -217,16 +226,16 @@ class MixtureModelClassifier(MixtureModelIO, Classifier, MixtureVisualization):
 
         return posterior
 
-    def evaluate_classifier(self, df):
-        """ Returns labels for measurements in <df>. """
-        x =  df[self.classify_on].values
+    def evaluate_classifier(self, data):
+        """ Returns labels for <data>. """
+        x =  data[self.classify_on].values
         if self.log:
             x = np.log(x)
         return self.classifier(x)
 
-    def evaluate_posterior(self, df):
-        """ Returns posterior across components for measurements in <df>. """
-        x =  df[self.classify_on].values
+    def evaluate_posterior(self, data):
+        """ Returns posterior across components for <data>. """
+        x =  data[self.classify_on].values
         if self.log:
             x = np.log(x)
         return self.posterior(x)
@@ -244,7 +253,7 @@ class MixtureModelClassifier(MixtureModelIO, Classifier, MixtureVisualization):
 
 
 class BivariateMixtureClassifier(BivariateMixtureVisualization,
-                                 MixtureModelClassifier):
+                                 UnivariateMixtureClassifier):
     """
     Bivariate mixed log-normal model classifier.
 
@@ -275,11 +284,11 @@ class BivariateMixtureClassifier(BivariateMixtureVisualization,
     """
 
     def __getitem__(self, margin):
-        """ Returns MixtureModelClassifier for specified margin. """
+        """ Returns UnivariateMixtureClassifier for specified margin. """
         return self.marginalize(margin)
 
     def marginalize(self, margin):
-        """ Returns MixtureModelClassifier for specified margin. """
+        """ Returns UnivariateMixtureClassifier for specified margin. """
 
         # assemble marginalized properties
         values = self._values[:, [margin]]
@@ -290,7 +299,7 @@ class BivariateMixtureClassifier(BivariateMixtureVisualization,
         parameters['classify_on'] = self.classify_on[0]
         _ = parameters.pop('log')
 
-        return MixtureModelClassifier(values, model=model, **parameters)
+        return UnivariateMixtureClassifier(values, model=model, **parameters)
 
     @staticmethod
     def fit(values, num_components=3, **kwargs):

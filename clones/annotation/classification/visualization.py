@@ -3,7 +3,7 @@ from scipy.signal import argrelextrema
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap, Normalize
 
-from ...visualization.settings import *
+from ...visualization import *
 
 
 class MixtureVisualization:

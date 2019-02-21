@@ -1,8 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
+
 from skimage.feature import peak_local_max
 from skimage.segmentation import watershed
-from matplotlib.colors import ListedColormap
 from scipy.ndimage import distance_transform_edt, gaussian_filter
 from scipy.ndimage import generate_binary_structure, iterate_structure
 
