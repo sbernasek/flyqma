@@ -118,7 +118,7 @@ class BatchBenchmark(Pickler, Training):
 
     def build_graphs(self):
         """ Build graph objects for each replicate. """
-        kw = dict(attribute=self.attribute, logratio=self.logratio)
+        kw = dict(weighted_by=self.attribute, logratio=self.logratio)
         return {_id: self.build_graph(r, **kw) for _id, r in self.replicates}
 
     def measure(self):
