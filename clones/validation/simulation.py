@@ -164,7 +164,7 @@ class SimulationBenchmark(Training,
     def __init__(self, measurements,
                  annotator=None,
                  graph=None,
-                 attribute='fluorescence',
+                 attribute='clonal_marker',
                  logratio=True,
                  training_kw={},
                  testing_kw={}):

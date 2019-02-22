@@ -38,7 +38,7 @@ class BatchBenchmark(Pickler, Training):
     def __init__(self, batch,
                  ambiguity=0.1,
                  num_replicates=1,
-                 attribute='fluorescence',
+                 attribute='clonal_marker',
                  logratio=False,
                  training_kw={},
                  testing_kw={}):

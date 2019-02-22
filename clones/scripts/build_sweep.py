@@ -27,4 +27,5 @@ sweep.build(
     walltime=args['walltime'],
     cores=args['cores'],
     memory=args['memory'],
-    allocation=args['allocation'])
+    allocation=args['allocation'],
+    attribute='clonal_marker')
