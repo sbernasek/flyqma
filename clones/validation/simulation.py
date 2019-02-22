@@ -1,3 +1,4 @@
+from copy import deepcopy
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize
@@ -55,6 +56,11 @@ class BenchmarkProperties:
     def MAE(self):
         """ Mean absolute error of labels. """
         return self.scores['labels'].MAE
+
+    @property
+    def MAE_comm(self):
+        """ Mean absolute error of labels when classifier is applied to communities. """
+        return self.scores['labels_comm'].MAE
 
     @property
     def MAE_levels(self):
@@ -195,13 +201,22 @@ class SimulationBenchmark(Training,
         # apply graph-based annotation
         measurements['labels'] = annotator.annotate(graph, **testing_kw)
 
+        # apply graph-based annotation based on community
+        community_kw = deepcopy(testing_kw)
+        community_kw['sampler_type'] = 'community'
+        community_kw['sampler_kwargs'] = {'depth': 2}
+        measurements['labels_comm'] = annotator.annotate(graph, **community_kw)
+
         # apply univariate annotation using only fluorescence levels
         level_cl = annotator.classifier[0]
         measurements['level_only'] = level_cl.classifier(level_cl.values)
 
-        # apply univariate annotation using only spatial context
-        space_cl = annotator.classifier[1]
-        measurements['spatial_only'] = space_cl.classifier(space_cl.values)
+        # apply bivariate annotation using only spatial context
+        # space_cl = annotator.classifier[1]
+        # measurements['spatial_only'] = space_cl.classifier(space_cl.values)
+        bv_kwargs = deepcopy(testing_kw)
+        bv_kwargs['bivariate_only'] = True
+        measurements['spatial_only'] = annotator.annotate(graph, **bv_kwargs)
 
         # store measurements
         self.data = measurements
@@ -209,6 +224,7 @@ class SimulationBenchmark(Training,
         # score annotation performance
         self.scores = {}
         self.scores['labels'] = self.score(self.labels)
+        self.scores['labels_comm'] = self.score(self.data.labels_comm.values)
         self.scores['level_only'] = self.score(self.level_only)
         self.scores['spatial_only'] = self.score(self.spatial_only)
 

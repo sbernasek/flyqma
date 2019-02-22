@@ -141,6 +141,7 @@ class BatchBenchmark(Pickler, Training):
 
             # store results
             results[replicate_id] = dict(labels=benchmark.MAE,
+                                         labels_comm=benchmark.MAE_comm,
                                          levels_only=benchmark.MAE_levels,
                                          spatial_only=benchmark.MAE_spatial)
 
