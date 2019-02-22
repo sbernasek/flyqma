@@ -6,7 +6,9 @@ class Training:
     """ Methods for graph construction and training an Annotation object. """
 
     @staticmethod
-    def build_graph(measurements, weighted_by='fluorescence', logratio=True):
+    def build_graph(measurements,
+                    weighted_by='fluorescence',
+                    logratio=True):
         """
         Returns WeightedGraph object.
 
@@ -23,8 +25,9 @@ class Training:
             graph (spatial.WeightedGraph)
 
         """
+        xykey = ['x', 'y']
         return WeightedGraph(measurements,
-                             xykey=self.xykey,
+                             xykey=xykey,
                              weighted_by=weighted_by,
                              logratio=logratio)
 

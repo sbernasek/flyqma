@@ -86,7 +86,7 @@ class Annotation(AnnotationIO):
 
         classifier (Classifier derivative) - callable object
 
-        attribute (str) - cell attribute used to determine labels
+        attribute (str) - attribute used to determine labels
 
     Parameters:
 

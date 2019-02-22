@@ -143,7 +143,7 @@ class Classifier(ClassifierProperties, ClassifierIO):
 
         values (array like) - basis for clustering
 
-        classify_on (str or list) - attribute(s) on which to cluster
+        attribute (str or list) - attribute(s) used to determine labels
 
         log (bool) - indicates whether clustering performed on log values
 
@@ -162,7 +162,7 @@ class Classifier(ClassifierProperties, ClassifierIO):
     """
 
     def __init__(self, values,
-                 classify_on=None,
+                 attribute=None,
                  num_labels=3,
                  log=True,
                  cmap=None):
@@ -173,7 +173,7 @@ class Classifier(ClassifierProperties, ClassifierIO):
 
             values (np.ndarray[float]) - basis for clustering
 
-            classify_on (str or list) - attribute(s) on which to cluster
+            attribute (str or list) - attribute(s) on which to cluster
 
             num_labels (int) - number of class labels
 
@@ -193,23 +193,23 @@ class Classifier(ClassifierProperties, ClassifierIO):
         self.set_cmap(cmap=cmap)
 
         # store parameters
-        if type(classify_on) == str:
-            classify_on = [classify_on]
-        self.classify_on = classify_on
+        if type(attribute) == str:
+            attribute = [attribute]
+        self.attribute = attribute
         self.parameters = dict(num_labels=num_labels,
                                log=log,
-                               classify_on=classify_on)
+                               attribute=attribute)
         self.fig = None
 
     def __call__(self, data):
         """ Return labels for measurement <data>. """
-        x =  data[self.classify_on].values
+        x =  data[self.attribute].values
         if self.log:
             x = np.log(x)
         return self.classifier(x)
 
     @classmethod
-    def from_measurements(cls, data, classify_on, **kwargs):
+    def from_measurements(cls, data, attribute, **kwargs):
         """
         Fit classifier to data.
 
@@ -217,7 +217,7 @@ class Classifier(ClassifierProperties, ClassifierIO):
 
             data (pd.DataFrame) - measurement data
 
-            classify_on (str or list) - attribute(s) on which to cluster
+            attribute (str or list) - attribute(s) on which to cluster
 
             kwargs: keyword arguments for classifier
 
@@ -226,12 +226,12 @@ class Classifier(ClassifierProperties, ClassifierIO):
             classifier (Classifier derivative)
 
         """
-        return cls(data[classify_on].values, classify_on, **kwargs)
+        return cls(data[attribute].values, attribute, **kwargs)
 
     @classmethod
     def from_grouped_measurements(cls,
                             data,
-                            classify_on,
+                            attribute,
                             groupby=None,
                             **kwargs):
         """
@@ -243,7 +243,7 @@ class Classifier(ClassifierProperties, ClassifierIO):
 
             groupby (str) - attribute used to group measurement data
 
-            classify_on (str or list) - attribute(s) on which to cluster
+            attribute (str or list) - attribute(s) on which to cluster
 
             kwargs: keyword arguments for classifier
 
@@ -255,8 +255,8 @@ class Classifier(ClassifierProperties, ClassifierIO):
 
         if groupby is None:
             groupby = ('disc_genotype', 'disc_id', 'layer', 'im_label')
-        values = data.groupby(by=groupby)[classify_on].mean().values
-        return cls(values, classify_on, **kwargs)
+        values = data.groupby(by=groupby)[attribute].mean().values
+        return cls(values, attribute, **kwargs)
 
     def show(self):
         """ Visualize classification. """

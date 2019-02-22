@@ -72,7 +72,7 @@ class SelectionIO:
         # load values and parameters
         values = io.read_npy(join(path, 'values.npy'))
         parameters = io.read_json(join(path, 'parameters.json'))
-        classify_on = parameters.pop('classify_on')
+        attribute = parameters.pop('attribute')
 
         # load models
         n_min = parameters['min_num_components']
@@ -85,7 +85,7 @@ class SelectionIO:
                 model = cls.load_model(model_path)
                 models[num_components] = model
 
-        return cls(values, classify_on, models=models, **parameters)
+        return cls(values, attribute, models=models, **parameters)
 
 
 class UnivariateModelSelection(SelectionIO, ModelSelectionVisualization):
@@ -93,7 +93,7 @@ class UnivariateModelSelection(SelectionIO, ModelSelectionVisualization):
     Class for performing univariate mixture model selection. The optimal model is chosen based on BIC score.
     """
 
-    def __init__(self, values, classify_on,
+    def __init__(self, values, attribute,
                  min_num_components=3,
                  max_num_components=8,
                  models=None):
@@ -104,7 +104,7 @@ class UnivariateModelSelection(SelectionIO, ModelSelectionVisualization):
 
             values (np.ndarray[float]) - 1D array of sample values
 
-            classify_on (str) - attribute label for sample values
+            attribute (str) - attribute label for sample values
 
             min_num_components (int) - minimum number of components in mixture
 
@@ -115,7 +115,7 @@ class UnivariateModelSelection(SelectionIO, ModelSelectionVisualization):
         """
 
         self.values = values
-        self.classify_on = classify_on
+        self.attribute = attribute
         self.min_num_components = min_num_components
         self.max_num_components = max_num_components
         self.num_components = range(min_num_components, max_num_components+1)
@@ -138,7 +138,7 @@ class UnivariateModelSelection(SelectionIO, ModelSelectionVisualization):
 
         # define parameters
         args = (self.values,)
-        kwargs = dict(classify_on=self.classify_on)
+        kwargs = dict(attribute=self.attribute)
 
         # fit models
         models_dict = {}
@@ -152,7 +152,7 @@ class UnivariateModelSelection(SelectionIO, ModelSelectionVisualization):
     def parameters(self):
         """ Dictionary of instance parameters. """
         return {
-            'classify_on': self.classify_on,
+            'attribute': self.attribute,
             'min_num_components': self.min_num_components,
             'max_num_components': self.max_num_components}
 

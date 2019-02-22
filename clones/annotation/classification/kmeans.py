@@ -24,7 +24,7 @@ class KMeansClassifier(Classifier):
 
         values (array like) - basis for clustering
 
-        classify_on (str or list) - attribute(s) on which to cluster
+        attribute (str or list) - attribute(s) on which to cluster
 
         log (bool) - indicates whether clustering performed on log values
 

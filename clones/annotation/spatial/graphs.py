@@ -200,7 +200,7 @@ class Graph(TopologicalProperties, SpatialProperties):
 
     def get_subgraph(self, ind):
         """ Instantiate subgraph from DataFrame indices. """
-        return Graph(self.data.loc[ind])
+        return Graph(self.data.loc[ind], xykey=self.xykey)
 
     def get_networkx(self, *node_attributes):
         """

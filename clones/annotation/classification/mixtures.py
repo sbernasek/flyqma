@@ -121,7 +121,7 @@ class UnivariateMixtureClassifier(MixtureModelIO,
 
         Keyword arguments:
 
-            classify_on (str or list) - attribute(s) on which to cluster
+            attribute (str or list) - attribute(s) on which to cluster
 
             cmap (matplotlib.colors.ColorMap) - colormap for class_id
 
@@ -228,14 +228,14 @@ class UnivariateMixtureClassifier(MixtureModelIO,
 
     def evaluate_classifier(self, data):
         """ Returns labels for <data>. """
-        x =  data[self.classify_on].values
+        x =  data[self.attribute].values
         if self.log:
             x = np.log(x)
         return self.classifier(x)
 
     def evaluate_posterior(self, data):
         """ Returns posterior across components for <data>. """
-        x =  data[self.classify_on].values
+        x =  data[self.attribute].values
         if self.log:
             x = np.log(x)
         return self.posterior(x)
@@ -265,7 +265,7 @@ class BivariateMixtureClassifier(BivariateMixtureVisualization,
 
         values (np.ndarray[float]) - basis for clustering
 
-        classify_on (list) - attributes on which to cluster
+        attribute (list) - attributes on which to cluster
 
         num_labels (int) - number of labels
 
@@ -296,7 +296,7 @@ class BivariateMixtureClassifier(BivariateMixtureVisualization,
 
         # duplicate parameters
         parameters = deepcopy(self.parameters)
-        parameters['classify_on'] = self.classify_on[0]
+        parameters['attribute'] = self.attribute[0]
         _ = parameters.pop('log')
 
         return UnivariateMixtureClassifier(values, model=model, **parameters)

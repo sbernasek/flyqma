@@ -20,7 +20,7 @@ class BenchmarkProperties:
     @property
     def xy(self):
         """ Measurement spatial coordinates. """
-        return self.df[self.xykey].values
+        return self.data[self.xykey].values
 
     @property
     def classifier(self):
@@ -29,27 +29,27 @@ class BenchmarkProperties:
     @property
     def fluorescence(self):
         """ Measured fluorescence. """
-        return self.df[self.attribute].values
+        return self.data[self.attribute].values
 
     @property
     def ground_truth(self):
         """ True labels. """
-        return self.df.ground.values
+        return self.data.true_dosage.values
 
     @property
     def labels(self):
         """ Labels assigned by bivariate classifier. """
-        return self.df.labels.values
+        return self.data.labels.values
 
     @property
     def level_only(self):
         """ Labels assigned by univariate fluorescence classifier. """
-        return self.df.level_only.values
+        return self.data.level_only.values
 
     @property
     def spatial_only(self):
         """ Labels assigned by univariate spatial classifier. """
-        return self.df.spatial_only.values
+        return self.data.spatial_only.values
 
     @property
     def MAE(self):
@@ -147,7 +147,7 @@ class SimulationBenchmark(Training,
 
     Attributes:
 
-        df (pd.DataFrame) - synthetic measurement data
+        data (pd.DataFrame) - synthetic measurement data
 
         attribute (str) - attribute on which cell measurements are classified
 
@@ -204,7 +204,7 @@ class SimulationBenchmark(Training,
         measurements['spatial_only'] = space_cl.classifier(space_cl.values)
 
         # store measurements
-        self.df = measurements
+        self.data = measurements
 
         # score annotation performance
         self.scores = {}

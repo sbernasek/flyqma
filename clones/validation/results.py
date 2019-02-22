@@ -36,9 +36,9 @@ class BenchmarkingResults:
         """
         Returns score matrices for the specified <row_id>. Row IDs correspond to recombination rates.
         """
-        df = self.data.xs(row_id, level=0).swaplevel().sort_index(level=0)
-        shape = [len(s) for s in df.index.levels]
-        matrices = df.values.reshape(*shape, self.num_methods)
+        data = self.data.xs(row_id, level=0).swaplevel().sort_index(level=0)
+        shape = [len(s) for s in data.index.levels]
+        matrices = data.values.reshape(*shape, self.num_methods)
         return matrices
 
     @staticmethod

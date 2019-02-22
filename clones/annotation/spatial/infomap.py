@@ -42,7 +42,7 @@ class InfoMap:
         return self.aggregator(self.classifier(x), level)
 
     @staticmethod
-    def build_network(edges, twolevel=False):
+    def build_network(edges, twolevel=False, N=25):
         """
         Compile InfoMap object from graph edges.
 
@@ -50,10 +50,12 @@ class InfoMap:
 
             twolevel (bool) - if True, perform two-level clustering
 
+            N (int) - number of trials
+
         """
 
         # define arguments
-        args = '--undirected'
+        args = '--undirected -N {:d}'.format(N)
         if twolevel:
             args = '--two-level ' + args
 
@@ -149,3 +151,11 @@ class CommunityAggregator:
         module_map = np.vectorize(self.group_modules(depth).get)
 
         return module_map(modules)
+
+
+    # alternate more efficient method:
+    # multilevel = imap.infomap.getMultilevelModules()
+    # unique_paths = set([p[:depth] for p in multilevel.values()])
+    # path_to_community = {path[:depth]: i for i, path  in dict(enumerate(unique_paths)).items()}
+    # node_to_community = {node: path_to_community[path[:depth]] for node, path in multilevel.asdict().items()}
+
