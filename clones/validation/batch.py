@@ -162,7 +162,7 @@ class BatchBenchmark(Pickler, Training):
         self.graphs = self.build_graphs()
 
         # train annotation object
-        self.annotator = self.train(*list(graphs.values()),
+        self.annotator = self.train(*list(self.graphs.values()),
                                     attribute=self.attribute,
                                     **self.training_kw)
 
