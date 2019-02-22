@@ -55,7 +55,7 @@ class InfoMap:
         """
 
         # define arguments
-        args = '--undirected -N {:d}'.format(N)
+        args = '--undirected --silent -N {:d}'.format(N)
         if twolevel:
             args = '--two-level ' + args
 

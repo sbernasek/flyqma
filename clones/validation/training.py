@@ -7,7 +7,7 @@ class Training:
 
     @staticmethod
     def build_graph(measurements,
-                    weighted_by='fluorescence',
+                    weighted_by='clonal_marker',
                     logratio=True):
         """
         Returns WeightedGraph object.
@@ -32,7 +32,7 @@ class Training:
                              logratio=logratio)
 
     @staticmethod
-    def train(*graphs, attribute='fluorescence', **kwargs):
+    def train(*graphs, attribute='clonal_marker', **kwargs):
         """
         Train an Annotation model on the measurements in this layer then return the optimal model.
 

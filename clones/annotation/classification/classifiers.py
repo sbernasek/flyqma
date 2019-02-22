@@ -202,7 +202,33 @@ class Classifier(ClassifierProperties, ClassifierIO):
         self.fig = None
 
     def __call__(self, data):
-        """ Return labels for measurement <data>. """
+        """
+        Assign class labels to <data>.
+
+        Args:
+
+            data (pd.DataFrame) - must contain necessary attributes
+
+        Returns:
+
+            labels (np.ndarray[int])
+
+        """
+        return self.evaluate_classifier(data)
+
+    def evaluate_classifier(self, data):
+        """
+        Assign class labels to <data>.
+
+        Args:
+
+            data (pd.DataFrame) - must contain necessary attributes
+
+        Returns:
+
+            labels (np.ndarray[int])
+
+        """
         x =  data[self.attribute].values
         if self.log:
             x = np.log(x)

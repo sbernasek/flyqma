@@ -47,7 +47,11 @@ class CorrelationProperties:
     @property
     def characteristic_length(self):
         """ Characteristic length over which correlations decay. """
-        return CharacteristicLength(self).characteristic_length
+        try:
+            length = CharacteristicLength(self).characteristic_length
+        except:
+            length = None
+        return length
 
 
 class CorrelationVisualization:

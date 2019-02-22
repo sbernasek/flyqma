@@ -146,17 +146,6 @@ class UnivariateMixtureClassifier(MixtureModelIO,
         # assign labels
         self.labels = self.classifier(self.values)
 
-    def __call__(self, data):
-        """
-        Assign class labels to <data>.
-
-        Args:
-
-            data (pd.DataFrame) - must contain necessary attributes
-
-        """
-        return self.evaluate_classifier(data)
-
     @property
     def num_components(self):
         """ Number of model components. """
@@ -225,13 +214,6 @@ class UnivariateMixtureClassifier(MixtureModelIO,
             return _posterior
 
         return posterior
-
-    def evaluate_classifier(self, data):
-        """ Returns labels for <data>. """
-        x =  data[self.attribute].values
-        if self.log:
-            x = np.log(x)
-        return self.classifier(x)
 
     def evaluate_posterior(self, data):
         """ Returns posterior across components for <data>. """

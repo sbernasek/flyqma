@@ -67,6 +67,16 @@ class SpatialProperties:
         return self.data[self.xykey].values
 
     @property
+    def edge_lengths(self):
+        """ Unique edge lengths. """
+        return sorted(self.distance_matrix[self.adjacency.nonzero()])[::2]
+
+    @property
+    def median_edge_length(self):
+        """ Median edge length. """
+        return np.median(self.edge_lengths)
+
+    @property
     def distance_matrix(self):
         """ Euclidean distance matrix between all nodes. """
 

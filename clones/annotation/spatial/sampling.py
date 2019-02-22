@@ -457,6 +457,11 @@ class RadialSampler(NeighborSampler):
 
         # determine characteristic length scale and set sampling radius
         length_scale = graph.get_correlations(attr, log).characteristic_length
+
+        # if failed (e.g. no correlation), use 1.5x median edge length
+        if length_scale is None:
+            length_scale = 1.5 * graph.median_edge_length
+
         self.length_scale = length_scale
         self.radius = depth * length_scale
         self.neighbor_mask = self._neighbor_mask

@@ -247,26 +247,31 @@ class SweepBenchmark(Pickler, SweepVisualization):
         index = open(index_path, 'w')
 
         # write file containing benchmark paths for each batch
-        for batch_id, batch in enumerate(self.batches.ravel()):
-
-            # append job file to index
-            job_path = join(jobs_dir, '{:d}.txt'.format(batch_id))
-            index.write('{:s}\n'.format(relpath(job_path, self.sweep_path)))
-
-            # open job file
-            job_file = open(job_path, 'w')
+        for culture_id, batch in enumerate(self.batches.ravel()):
 
             # write batch benchmark paths to job file
             for ambiguity_id in range(self.num_ambiguities):
-                benchmark_path = self.benchmark_paths[batch_id][ambiguity_id]
+
+                # determine batch id
+                batch_id = (culture_id * self.batches.size) + ambiguity_id
+
+                # append job file to index
+                job_path = join(jobs_dir, '{:d}.txt'.format(batch_id))
+                index.write('{:s}\n'.format(relpath(job_path, self.sweep_path)))
+
+                # open job file
+                job_file = open(job_path, 'w')
+
+                # write batch paths to job file
+                benchmark_path = self.benchmark_paths[(culture_id, ambiguity_id)]
                 job_file.write('{:s}\n'.format(benchmark_path))
 
-            # create log directory for job
-            mkdir(join(logs_dir, '{:d}'.format(batch_id)))
+                # create log directory for job
+                mkdir(join(logs_dir, '{:d}'.format(batch_id)))
 
-            # close job file
-            job_file.close()
-            chmod(job_path, 0o755)
+                # close job file
+                job_file.close()
+                chmod(job_path, 0o755)
 
         # close index file
         index.close()
@@ -320,24 +325,25 @@ class SweepBenchmark(Pickler, SweepVisualization):
         # build batch benchmarks
         for batch_id, batch in enumerate(self.batches.ravel()):
 
-            # make batch directory
-            batch_path = join(self.path, 'batches', '{:d}'.format(batch_id))
-            mkdir(batch_path)
-            benchmark_paths = {}
-
             # make benchmarks for each ambiguity value in the batch
             for ambiguity_id, ambiguity in enumerate(self.ambiguities):
 
-                # store benchmark path
-                benchmark_path = join(batch_path, '{:d}.pkl'.format(ambiguity_id))
-                benchmark_paths[ambiguity_id] = relpath(benchmark_path, self.sweep_path)
+                # determine job index
+                job_id = (batch_id * self.batches.size) + ambiguity_id
+
+                # make job directory
+                job_path = join(self.path, 'batches', '{:d}'.format(job_id))
+                mkdir(job_path)
+
+                # store pickled benchmark path
+                pkl_path = join(job_path, '{:d}.pkl'.format(job_id))
 
                 # build benchmark for current ambiguity
-                benchmark_arg = (benchmark_path, batch, ambiguity, self.num_replicates)
-                self.build_benchmark(*benchmark_arg, **kwargs)
+                args = (pkl_path, batch, ambiguity, self.num_replicates)
+                self.build_benchmark(*args, **kwargs)
 
-            # store ambiguity paths
-            self.benchmark_paths[batch_id] = benchmark_paths
+                # store job path
+                self.benchmark_paths[(batch_id, ambiguity_id)] = relpath(pkl_path, self.sweep_path)
 
         # save serialized job
         #with open(join(self.path, 'benchmark_job.pkl'), 'wb') as file:
@@ -398,7 +404,8 @@ class SweepBenchmark(Pickler, SweepVisualization):
             benchmark (BatchBenchmark)
 
         """
-        path = join(self.sweep_path, self.benchmark_paths[batch_id][ambiguity_id])
+        job_key = (batch_id, ambiguity_id)
+        path = join(self.sweep_path, self.benchmark_paths[job_key])
         benchmark = BatchBenchmark.load(path)
         benchmark.batch.root = self.sweep_path
         return benchmark

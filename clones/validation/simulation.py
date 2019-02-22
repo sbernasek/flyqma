@@ -208,8 +208,7 @@ class SimulationBenchmark(Training,
         measurements['labels_comm'] = annotator.annotate(graph, **community_kw)
 
         # apply univariate annotation using only fluorescence levels
-        level_cl = annotator.classifier[0]
-        measurements['level_only'] = level_cl.classifier(level_cl.values)
+        measurements['level_only'] = annotator.classifier[0](measurements)
 
         # apply bivariate annotation using only spatial context
         # space_cl = annotator.classifier[1]
