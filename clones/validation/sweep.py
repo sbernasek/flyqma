@@ -415,6 +415,8 @@ class SweepBenchmark(Pickler, SweepVisualization):
 
         nrows, ncols = self.batches.shape
 
+        failures = open(join(self.path, 'failed.txt'), 'w')
+
         # compile results from all batches
         data = []
         for row_id in range(nrows):
@@ -426,13 +428,19 @@ class SweepBenchmark(Pickler, SweepVisualization):
                     # load benchmark for current batch
                     batch_benchmark = self.load_benchmark(batch_id, ambiguity_id)
 
-                    # append results to list
-                    batch_data = batch_benchmark.results
-                    batch_data['batch_id'] = batch_id
-                    batch_data['row_id'] = row_id
-                    batch_data['column_id'] = column_id
-                    batch_data['ambiguity_id'] = ambiguity_id
-                    data.append(batch_data)
+                    if batch_benchmark.results is None:
+                        failures.write('{:d},{:d}\n'.format(batch_id, ambiguity_id))
+
+                    else:
+                        # append results to list
+                        batch_data = batch_benchmark.results
+                        batch_data['batch_id'] = batch_id
+                        batch_data['row_id'] = row_id
+                        batch_data['column_id'] = column_id
+                        batch_data['ambiguity_id'] = ambiguity_id
+                        data.append(batch_data)
+
+        failures.close()
 
         data = pd.concat(data).reset_index()
 

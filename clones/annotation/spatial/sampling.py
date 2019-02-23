@@ -383,6 +383,7 @@ class CommunitySampler(NeighborSampler):
         # construct dataframe
         data = deepcopy(self.data[['community']])
         data['levels'] = self.node_values
+        data['zscore'] = (data.levels-data.levels.mean())/data.levels.std()
 
         # define functions for evaluation fluctuations
         f = lambda x: sum([sum([a * b for b in x if a!=b]) for a in x]) / 2

@@ -41,6 +41,11 @@ class InfoMap:
         """ Returns predicted class labels for values. """
         return self.aggregator(self.classifier(x), level)
 
+    @property
+    def max_depth(self):
+        """ Maximum tree depth. """
+        return self.infomap.maxTreeDepth()
+
     @staticmethod
     def build_network(edges, twolevel=False, N=25):
         """
