@@ -1,9 +1,11 @@
+from os.path import join, exists
 from time import time
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
 from ..utilities import Pickler
+from ..annotation import Annotation
 
 from .training import Training
 from .simulation import SimulationBenchmark
@@ -82,20 +84,38 @@ class BatchBenchmark(Pickler, Training):
         measurements = self.data.iloc[self.replicates.indices[replicate_id], :]
         return SimulationBenchmark(measurements.copy(), **self.params)
 
-    def save(self, filepath, save_measurements=False):
+    def save(self, dirpath, data=False):
         """
-        Save serialized instance.
+        Save serialized batch instance to <dirpath>.
 
         Args:
 
-            filepath (str) - destination of serialized object
+            dirpath (str) - destination of serialized object
 
-            save_measurements (bool) - if True, include measurements
+            data (bool) - if True, include measurement data (training data)
 
         """
-        if not save_measurements:
+        if not data:
             self.data = None
-        super().save(filepath)
+
+        if self.annotator is not None:
+            self.annotator.save(dirpath, data=data)
+            self.annotator = None
+
+        super().save(join(dirpath, 'batch.pkl'))
+
+    @staticmethod
+    def load(dirpath):
+        """ Load batch from <dirpath>. """
+
+        batch = Pickler.load(join(dirpath, 'batch.pkl'))
+
+        # load annotator
+        if exists(join(dirpath, 'annotation.json')):
+            annotator = Annotation.load(dirpath)
+            batch.annotator = annotator
+
+        return batch
 
     @property
     def params(self):

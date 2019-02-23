@@ -40,8 +40,8 @@ class RunArguments(ArgumentParser):
 
           # add keyword argument for saving measurement data
           self.add_argument(
-               '-S', '--save_measurements',
-               help='Save measurement data.',
+               '-S', '--save_data',
+               help='Save measurement (training) data.',
                type=str2bool,
                default=False,
                required=False)

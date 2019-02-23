@@ -94,7 +94,7 @@ class SweepBenchmark(Pickler, SweepVisualization):
         return self.ambiguities.size
 
     @staticmethod
-    def build_run_script(path, script_name):
+    def build_run_script(path, python_script_name, shell_script_name='run.sh'):
         """
         Writes bash run script for local use.
 
@@ -102,19 +102,24 @@ class SweepBenchmark(Pickler, SweepVisualization):
 
             path (str) - path to benchmarking top directory
 
-            script_name (str) - name of run script
+            python_script_name (str) - name of python script
+
+            shell_script_name (str) - name of shell script
 
         """
 
         # define paths
         path = abspath(path)
         run_path = path.rsplit('/', maxsplit=1)[0]
-        job_script_path = join(path, 'scripts', 'run.sh')
+        job_script_path = join(path, 'scripts', shell_script_name)
 
         # copy run script to scripts directory
         scripts_path = abspath(__file__).rsplit('/', maxsplit=2)[0]
-        run_script = join(scripts_path, 'scripts', script_name)
+        run_script = join(scripts_path, 'scripts', python_script_name)
         shutil.copy(run_script, join(path, 'scripts'))
+
+        # compile runtime command
+        cmd = 'python ./benchmark/scripts/{:s}'.format(python_script_name)
 
         # declare outer script that reads PATH from file
         job_script = open(job_script_path, 'w')
@@ -127,7 +132,7 @@ class SweepBenchmark(Pickler, SweepVisualization):
         job_script.write('echo "Starting all batches at `date`"\n')
         job_script.write('while read P; do\n')
         job_script.write('echo "Processing batch ${P}"\n')
-        job_script.write('python ./benchmark/scripts/{:s}'.format(script_name)+' ${P} \n')
+        job_script.write(cmd + ' ${P} \n')
         job_script.write('done < ./benchmark/jobs/index.txt \n')
         job_script.write('echo "Job completed at `date`"\n')
         job_script.write('exit\n')
@@ -335,19 +340,14 @@ class SweepBenchmark(Pickler, SweepVisualization):
                 job_path = join(self.path, 'batches', '{:d}'.format(job_id))
                 mkdir(job_path)
 
-                # store pickled benchmark path
-                pkl_path = join(job_path, '{:d}.pkl'.format(job_id))
-
                 # build benchmark for current ambiguity
-                args = (pkl_path, batch, ambiguity, self.num_replicates)
-                self.build_benchmark(*args, **kwargs)
+                args = (job_path, batch, ambiguity, self.num_replicates)
+                self.build_job(*args, **kwargs)
 
                 # store job path
-                self.benchmark_paths[(batch_id, ambiguity_id)] = relpath(pkl_path, self.sweep_path)
+                self.benchmark_paths[(batch_id, ambiguity_id)] = relpath(job_path, self.sweep_path)
 
         # save serialized job
-        #with open(join(self.path, 'benchmark_job.pkl'), 'wb') as file:
-        #    pickle.dump(self, file, protocol=-1)
         self.save(join(self.path, 'benchmark_job.pkl'))
 
         # build parameter file for each batch
@@ -355,6 +355,9 @@ class SweepBenchmark(Pickler, SweepVisualization):
 
         # build job run script
         self.build_run_script(self.path, self.script_name)
+
+        # build custom template script
+        self.build_run_script(self.path, 'template.py', 'run_template.sh')
 
         # build job submission script
         self.build_submission_script(self.path,
@@ -365,13 +368,13 @@ class SweepBenchmark(Pickler, SweepVisualization):
                                      memory=memory)
 
     @classmethod
-    def build_benchmark(cls, path, batch, ambiguity, num_replicates, **kwargs):
+    def build_job(cls, dirpath, batch, ambiguity, num_replicates, **kwargs):
         """
         Builds and saves a BatchBenchmark instance for a given batch and fluorescence ambiguity coefficient.
 
         Args:
 
-            path (str) - path to benchmark object
+            dirpath (str) - path to job directory
 
             batch (growth.sweep.Batch) - batch of growth replicates
 
@@ -382,16 +385,12 @@ class SweepBenchmark(Pickler, SweepVisualization):
             kwargs: keyword arguments for BatchBenchmark
 
         """
-
-        # instantiate benchmark
         benchmark = BatchBenchmark(batch, ambiguity, num_replicates, **kwargs)
+        benchmark.save(dirpath)
 
-        # save benchmark
-        benchmark.save(path)
-
-    def load_benchmark(self, batch_id, ambiguity_id):
+    def load_job(self, batch_id, ambiguity_id):
         """
-        Load simulation instance from file.
+        Load benchmarking job from file.
 
         Args:
 
@@ -426,7 +425,7 @@ class SweepBenchmark(Pickler, SweepVisualization):
                 for ambiguity_id in range(self.num_ambiguities):
 
                     # load benchmark for current batch
-                    batch_benchmark = self.load_benchmark(batch_id, ambiguity_id)
+                    batch_benchmark = self.load_job(batch_id, ambiguity_id)
 
                     if batch_benchmark.results is None:
                         path = self.benchmark_paths[(batch_id, ambiguity_id)]

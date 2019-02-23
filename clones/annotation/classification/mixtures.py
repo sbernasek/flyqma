@@ -17,13 +17,15 @@ class MixtureModelIO(ClassifierIO):
     Methods for saving and loading classifier objects.
     """
 
-    def save(self, dirpath, image=True, extension=None, **kwargs):
+    def save(self, dirpath, data=False, image=True, extension=None, **kwargs):
         """
         Save classifier to specified path.
 
         Args:
 
             dirpath (str) - directory in which classifier is to be saved
+
+            data (bool) - if True, save training data
 
             image (bool) - if True, save labeled histogram image
 
@@ -34,10 +36,11 @@ class MixtureModelIO(ClassifierIO):
         """
 
         # instantiate Classifier
-        path = super().save(dirpath, image, extension, **kwargs)
+        path = super().save(dirpath, data, image, extension, **kwargs)
 
         # save model
         if self.model is not None:
+            self.model.values = None
             with open(join(path, 'model.pkl'), 'wb') as file:
                 pickle.dump(self.model, file)
 
@@ -58,7 +61,13 @@ class MixtureModelIO(ClassifierIO):
 
         """
         io = IO()
-        values = io.read_npy(join(path, 'values.npy'))
+
+        values_path = join(path, 'values.npy')
+        if exists(values_path):
+            values = io.read_npy(values_path)
+        else:
+            values = None
+
         parameters = io.read_json(join(path, 'parameters.json'))
 
         # load model
@@ -144,7 +153,8 @@ class UnivariateMixtureClassifier(MixtureModelIO,
         self.posterior = self.build_posterior()
 
         # assign labels
-        self.labels = self.classifier(self.values)
+        if values is not None:
+            self.labels = self.classifier(self.values)
 
     @property
     def num_components(self):

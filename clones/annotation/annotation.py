@@ -22,13 +22,15 @@ class AnnotationIO:
         """ Dictionary of parameter values. """
         return {k:v for k,v in self.__dict__.items() if k != 'classifier'}
 
-    def save(self, dirpath, image=False, **kwargs):
+    def save(self, dirpath, data=False, image=False, **kwargs):
         """
         Save annotator to specified path.
 
         Args:
 
             dirpath (str) - directory in which annotator is to be saved
+
+            data (bool) - if True, save training data
 
             image (bool) - if True, save classifier image
 
@@ -42,7 +44,7 @@ class AnnotationIO:
 
         # save classifier
         if self.classifier is not None:
-            self.classifier.save(dirpath, image=image, **kwargs)
+            self.classifier.save(dirpath, data=data, image=image, **kwargs)
 
     @classmethod
     def load(cls, path):

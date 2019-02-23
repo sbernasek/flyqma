@@ -14,13 +14,15 @@ class ClassifierIO:
     Methods for saving and loading classifier objects.
     """
 
-    def save(self, dirpath, image=True, extension=None, **kwargs):
+    def save(self, dirpath, data=False, image=True, extension=None, **kwargs):
         """
         Save classifier to specified path.
 
         Args:
 
             dirpath (str) - directory in which classifier is to be saved
+
+            data (bool) - if True, save training data
 
             image (bool) - if True, save labeled histogram image
 
@@ -39,7 +41,8 @@ class ClassifierIO:
             mkdir(path)
 
         # save values
-        np.save(join(path, 'values.npy'), self._values)
+        if data:
+            np.save(join(path, 'values.npy'), self._values)
 
         # save parameters
         io = IO()
