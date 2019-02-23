@@ -429,7 +429,8 @@ class SweepBenchmark(Pickler, SweepVisualization):
                     batch_benchmark = self.load_benchmark(batch_id, ambiguity_id)
 
                     if batch_benchmark.results is None:
-                        failures.write('{:d},{:d}\n'.format(batch_id, ambiguity_id))
+                        path = self.benchmark_paths[(batch_id, ambiguity_id)]
+                        failures.write('{:s}\n'.format(path))
 
                     else:
                         # append results to list
