@@ -33,7 +33,7 @@ for filepath in glob(join(jobs_path, '[0-9]*.txt')):
 # ========================= RENAME BATCH FILES ================================
 
 batches_path = join(benchmarking.path, 'batches')
-for filepath in glob(join(batches_path, '[0-9]')):
+for filepath in glob(join(batches_path, '[0-9]*')):
     src = join(filepath, '{}.pkl'.format(filepath.rsplit('/', maxsplit=1)[-1]))
     dst = join(filepath, 'batch.pkl')
     move(src, dst)

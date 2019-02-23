@@ -97,6 +97,7 @@ class BatchBenchmark(Pickler, Training):
         """
         if not data:
             self.data = None
+            self.graphs = None
 
         if self.annotator is not None:
             self.annotator.save(dirpath, data=data)
