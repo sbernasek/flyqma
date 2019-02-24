@@ -123,7 +123,7 @@ class SweepBenchmark(Pickler, SweepVisualization):
         shutil.copy(run_script, join(path, 'scripts'))
 
         # compile runtime command
-        cmd = 'python ./benchmark/scripts/{:s} ${P}'.format(python_script_name)
+        cmd = 'python ./benchmark/scripts/{:s}'.format(python_script_name)+' ${P}'
         for k, v in kwargs.items():
             cmd += ' -{} {}'.format(k, v)
 
