@@ -172,8 +172,15 @@ class BatchBenchmark(Pickler, Training):
 
         return results
 
-    def run(self):
-        """ Run benchmark on batch. """
+    def run(self, train=True):
+        """
+        Run benchmark on batch.
+
+        Args:
+
+            train (bool) - if True, train classifier
+
+        """
 
         # generate synthetic measurements
         start = time()
@@ -183,9 +190,10 @@ class BatchBenchmark(Pickler, Training):
         self.graphs = self.build_graphs()
 
         # train annotation object
-        self.annotator = self.train(*list(self.graphs.values()),
-                                    attribute=self.attribute,
-                                    **self.training_kw)
+        if self.annotator is None or train:
+            self.annotator = self.train(*list(self.graphs.values()),
+                                        attribute=self.attribute,
+                                        **self.training_kw)
 
         # evaluate benchmarks
         self.results = self.evaluate_benchmarks()
