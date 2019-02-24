@@ -94,7 +94,9 @@ class SweepBenchmark(Pickler, SweepVisualization):
         return self.ambiguities.size
 
     @staticmethod
-    def build_run_script(path, python_script_name, shell_script_name='run.sh'):
+    def build_run_script(path, python_script_name,
+                         shell_script_name='run.sh',
+                         **kwargs):
         """
         Writes bash run script for local use.
 
@@ -105,6 +107,8 @@ class SweepBenchmark(Pickler, SweepVisualization):
             python_script_name (str) - name of python script
 
             shell_script_name (str) - name of shell script
+
+            kwargs: keyword arguments used at runtime
 
         """
 
@@ -119,7 +123,9 @@ class SweepBenchmark(Pickler, SweepVisualization):
         shutil.copy(run_script, join(path, 'scripts'))
 
         # compile runtime command
-        cmd = 'python ./benchmark/scripts/{:s}'.format(python_script_name)
+        cmd = 'python ./benchmark/scripts/{:s} ${P}'.format(python_script_name)
+        for k, v in kwargs.items():
+            cmd += ' -{} {}'.format(k, v)
 
         # declare outer script that reads PATH from file
         job_script = open(job_script_path, 'w')
@@ -132,7 +138,7 @@ class SweepBenchmark(Pickler, SweepVisualization):
         job_script.write('echo "Starting all batches at `date`"\n')
         job_script.write('while read P; do\n')
         job_script.write('echo "Processing batch ${P}"\n')
-        job_script.write(cmd + ' ${P} \n')
+        job_script.write(cmd + ' \n')
         job_script.write('done < ./benchmark/jobs/index.txt \n')
         job_script.write('echo "Job completed at `date`"\n')
         job_script.write('exit\n')
@@ -149,7 +155,8 @@ class SweepBenchmark(Pickler, SweepVisualization):
                                 walltime=10,
                                 allocation='p30653',
                                 cores=1,
-                                memory=4):
+                                memory=4,
+                                **kwargs):
         """
         Writes job submission script for QUEST.
 
@@ -159,7 +166,7 @@ class SweepBenchmark(Pickler, SweepVisualization):
 
             script_name (str) - name of run script
 
-            save_history (bool) - if True, save simulation history
+            train_globally (bool) - if True, train global annotator
 
             walltime (int) - estimated job run time
 
@@ -168,6 +175,8 @@ class SweepBenchmark(Pickler, SweepVisualization):
             cores (int) - number of cores per batch
 
             memory (int) - memory per batch, GB
+
+            kwargs: keyword arguments used at runtime
 
         """
 
@@ -223,7 +232,11 @@ class SweepBenchmark(Pickler, SweepVisualization):
         job_script.write('cd {:s} \n\n'.format(run_path))
 
         # run script
-        job_script.write('python ./benchmark/scripts/{:s}'.format(script_name)+' ${P} \n')
+        cmd = 'python ./benchmark/scripts/{:s}'.format(script_name)+' ${P}'
+        for k, v in kwargs.items():
+            cmd += ' -{} {}'.format(k, v)
+        job_script.write(cmd)
+
         job_script.write('EOJ\n')
         job_script.write('`\n\n')
         # ============= end submission script for individual job --============
@@ -324,7 +337,7 @@ class SweepBenchmark(Pickler, SweepVisualization):
         # create benchmarking subdirectory
         self.make_subdirectory()
 
-        # store parameters (e.g. pulse conditions)
+        # store parameters
         self.kwargs = kwargs
 
         # build batch benchmarks
@@ -362,6 +375,7 @@ class SweepBenchmark(Pickler, SweepVisualization):
         # build job submission script
         self.build_submission_script(self.path,
                                      self.script_name,
+                                     train_globally=train_globally,
                                      walltime=walltime,
                                      allocation=allocation,
                                      cores=cores,

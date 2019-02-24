@@ -42,6 +42,7 @@ class BatchBenchmark(Pickler, Training):
                  num_replicates=1,
                  attribute='clonal_marker',
                  logratio=False,
+                 train_globally=True,
                  training_kw={},
                  testing_kw={}):
         """
@@ -59,6 +60,8 @@ class BatchBenchmark(Pickler, Training):
 
             logratio (bool) - if True, weight graph edges by log-ratio of attribute level. otherwise, use the absolute difference
 
+            train_globally (bool) - if True, train annotator on entire batch
+
             training_kw (dict) - keyword arguments for annotator training
 
             testing_kw (dict) - keyword arguments for annotator application
@@ -69,6 +72,7 @@ class BatchBenchmark(Pickler, Training):
         self.num_replicates = num_replicates
         self.attribute = attribute
         self.logratio = logratio
+        self.train_globally = train_globally
 
         self.training_kw = training_kw
         self.testing_kw = testing_kw
@@ -161,10 +165,19 @@ class BatchBenchmark(Pickler, Training):
                                             **self.params)
 
             # store results
-            results[replicate_id] = dict(labels=benchmark.MAE,
-                                         labels_comm=benchmark.MAE_comm,
-                                         levels_only=benchmark.MAE_levels,
-                                         spatial_only=benchmark.MAE_spatial)
+            results[replicate_id] = dict(
+                labels_MAE=benchmark.scores['labels'].MAE,
+                labels_PCT=benchmark.scores['labels'].percent_correct,
+                labels_F1=benchmark.scores['labels'].f1,
+                level_only_MAE=benchmark.scores['level_only'].MAE,
+                level_only_PCT=benchmark.scores['level_only'].percent_correct,
+                level_only_F1=benchmark.scores['level_only'].f1,
+                spatial_only_MAE=benchmark.scores['spatial_only'].MAE,
+                spatial_only_PCT=benchmark.scores['spatial_only'].percent_correct,
+                spatial_only_F1=benchmark.scores['spatial_only'].f1,
+                community_MAE=benchmark.scores['labels_comm'].MAE,
+                community_PCT=benchmark.scores['labels_comm'].percent_correct,
+                community_F1=benchmark.scores['labels_comm'].f1)
 
         # compile dataframe
         results = pd.DataFrame.from_dict(results, orient='index')
@@ -178,7 +191,7 @@ class BatchBenchmark(Pickler, Training):
 
         Args:
 
-            train (bool) - if True, train classifier
+            train (bool) - if True, train global classifier
 
         """
 
@@ -190,10 +203,13 @@ class BatchBenchmark(Pickler, Training):
         self.graphs = self.build_graphs()
 
         # train annotation object
-        if self.annotator is None or train:
+        if train and self.train_globally:
             self.annotator = self.train(*list(self.graphs.values()),
                                         attribute=self.attribute,
                                         **self.training_kw)
+
+        elif not self.train_globally:
+            self.annotator = None
 
         # evaluate benchmarks
         self.results = self.evaluate_benchmarks()

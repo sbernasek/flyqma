@@ -46,6 +46,14 @@ class RunArguments(ArgumentParser):
                default=False,
                required=False)
 
+          # add keyword argument for globally training annotator
+          self.add_argument(
+               '-G', '--train_globally',
+               help='Train global annotator.',
+               type=str2bool,
+               default=True,
+               required=False)
+
      def parse(self):
           """ Parse arguments. """
           self.args = vars(self.parse_args())

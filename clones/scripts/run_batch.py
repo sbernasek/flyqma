@@ -8,6 +8,7 @@ from clones.validation.batch import BatchBenchmark
 
 args = RunArguments(description='Batch benchmark arguments.')
 job_path = args['path']
+train = args['train_globally']
 
 # ============================= RUN SCRIPT ====================================
 
@@ -27,7 +28,7 @@ with open(job_path, 'r') as job_file:
         benchmark.batch.root = curdir
 
         # evaluate benchmark
-        benchmark.run()
+        benchmark.run(train=train)
 
         # save benchmark
         benchmark.save(path)

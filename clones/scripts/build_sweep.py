@@ -24,6 +24,7 @@ sweep = SweepBenchmark(
 # build SweepBenchmark
 sweep.build(
     logratio=args['logratio'],
+    train_globally=args['train_globally'],
     walltime=args['walltime'],
     cores=args['cores'],
     memory=args['memory'],
