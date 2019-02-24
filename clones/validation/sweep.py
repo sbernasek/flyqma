@@ -166,8 +166,6 @@ class SweepBenchmark(Pickler, SweepVisualization):
 
             script_name (str) - name of run script
 
-            train_globally (bool) - if True, train global annotator
-
             walltime (int) - estimated job run time
 
             allocation (str) - project allocation, e.g. p30653 (comp. bio)
@@ -375,7 +373,6 @@ class SweepBenchmark(Pickler, SweepVisualization):
         # build job submission script
         self.build_submission_script(self.path,
                                      self.script_name,
-                                     train_globally=train_globally,
                                      walltime=walltime,
                                      allocation=allocation,
                                      cores=cores,
