@@ -263,7 +263,9 @@ class CommunitySampler(NeighborSampler):
 
         attr (str) - attribute to be averaged over neighbors
 
-        depth (int) - hierarchical level to which communities are merged
+        depth (int) - mean correlation lifetime
+
+        level (int) - hierarchical level at which clusters are merged
 
         log (bool) - if True, log-transform values before averaging
 
@@ -271,7 +273,7 @@ class CommunitySampler(NeighborSampler):
 
     """
 
-    def __init__(self, graph, attr, depth=None, log=True, twolevel=False):
+    def __init__(self, graph, attr, depth=1., log=True, twolevel=False):
         """
         Instantiate sampler for averaging <attr> value over all neighbors within <depth> of each node.
 
@@ -281,7 +283,7 @@ class CommunitySampler(NeighborSampler):
 
             attr (str) - attribute to be averaged over neighbors
 
-            depth (int) - hierarchical level to which communities are merged
+            depth (int) - mean correlation lifetime
 
             twolevel (bool) - if True, use two-level community clustering
 
@@ -297,7 +299,11 @@ class CommunitySampler(NeighborSampler):
         self.log = log
 
         # perform community detection
-        self.graph.find_communities(level=depth, twolevel=twolevel)
+        if self.graph.imap is None:
+            self.graph.detect_communities(twolevel=twolevel)
+
+        # determine clustering level
+        self.level = self.clustering_level
 
         # sample over neigbors
         self.average_over_neighbors()
@@ -305,10 +311,11 @@ class CommunitySampler(NeighborSampler):
     @property
     def neighbors(self):
         """ Dictionary of neighbor indices keyed by node indices. """
-        gb = self.data.groupby('community')
+        labels = self.graph._assign_community(self.level)
+        gb = self.data.groupby(labels)
         exclude = lambda node, neighbors: neighbors[neighbors!=node]
-        neighbors = {n: exclude(n, gb.indices[c]) for n, c in dict(self.data.community).items()}
-        return neighbors
+        key = lambda n: self.data.index[n]
+        return {key(n): exclude(key(n), gb.indices[c]) for n,c in enumerate(labels)}
 
     @property
     def size_attr(self):
@@ -320,6 +327,20 @@ class CommunitySampler(NeighborSampler):
         """ Name of averaged attribute. """
         return '{:s}_community'.format(self.attr)
 
+    @property
+    def z_attr(self):
+        """ Name of z-scored attribute. """
+        return self.attr+'_zscore'
+
+    @property
+    def clustering_level(self):
+        """ Highest clustering level at which the mean correlation remains above <self.depth> multiples of the decay constant. """
+        _, correlations = self.autocorrelate(include_distances=False)
+        correlations = np.array(correlations)
+        relative_correlation = correlations/correlations[0]
+        above = relative_correlation >= np.exp(-self.depth)
+        return above.nonzero()[0][-1]
+
     def average_over_neighbors(self):
         """ Average attribute value over all members of the community encompassing each node. """
 
@@ -329,9 +350,10 @@ class CommunitySampler(NeighborSampler):
             agg = lambda x: x.mean()
 
         # average over each community
-        community_levels = self.data.groupby('community')[self.attr].aggregate(agg)
+        labels = self.graph._assign_community(self.level)
+        community_levels = self.data.groupby(labels)[self.attr].aggregate(agg)
         community_to_mean_level = np.vectorize(dict(community_levels).get)
-        means = community_to_mean_level(self.data.community.values)
+        means = community_to_mean_level(labels)
 
         # log transform average
         if self.log:
@@ -345,73 +367,89 @@ class CommunitySampler(NeighborSampler):
         self.data[self.averaged_attr] = means
         self.data[self.size_attr] = get_community_size(self.data.index.values)
 
+    def autocorrelate(self, include_distances=False):
+        """
+        Returns autocorrelation versus community depth.
+
+        Args:
+
+            include_distances (bool) - return mean separate distances
+
+        Returns:
+
+            levels (list) - clustering depths, starting from finest resolution
+
+            correlations (list) - mean correlation within communities
+
+            <optional> distances (list) - mean pairwise separation distance
+
+        """
+
+        # compile z-scored node values
+        node_v = self.node_values
+        self.data[self.z_attr] = (node_v-node_v.mean())/node_v.std()
+
+        # define hierarchical levels
+        levels = list(range(self.graph.imap.aggregator.max_depth))
+
+        # define aggregation functions
+        def get_binsize(x):
+            """ Evaluate total number of node pairs. """
+            return x.size * (x.size - 1) / 2
+
+        def get_fluctuations(x):
+            """ Evaluate total pairwise fluctuation between nodes. """
+            v = x.values.reshape(-1, 1)
+            return self.graph.get_matrix_upper(np.dot(v, v.T)).sum()
+
+        def get_distances(x):
+            """ Evaluate total pairwise distance between nodes. """
+            distance_matrix = self.graph._distance_matrix(x.values)
+            distances = self.graph.get_matrix_upper(distance_matrix)
+            return distances.sum()
+
+        # evaluate autocorrelation at each hierarchical level
+        correlations, distances = [], []
+        for level in levels:
+            labels = self.graph._assign_community(level)
+            gb = self.data.groupby(labels)
+            total_flux = gb[self.z_attr].agg(get_fluctuations).sum()
+            num_of_flux = gb[self.z_attr].agg(get_binsize).sum()
+            correlations.append(total_flux / num_of_flux)
+
+            if include_distances:
+                total_distance = gb[self.graph.xykey].apply(get_distances).sum()
+                distances.append(total_distance/num_of_flux)
+
+        if include_distances:
+            return distances, correlations
+        else:
+            return levels, correlations
+
     @default_figure
-    def plot_autocorrelation(self, ax=None):
-        """ Plot autocorrelation versus community depth. """
+    def plot_autocorrelation(self, ax=None, spatial=False):
+        """
+        Plot autocorrelation versus community depth.
 
-        # construct dataframe
-        data = deepcopy(self.data[['community']])
-        data['levels'] = self.node_values
-        data['zscore'] = (data.levels-data.levels.mean())/data.levels.std()
+        Args:
 
-        # define functions for evaluation fluctuations
-        f = lambda x: sum([sum([a * b for b in x if a!=b]) for a in x]) / 2
-        g = lambda x: len(x)*(len(x)-1) / 2
-        evaluate_mean_fluctuation = lambda key: data.groupby(key)['zscore'].agg(f).sum() / data.groupby(key)['zscore'].agg(g).sum()
+            distance (bool) - if True, plot spatial correlation
 
-        # instantiate infomap clustering
-        detector = InfoMap(self.graph.edge_list)
+        """
 
-        # evaluate autocorrelation function
-        autocorrelation = []
-        for level in range(detector.aggregator.max_depth):
-            key = '{:d}'.format(level)
-            data[key] = detector.aggregator(data.community, level=level)
-            mean_fluctuation = evaluate_mean_fluctuation(key)
-            autocorrelation.append((level, mean_fluctuation))
+
+        levels, correlation = self.autocorrelate(include_distances=spatial)
 
         # plot autocorrelation
-        ax.plot(*list(zip(*autocorrelation)), '.-k')
+        ax.plot(levels, correlation, '.-k')
         ax.set_ylim(-0.1, 1)
         ax.set_ylabel('Correlation')
-        ax.set_xlabel('Hierarchical level')
 
-    @default_figure
-    def plot_autocorrelation_with_distance(self, ax=None):
-        """ Plot autocorrelation versus community depth. """
-
-        # construct dataframe
-        data = deepcopy(self.data[['community']])
-        data['levels'] = self.node_values
-        data['zscore'] = (data.levels-data.levels.mean())/data.levels.std()
-
-        # define functions for evaluation fluctuations
-        f = lambda x: sum([sum([a * b for b in x if a!=b]) for a in x]) / 2
-        g = lambda x: len(x)*(len(x)-1) / 2
-        d = lambda x: np.mean([[np.sqrt((a-b)**2) for b in x if a != b] for a in x])
-
-        def evaluate_mean_fluctuation(bin_id):
-            total_fluctuations = data.groupby(bin_id)['zscore'].agg(f).sum()
-            bin_size = data.groupby(bin_id)['zscore'].agg(g).sum()
-            return total_fluctuations / bin_size
-
-        def evaluate_mean_distance(bin_id):
-            return data.groupby(bin_id)[self.graph.xykey].agg(d).mean()
-
-        # instantiate infomap clustering
-        detector = InfoMap(self.graph.edge_list)
-
-        # evaluate autocorrelation function
-        distances, autocorrelation = [], []
-        for level in range(detector.aggregator.max_depth):
-            key = '{:d}'.format(level)
-            data[key] = detector.aggregator(data.community, level=level)
-            mean_fluctuation = evaluate_mean_fluctuation(key)
-            autocorrelation.append((level, mean_fluctuation))
-            distances.append(evaluate_mean_distance(key))
-
-        return distances, autocorrelation
-
+        # format axis
+        if spatial:
+            ax.set_xlabel('Distance')
+        else:
+            ax.set_xlabel('Hierarchical level')
 
 
 class RadialSampler(NeighborSampler):
@@ -430,7 +468,9 @@ class RadialSampler(NeighborSampler):
 
         log (bool) - if True, log-transform values before averaging
 
-        twolevel (bool) - if True, use two-level community clustering
+        length_scale (float) - characteristic length scale of the graph
+
+        radius (float) - radius of sampling region surrounding each measurement
 
     """
 

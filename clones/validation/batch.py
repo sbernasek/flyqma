@@ -160,24 +160,22 @@ class BatchBenchmark(Pickler, Training):
         for replicate_id, replicate in self.replicates:
 
             # evaluate benchmark for current replicate
-            benchmark = SimulationBenchmark(replicate.copy(),
+            bmark = SimulationBenchmark(replicate.copy(),
                                             graph=self.graphs[replicate_id],
                                             **self.params)
 
             # store results
             results[replicate_id] = dict(
-                labels_MAE=benchmark.scores['labels'].MAE,
-                labels_PCT=benchmark.scores['labels'].percent_correct,
-                labels_F1=benchmark.scores['labels'].f1,
-                level_only_MAE=benchmark.scores['level_only'].MAE,
-                level_only_PCT=benchmark.scores['level_only'].percent_correct,
-                level_only_F1=benchmark.scores['level_only'].f1,
-                spatial_only_MAE=benchmark.scores['spatial_only'].MAE,
-                spatial_only_PCT=benchmark.scores['spatial_only'].percent_correct,
-                spatial_only_F1=benchmark.scores['spatial_only'].f1,
-                community_MAE=benchmark.scores['labels_comm'].MAE,
-                community_PCT=benchmark.scores['labels_comm'].percent_correct,
-                community_F1=benchmark.scores['labels_comm'].f1)
+
+                labels_MAE=bmark.scores['labels'].MAE,
+                level_only_MAE=bmark.scores['level_only'].MAE,
+                spatial_only_MAE=bmark.scores['spatial_only'].MAE,
+                community_MAE=bmark.scores['labels_comm'].MAE,
+
+                labels_PCT=bmark.scores['labels'].percent_correct,
+                level_only_PCT=bmark.scores['level_only'].percent_correct,
+                spatial_only_PCT=bmark.scores['spatial_only'].percent_correct,
+                community_PCT=bmark.scores['labels_comm'].percent_correct)
 
         # compile dataframe
         results = pd.DataFrame.from_dict(results, orient='index')

@@ -135,7 +135,6 @@ class CorrelationVisualization:
         # filter by max_distance
         if max_distance is None:
             max_distance = self.ubound
-        xmax = (max_distance//100)*100
         ind = (d<=max_distance)
         C = C[ind]
         d = d[ind]

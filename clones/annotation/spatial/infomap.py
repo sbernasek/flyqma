@@ -26,7 +26,11 @@ class InfoMap:
 
             edges (list) - (i, j, weight) tuple for each edge
 
-            kwargs: keyword arguments for build_network method
+            kwargs: keyword arguments for build_network method, including:
+
+                twolevel (bool) - if True, perform two-level clustering
+
+                N (int) - number of trials
 
         """
 
@@ -115,6 +119,7 @@ class CommunityAggregator:
         return self.group_modules(depth)
 
     def __call__(self, modules, level=None):
+        """ Returns labels for modules cut to <level>. """
         return self.group(modules, level)
 
     @property

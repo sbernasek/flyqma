@@ -204,15 +204,13 @@ class SimulationBenchmark(Training,
         # apply graph-based annotation based on community
         community_kw = deepcopy(testing_kw)
         community_kw['sampler_type'] = 'community'
-        community_kw['sampler_kwargs'] = {'depth': 2}
+        community_kw['sampler_kwargs'] = {'depth': 1.}
         measurements['labels_comm'] = annotator.annotate(graph, **community_kw)
 
         # apply univariate annotation using only fluorescence levels
         measurements['level_only'] = annotator.classifier[0](measurements)
 
         # apply bivariate annotation using only spatial context
-        # space_cl = annotator.classifier[1]
-        # measurements['spatial_only'] = space_cl.classifier(space_cl.values)
         bv_kwargs = deepcopy(testing_kw)
         bv_kwargs['bivariate_only'] = True
         measurements['spatial_only'] = annotator.annotate(graph, **bv_kwargs)

@@ -233,7 +233,7 @@ class SweepBenchmark(Pickler, SweepVisualization):
         cmd = 'python ./benchmark/scripts/{:s}'.format(script_name)+' ${P}'
         for k, v in kwargs.items():
             cmd += ' -{} {}'.format(k, v)
-        job_script.write(cmd)
+        job_script.write(cmd+' \n')
 
         job_script.write('EOJ\n')
         job_script.write('`\n\n')

@@ -76,17 +76,22 @@ class SpatialProperties:
         """ Median edge length. """
         return np.median(self.edge_lengths)
 
-    @property
-    def distance_matrix(self):
-        """ Euclidean distance matrix between all nodes. """
+    @staticmethod
+    def _distance_matrix(xy):
+        """ Returns euclidean distance matrix between all points in <xy>. """
 
-        x, y = self.node_positions_arr.T
+        x, y = xy.T
         x = x.reshape(-1, 1)
         y = y.reshape(-1, 1)
         x_component = np.repeat(x**2, x.size, axis=1) + np.repeat(x.T**2, x.size, axis=0) - 2*np.dot(x, x.T)
         y_component = np.repeat(y**2, y.size, axis=1) + np.repeat(y.T**2, y.size, axis=0) - 2*np.dot(y, y.T)
 
         return np.sqrt(x_component + y_component)
+
+    @property
+    def distance_matrix(self):
+        """ Euclidean distance matrix between all nodes. """
+        return self._distance_matrix(self.node_positions_arr)
 
     @staticmethod
     def get_matrix_upper(matrix):
@@ -150,124 +155,8 @@ class SpatialProperties:
         return self.evaluate_fluctuations(attribute_values)
 
 
-class Graph(TopologicalProperties, SpatialProperties):
-    """
-    Object provides an undirected unweighted graph connecting adjacent cells.
-
-    Attributes:
-
-        data (pd.DataFrame) - cell measurement data (nodes)
-
-        xykey (list) - attribute keys for node x/y positions
-
-        G (nx.Graph) - undirected graph instance
-
-        nodes (np.ndarray[int]) - node indices
-
-        edges (np.ndarray[int]) - pairs of connected node indices
-
-        node_map (vectorized func) - maps positional index to node index
-
-        position_map (vectorized func) - maps node index to positional index
-
-        tri (matplotlib.tri.Triangulation) - triangulation of node positions
-
-    """
-
-    def __init__(self, data, xykey=None):
-        """
-        Instantiate Graph object.
-
-        Args:
-
-            data (pd.DataFrame) - cell measurement data (nodes)
-
-            xykey (list) - attribute keys for node x/y positions
-
-        """
-
-        # set xykey
-        if xykey is None:
-            xykey = ['centroid_x', 'centroid_y']
-        self.xykey = xykey
-
-        # store data
-        self.data = data
-
-        # define mapping from position to node index
-        position_to_node = dict(enumerate(data.index))
-        self.node_map = np.vectorize(position_to_node.get)
-
-        # define reverse map
-        node_to_position = {v: k for k, v in position_to_node.items()}
-        self.position_map = np.vectorize(node_to_position.get)
-
-        # triangulate
-        self.tri = self._construct_triangulation(data, xykey)
-
-        # build networkx graph instance
-        self.G = self.get_networkx()
-
-    def get_subgraph(self, ind):
-        """ Instantiate subgraph from DataFrame indices. """
-        return Graph(self.data.loc[ind], xykey=self.xykey)
-
-    def get_networkx(self, *node_attributes):
-        """
-        Returns networkx instance of graph.
-
-        Args:
-
-            node_attributes (str) - attributes to be added for each node
-
-        """
-        G = nx.Graph()
-        G.add_weighted_edges_from(self.edge_list)
-
-        # add node attributes
-        for attr in node_attributes:
-            if attr is not None:
-                values_dict = dict(self.data.loc[self.nodes][attr])
-                nx.set_node_attributes(G, name=attr, values=values_dict)
-
-        return G
-
-    def get_correlations(self, attribute, log=True):
-        """
-        Returns SpatialCorrelation object for <attribute>.
-
-        Args:
-
-            attribute (str) - name of attribute
-
-            log (bool) - if True, log-transform attribute values
-
-        Returns:
-
-            correlations (SpatialCorrelation)
-
-        """
-        d_ij = self.unique_distances
-        C = self.get_fluctuations_matrix(attribute, log=log)
-        C_ij = self.get_matrix_upper(C)
-        return SpatialCorrelation(d_ij, C_ij)
-
-    @staticmethod
-    def _construct_triangulation(data, xykey, **kwargs):
-        """
-        Construct Delaunay triangulation with edge filter.
-
-        Args:
-
-            data (pd.DataFrame) - node measurement data
-
-            xykey (list) - attribute keys for node x/y coordinates
-
-            kwargs: keyword arguments for triangulation
-
-        """
-        pts = data[xykey].values
-        return LocalTriangulation(*pts.T, **kwargs)
+class GraphVisualizationMethods:
+    """ Methods for visualizing a Graph instance. """
 
     def plot_edges(self, ax=None, **kwargs):
         """
@@ -365,7 +254,7 @@ class Graph(TopologicalProperties, SpatialProperties):
 
             disconnect (bool) - if True, remove edges between nodes whose colorby values differ
 
-            kwargs: keyword arguments for GraphVisualization.draw
+            kwargs: keyword arguments for NetworkxGraphVisualization.draw
 
         """
         if colorby is not None:
@@ -385,8 +274,184 @@ class Graph(TopologicalProperties, SpatialProperties):
             G.remove_edges_from(removed_edges)
 
         # draw graph
-        vis = GraphVisualization(G, self.node_positions)
+        vis = NetworkxGraphVisualization(G, self.node_positions)
         vis.draw(ax=ax, colorby=colorby, **kwargs)
+
+
+class CommunityDetection:
+    """ Methods for detecting communities in a Graph. """
+
+    def detect_communities(self, **kwargs):
+        """
+        Detect communities using InfoMap clustering.
+
+        Accepts keyword arguments for InfoMap, including:
+
+            twolevel (bool) - if True, perform two-level clustering, otherwise defaults to multi-level clustering
+
+            N (int) - number of trials
+
+        """
+        self.imap = InfoMap(self.edge_list, **kwargs)
+
+    def _assign_community(self, level=None):
+        """
+        Assign communities using InfoMap clustering.
+
+        Args:
+
+            level (int) - module level at which aggregation occurs, starting from the finest resolution
+
+        Returns:
+
+            labels (np.ndarray[int]) - community labels ordered by positional index
+
+        """
+        return self.imap(self.nodes[self.nodes_order], level)
+
+    def assign_community(self, level=None):
+        """
+        Assign communities using InfoMap clustering.
+
+        Args:
+
+            level (int) - module level at which aggregation occurs, starting from the finest resolution
+
+
+        """
+        labels = self._assign_community(level=level)
+        self.community_labels = labels
+
+        # add labels to dataframe
+        index = np.arange(len(self.data))
+        self.data['community'] = labels[self.node_map(index)]
+
+
+class Graph(TopologicalProperties,
+            SpatialProperties,
+            CommunityDetection,
+            GraphVisualizationMethods):
+    """
+    Object provides an undirected unweighted graph connecting adjacent cells.
+
+    Attributes:
+
+        data (pd.DataFrame) - cell measurement data (nodes)
+
+        xykey (list) - attribute keys for node x/y positions
+
+        G (nx.Graph) - undirected graph instance
+
+        nodes (np.ndarray[int]) - node indices
+
+        edges (np.ndarray[int]) - pairs of connected node indices
+
+        node_map (vectorized func) - maps positional index to node index
+
+        position_map (vectorized func) - maps node index to positional index
+
+        tri (matplotlib.tri.Triangulation) - triangulation of node positions
+
+    """
+
+    def __init__(self, data, xykey=None):
+        """
+        Instantiate Graph object.
+
+        Args:
+
+            data (pd.DataFrame) - cell measurement data (nodes)
+
+            xykey (list) - attribute keys for node x/y positions
+
+        """
+
+        # set xykey
+        if xykey is None:
+            xykey = ['centroid_x', 'centroid_y']
+        self.xykey = xykey
+
+        # store data
+        self.data = data
+
+        # instantiate community detection
+        self.community_labels = None
+        self.imap = None
+
+        # define mapping from position to node index
+        position_to_node = dict(enumerate(data.index))
+        self.node_map = np.vectorize(position_to_node.get)
+
+        # define reverse map
+        node_to_position = {v: k for k, v in position_to_node.items()}
+        self.position_map = np.vectorize(node_to_position.get)
+
+        # triangulate
+        self.tri = self._construct_triangulation(data, xykey)
+
+        # build networkx graph instance
+        self.G = self.get_networkx()
+
+    def get_subgraph(self, ind):
+        """ Instantiate subgraph from DataFrame indices. """
+        return Graph(self.data.loc[ind], xykey=self.xykey)
+
+    def get_networkx(self, *node_attributes):
+        """
+        Returns networkx instance of graph.
+
+        Args:
+
+            node_attributes (str) - attributes to be added for each node
+
+        """
+        G = nx.Graph()
+        G.add_weighted_edges_from(self.edge_list)
+
+        # add node attributes
+        for attr in node_attributes:
+            if attr is not None:
+                values_dict = dict(self.data.loc[self.nodes][attr])
+                nx.set_node_attributes(G, name=attr, values=values_dict)
+
+        return G
+
+    def get_correlations(self, attribute, log=True):
+        """
+        Returns SpatialCorrelation object for <attribute>.
+
+        Args:
+
+            attribute (str) - name of attribute
+
+            log (bool) - if True, log-transform attribute values
+
+        Returns:
+
+            correlations (SpatialCorrelation)
+
+        """
+        d_ij = self.unique_distances
+        C = self.get_fluctuations_matrix(attribute, log=log)
+        C_ij = self.get_matrix_upper(C)
+        return SpatialCorrelation(d_ij, C_ij)
+
+    @staticmethod
+    def _construct_triangulation(data, xykey, **kwargs):
+        """
+        Construct Delaunay triangulation with edge filter.
+
+        Args:
+
+            data (pd.DataFrame) - node measurement data
+
+            xykey (list) - attribute keys for node x/y coordinates
+
+            kwargs: keyword arguments for triangulation
+
+        """
+        pts = data[xykey].values
+        return LocalTriangulation(*pts.T, **kwargs)
 
 
 class WeightedGraph(Graph):
@@ -396,6 +461,8 @@ class WeightedGraph(Graph):
     Attributes:
 
         weighted_by (str) - data attribute used to weight edges
+
+        imap (spatial.InfoMap) - community detection
 
         community_labels (np.ndarray[int]) - community label for each node
 
@@ -449,7 +516,6 @@ class WeightedGraph(Graph):
 
         # instantiate graph
         super().__init__(data, xykey)
-        self.community_labels = None
 
     @property
     def edge_list(self):
@@ -476,25 +542,6 @@ class WeightedGraph(Graph):
                             weighted_by=self.weighted_by,
                             distance=self.distance)
         return wf.assess_weights(self.edges, logratio=self.logratio)
-
-    def find_communities(self, level=None, **kwargs):
-        """
-        Assign communities using InfoMap clustering.
-
-        Args:
-
-            depth (int) - module level at which aggregation occurs
-
-            kwargs: keyword arguments for InfoMap (default is two-level)
-
-        """
-        community_detector = InfoMap(self.edge_list, **kwargs)
-        labels = community_detector(self.nodes, level)
-        self.community_labels = labels
-
-        # add labels to dataframe
-        index = np.arange(len(self.data))
-        self.data['community'] = labels[self.node_map(index)]
 
 
 class WeightFunction:
@@ -589,9 +636,9 @@ class WeightFunction:
         return weights
 
 
-class GraphVisualization:
+class NetworkxGraphVisualization:
     """
-    Object for graph visualization.
+    Object for visualizing a NetworkX Graph object.
 
     Attributes:
 
