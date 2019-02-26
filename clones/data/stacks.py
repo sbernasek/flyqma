@@ -260,7 +260,7 @@ class Stack(StackIO):
                 data.append(layer_data)
 
         # aggregate measurement data
-        data = pd.concat(data, join='inner')
+        data = pd.concat(data, join='outer', sort=False)
         data = data.set_index(['layer', 'segment_id'])
 
         # load manual labels from silhouette

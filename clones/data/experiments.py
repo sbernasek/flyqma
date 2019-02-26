@@ -124,7 +124,7 @@ class Experiment:
             assert stack_id == stack._id, 'Stack IDs do not match.'
 
         # aggregate measurements
-        data = pd.concat(data, join='inner')
+        data = pd.concat(data, join='outer', sort=False)
 
         # exclude cells that were not marked for inclusion
         if selected_only:

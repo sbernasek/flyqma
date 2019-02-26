@@ -563,7 +563,7 @@ class Layer(LayerIO, ImageRGB, LayerVisualization):
         if self.annotator is not None:
             self._apply_annotation(data)
             self.mark_boundaries(data, basis='genotype', max_edges=1)
-            self.apply_concurrency(data)
+            self.apply_concurrency(data, basis='genotype')
 
         return data
 
@@ -727,7 +727,8 @@ class Layer(LayerIO, ImageRGB, LayerVisualization):
         """
         self._apply_annotation(self.data, label=label, **kwargs)
 
-    def apply_concurrency(self, data, min_pop=5, max_distance=10):
+    def apply_concurrency(self, data, basis='genotype',
+                          min_pop=5, max_distance=10):
         """
         Add boolean 'concurrent_<cell type>' field to cell measurement data for each unique cell type.
 
@@ -735,12 +736,16 @@ class Layer(LayerIO, ImageRGB, LayerVisualization):
 
             data (pd.DataFrame) - processed cell measurement data
 
+            basis (str) - attribute on which concurrency is established
+
             min_pop (int) - minimum population size for inclusion of cell type
 
             max_distance (float) - maximum distance threshold for inclusion
 
         """
-        assign_concurrency = ConcurrencyLabeler(min_pop=min_pop,
+        assign_concurrency = ConcurrencyLabeler(attribute=basis,
+                                                label_values=(0,1,2),
+                                                min_pop=min_pop,
                                                 max_distance=max_distance)
         assign_concurrency(data)
 
@@ -837,5 +842,3 @@ class Layer(LayerIO, ImageRGB, LayerVisualization):
 
         # process raw measurement data
         self.data = self.process_measurements(self.measurements)
-
-

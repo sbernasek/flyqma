@@ -12,19 +12,26 @@ class ConcurrencyLabeler(AttributeLabeler):
 
         attribute (str) - measurement attribute used to denote cell type
 
+        label_values (array like) - by default use all available
+
         min_pop (int) - minimum population size for inclusion of cell type
 
         max_distance (float) - maximum distance threshold for inclusion
 
     """
 
-    def __init__(self, attribute='celltype', min_pop=5, max_distance=10):
+    def __init__(self,
+                 attribute='genotype',
+                 label_values=None,
+                 min_pop=5, max_distance=10):
         """
         Instantiate object for labeling measurements as concurrent with other cell types.
 
         Args:
 
-            attribute (str) - measurement attribute used to denote cell type
+            attribute (str) - measurement attribute used to denote labels
+
+            label_values (array like) - by default use all available
 
             min_pop (int) - minimum population size for inclusion of cell type
 
@@ -33,6 +40,7 @@ class ConcurrencyLabeler(AttributeLabeler):
         """
 
         self.attribute = attribute
+        self.label_values = label_values
         self.min_pop = min_pop
         self.max_distance = max_distance
 
@@ -68,7 +76,7 @@ class ConcurrencyLabeler(AttributeLabeler):
 
     def assign_labels(self, data):
         """
-        Add boolean 'concurrent_<cell type>' field to cell measurement data for each unique cell type.
+        Add boolean 'concurrent_<label>' field to measurement data for each specified label value.
 
         Args:
 
@@ -76,10 +84,14 @@ class ConcurrencyLabeler(AttributeLabeler):
 
         """
 
-        # find unique target cell types
-        target_types = data[self.attribute].unique()
+        # find unique target cell types if no label values specified
+        if self.label_values is None:
+            target_types = data[self.attribute].unique()
+        else:
+            target_types = self.label_values
 
         # assign concurrency label
         for target_type in target_types:
             distances = self.evaluate_distance(data, target_type)
-            data['concurrent_'+target_type] = (distances <= self.max_distance)
+            key = 'concurrent_{:s}'.format(str(target_type))
+            data[key] = (distances <= self.max_distance)

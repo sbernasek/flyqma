@@ -72,9 +72,11 @@ class CloneComparison(PairwiseComparison):
 
     Attributes:
 
-        type1 (str) - first cell type
+        label (str) - attribute used to define population labels
 
-        type2 (str) - second cell type
+        type1 (str) - first label
+
+        type2 (str) - second label
 
     Inherited attributes:
 
@@ -86,7 +88,8 @@ class CloneComparison(PairwiseComparison):
 
     """
 
-    def __init__(self, measurements, type1, type2, basis):
+    def __init__(self, measurements, type1, type2, basis,
+                 label='genotype'):
         """
         Instantiate comparison between two concurrent cell types.
 
@@ -94,26 +97,29 @@ class CloneComparison(PairwiseComparison):
 
             measurements (pd.DataFrame) - cell measurement data
 
-            type1 (str) - first cell type
+            type1 (str) - first label
 
-            type2 (str) - second cell type
+            type2 (str) - second label
 
             basis (str) - attribute on which populations are compared
 
+            label (str) - attribute used to define population labels
+
         """
 
-        # store cell types
+        # store labels
+        self.label = label
         self.type1 = type1
         self.type2 = type2
 
         # select concurrent cells of each type
-        ind = np.logical_and(measurements['concurrent_'+type1],
-                             measurements['concurrent_'+type2])
+        ind = np.logical_and(measurements['concurrent_'+str(type1)],
+                             measurements['concurrent_'+str(type2)])
         measurements = measurements[ind]
 
         # split into two populations
-        x = measurements[measurements.celltype == type1]
-        y = measurements[measurements.celltype == type2]
+        x = measurements[measurements[label] == type1]
+        y = measurements[measurements[label] == type2]
 
         # instantiate comparison
         super().__init__(x, y, basis=basis)
@@ -145,7 +151,7 @@ class CloneComparison(PairwiseComparison):
         # plot boxplot
         if mode == 'box':
             sns.boxplot(ax=ax,
-                    x='celltype',
+                    x=self.label,
                     y=self.basis,
                     data=pd.concat((self.x, self.y)),
                     order=(self.type1, self.type2),
@@ -156,7 +162,7 @@ class CloneComparison(PairwiseComparison):
         # plot violinplot
         elif mode == 'violin':
             sns.violinplot(ax=ax,
-                    x='celltype',
+                    x=self.label,
                     y=self.basis,
                     data=pd.concat((self.x, self.y)),
                     order=(self.type1, self.type2),
@@ -167,7 +173,7 @@ class CloneComparison(PairwiseComparison):
         # plot stripplot
         elif mode == 'strip':
             sns.stripplot(ax=ax,
-                    x='celltype',
+                    x=self.label,
                     y=self.basis,
                     data=pd.concat((self.x, self.y)),
                     order=(self.type1, self.type2),
@@ -192,8 +198,11 @@ class CloneComparison(PairwiseComparison):
         """
 
         # define labels and corresponding fill colors
-        labels = dict(m='−/−', h='−/+', w='+/+')
-        colors = dict(m='y', h='c', w='m')
+        labels = {'m': '−/−', 'h': '−/+', 'w': '+/+',
+                  '0': '−/−', '1': '−/+', '2': '+/+'}
+
+        colors = {'m': 'y', 'h': 'c', 'w': 'm',
+                  '0': 'y', '1': 'c', '2': 'm'}
 
         # format axes
         ax.grid(False)
@@ -241,11 +250,14 @@ class SummaryStatistics:
 
         basis (str) - attribute on which clones are compared
 
+        label (str) - attribute used to define population labels
+
         test (str) - name of test used, one of ('KS', 't', 'MW')
 
     """
 
-    def __init__(self, control, perturbation, basis, test='MW'):
+    def __init__(self, control, perturbation, basis,
+                 label='celltype', test='MW'):
         """
         Instantiate summary of comaprisons between mutant, heterozygote, and wildtype clones.
 
@@ -257,18 +269,21 @@ class SummaryStatistics:
 
             basis (str) - attribute on which clones are compared
 
+            label (str) - attribute used to define population labels
+
             test (str) - name of test used, one of ('KS', 't', 'MW')
 
         """
         self.measurements = dict(control=control, perturbation=perturbation)
         self.basis = basis
+        self.label = label
         self.test = test
 
         # compute and report pvalues
         pvals = self.run()
         self.report(pvals)
 
-    def compare_celltype(self, condition, type1, type2):
+    def compare_celltype(self, condition, type1, type2, label='celltype'):
         """
         Args:
 
@@ -278,13 +293,16 @@ class SummaryStatistics:
 
             type2 (str) - second cell type
 
+            label (str) - attribute used to define population labels
+
         Returns:
 
             p (float) - p value for comparison statistic
 
         """
         data = self.measurements[condition]
-        comparison = CloneComparison(data, type1, type2, self.basis)
+        comparison = CloneComparison(data, type1, type2, self.basis,
+                                     label=label)
         return comparison.compare(self.test)
 
     def run(self):
@@ -297,10 +315,10 @@ class SummaryStatistics:
 
         """
         pvals = dict(
-            c_mh = self.compare_celltype('control', 'm', 'h'),
-            c_hw = self.compare_celltype('control', 'h', 'w'),
-            p_mh = self.compare_celltype('perturbation', 'm', 'h'),
-            p_hw = self.compare_celltype('perturbation', 'h', 'w'))
+            c_mh = self.compare_celltype('control', 'm', 'h', self.label),
+            c_hw = self.compare_celltype('control', 'h', 'w', self.label),
+            p_mh = self.compare_celltype('perturbation', 'm', 'h', self.label),
+            p_hw = self.compare_celltype('perturbation', 'h', 'w', self.label))
         return pvals
 
     def report(self, pvals):

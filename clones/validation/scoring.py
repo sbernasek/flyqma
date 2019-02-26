@@ -79,6 +79,47 @@ class Scoring:
         predicted = self.data.predicted.values.astype(int)
         self.matrix = AdjacencyMatrix(measured, predicted, **kwargs)
 
+    @default_figure
+    def plot_label_distribution(self,
+                                mcolor='tomato',
+                                pcolor='darkmagenta',
+                                width=0.4,
+                                legend=False,
+                                ax=None):
+        """
+        Plot distribution of labels among annotated cells.
+
+        Args:
+
+            mcolor (str) - color for measured labels
+
+            pcolor (str) - color for predicted labels
+
+            width (float) - bar width
+
+            legend (bool) - if True, include legend
+
+        """
+
+        # group data by label-type and obtain counts
+        m = self.data.measured.groupby(self.data.measured).count().values
+        p = self.data.predicted.groupby(self.data.predicted).count().values
+
+        # plot bars
+        ind = np.arange(m.size)
+        _ = ax.bar(ind-width/2, m, width, color=mcolor, label='Measured')
+        _ = ax.bar(ind+width/2, p, width, color=pcolor, label='Predicted')
+
+        if legend:
+            ax.legend(loc=2, frameon=False, fontsize=6,
+                       bbox_to_anchor=(0.05, 1.1, 1., .102),
+                       ncol=1, borderaxespad=0.)
+
+        # format axis
+        ax.set_xticks(ind)
+        ax.set_xticklabels(['{:d}x'.format(i) for i in ind])
+        ax.set_ylabel('Number of labels')
+
 
 class AdjacencyMatrix(Figure):
     """
