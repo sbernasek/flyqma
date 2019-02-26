@@ -114,7 +114,12 @@ class Experiment:
         for stack_id in self.stack_ids:
             stack = self.load_stack(stack_id, full=False)
             measurements = stack.aggregate_measurements(raw=raw)
+
+            # add stack index
             measurements['stack'] = stack._id
+            measurements = measurements.set_index('stack', append=True)
+            measurements = measurements.reorder_levels([2,0,1])
+
             data.append(measurements)
             assert stack_id == stack._id, 'Stack IDs do not match.'
 

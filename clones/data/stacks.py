@@ -10,9 +10,10 @@ from ..utilities import IO
 from ..annotation import Annotation
 
 from .layers import Layer
+from .silhouette import SilhouetteIO
 
 
-class StackIO:
+class StackIO(SilhouetteIO):
     """ Methods for saving and loading a Stack instance. """
 
     def save(self):
@@ -26,11 +27,11 @@ class StackIO:
         io = IO()
         io.write_json(join(self.path, 'metadata.json'), self.metadata)
 
-    def save_annotator(self):
+    def save_annotator(self, data=True):
         """ Save annotator to annotation directory. """
         if not isdir(self.annotator_path):
             mkdir(self.annotator_path)
-        self.annotator.save(self.annotator_path)
+        self.annotator.save(self.annotator_path, data=data)
 
     def load_metadata(self):
         """ Load available metadata. """
@@ -224,16 +225,18 @@ class Stack(StackIO):
 
         # save models
         if save:
-            self.save_annotator()
+            self.save_annotator(data=True)
             selector.save(self.annotator_path)
 
-    def aggregate_measurements(self, raw=False):
+    def aggregate_measurements(self, raw=False, process=False):
         """
-        Aggregate measurements from each layer.
+        Aggregate measurements from each included layer.
 
         Args:
 
-            raw (bool) - if True, aggregate raw measurements from included discs
+            raw (bool) - if True, aggregate raw measurements
+
+            process (bool) - if True, apply processing to raw measurements
 
         Returns:
 
@@ -244,7 +247,7 @@ class Stack(StackIO):
         # load measurements from each included layer
         data = []
         for layer_id in range(self.depth):
-            layer = self.load_layer(layer_id, full=False)
+            layer = self.load_layer(layer_id, process=process, full=False)
             if layer.include == True:
 
                 # get raw or processed measurements
@@ -258,6 +261,11 @@ class Stack(StackIO):
 
         # aggregate measurement data
         data = pd.concat(data, join='inner')
+        data = data.set_index(['layer', 'segment_id'])
+
+        # load manual labels from silhouette
+        if exists(self.silhouette_path):
+            data = data.join(self.load_silhouette_labels())
 
         return data
 

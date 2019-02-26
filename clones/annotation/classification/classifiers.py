@@ -78,7 +78,13 @@ class ClassifierIO:
 
         """
         io = IO()
-        values = io.read_npy(join(path, 'values.npy'))
+
+        values_path = join(path, 'values.npy')
+        if exists(values_path):
+            values = io.read_npy(values_path)
+        else:
+            values = None
+
         parameters = io.read_json(join(path, 'parameters.json'))
         return cls(values, **parameters)
 

@@ -73,6 +73,7 @@ class MixtureModelIO(ClassifierIO):
         # load model
         with open(join(path, 'model.pkl'), 'rb') as file:
             model = pickle.load(file)
+        model.values = np.log(values)
 
         return cls(values, model=model, **parameters)
 

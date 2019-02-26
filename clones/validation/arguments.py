@@ -99,7 +99,7 @@ class SweepArguments(RunArguments):
           self.add_argument('-lr', '--logratio',
                               help='Weight edges by logratio.',
                               type=str2bool,
-                              default=False,
+                              default=True,
                               required=False)
 
           # add keyword argument for estimated run time

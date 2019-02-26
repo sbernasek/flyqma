@@ -28,6 +28,7 @@ from ..bleedthrough import LayerCorrection
 
 # import image base class
 from .images import ImageRGB
+from .silhouette import SilhouetteLayerIO
 
 # import default parameters
 from .defaults import Defaults
@@ -184,7 +185,7 @@ class LayerVisualization:
                                 **kwargs)
 
 
-class LayerIO:
+class LayerIO(SilhouetteLayerIO):
     """
     Methods for saving and loading Layer objects and their subcomponents.
     """
@@ -387,7 +388,7 @@ class LayerIO:
         self.load_metadata()
 
         # check whether annotation exists
-        if 'annotation' in self.subdirs.keys():
+        if 'annotation' in self.subdirs.keys() and process:
 
             if self.annotator is not None:
                 raise UserWarning('Layer was instantiated with a stack-level annotation instance, but a second annotation instance was found within the layer directory. Resolve this conflict before continuing.')
@@ -468,6 +469,7 @@ class Layer(LayerIO, ImageRGB, LayerVisualization):
         # set layer ID
         layer_id = int(path.rsplit('/', maxsplit=1)[-1])
         self._id = layer_id
+        self.xykey = ['centroid_x', 'centroid_y']
 
         # set path and subdirectories
         self.path = path
@@ -545,6 +547,9 @@ class Layer(LayerIO, ImageRGB, LayerVisualization):
         # apply normalization
         self.apply_normalization(data)
 
+        # construct graph
+        self.build_graph(data, **self.metadata['params']['graph_kw'])
+
         # load and apply selection
         if 'selection' in self.subdirs.keys():
             self.load_inclusion()
@@ -553,9 +558,6 @@ class Layer(LayerIO, ImageRGB, LayerVisualization):
         # load and apply correction
         if 'correction' in self.subdirs.keys():
             self.apply_correction(data)
-
-        # construct graph
-        self.build_graph(data, **self.metadata['params']['graph_kw'])
 
         # annotate measurements (opt to load labels rather than annotate again)
         if self.annotator is not None:
@@ -605,7 +607,7 @@ class Layer(LayerIO, ImageRGB, LayerVisualization):
             path = Path(bounds, closed=False)
 
             # mark cells as within or outside the selection boundary
-            cell_positions = data[self.graph.xykey].values
+            cell_positions = data[self.xykey].values
             data['selected'] = path.contains_points(cell_positions)
 
     def apply_correction(self, data):
