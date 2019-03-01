@@ -13,6 +13,7 @@ from growth.sweep.sweep import Sweep
 from .batch import BatchBenchmark
 from .visualization import SweepVisualization
 from .results import BenchmarkingResults
+from .growth import GrowthTrends
 
 
 class SweepBenchmark(Pickler, SweepVisualization):
@@ -59,6 +60,21 @@ class SweepBenchmark(Pickler, SweepVisualization):
 
         # initialize results
         self._results = None
+
+    @property
+    def sweep(self):
+        """ Sweep of growth replicates. """
+        return Sweep.load(self.sweep_path)
+
+    @property
+    def trends(self):
+        """ Growth trends. """
+        return GrowthTrends(self.sweep._results)
+
+    @property
+    def mean_clone_sizes(self):
+        """ Mean size of clones for each growth condition. """
+        return np.log(self.trends.means.mean_clone_size.values)
 
     @staticmethod
     def load(sweep_path):
@@ -471,5 +487,7 @@ class SweepBenchmark(Pickler, SweepVisualization):
             else:
                 return None
 
-        return BenchmarkingResults(self._results, self.batches.shape)
-
+        return BenchmarkingResults(self._results,
+                                   self.batches.shape,
+                                   clone_sizes=self.mean_clone_sizes,
+                                   ambiguities=self.ambiguities)

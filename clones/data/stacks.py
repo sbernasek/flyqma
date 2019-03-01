@@ -39,7 +39,6 @@ class StackIO(SilhouetteIO):
         if exists(metadata_path):
             io = IO()
             self.metadata = io.read_json(metadata_path)
-            self.depth = self.metadata['depth']
 
     def load_annotator(self):
         """ Load annotator from annotation directory. """
@@ -53,7 +52,6 @@ class StackIO(SilhouetteIO):
         self.stack = self._read_tif(self.tif_path) / (2**self.metadata['bits'])
 
         # set stack shape
-        self.depth = self.stack.shape[0]
         self.metadata['depth'] = self.stack.shape[0]
 
     @staticmethod
@@ -136,31 +134,40 @@ class Stack(StackIO):
         self.annotator = None
         self.load_annotator()
 
+        # store indices of included layers
+        self.included = self.get_included_layers()
+
         # reset layer iterator count
         self.count = 0
 
     def __getitem__(self, layer_id):
         """ Load layer. """
-        return self.load_layer(layer_id, process=False, full=True)
+        return self.load_layer(layer_id, graph=True, process=False, full=True)
 
     def __iter__(self):
-        """ Iterate across layers. """
+        """ Iterate across included layers. """
         self.count = 0
         return self
 
     def __next__(self):
-        """ Return next layer. """
-        if self.count < self.depth:
-            layer = self.__getitem__(self.count)
+        """ Return next included layer. """
+        if self.count < len(self.included):
+            layer_id = self.included[self.count]
+            layer = self.__getitem__(layer_id)
             self.count += 1
             return layer
         else:
             raise StopIteration
 
     @property
-    def graphs(self):
-        """ All included graphs in stack. """
-        return [layer.graph for layer in self if layer.include]
+    def depth(self):
+        """ Number of layers in stack. """
+        return self.metadata['depth']
+
+    def get_included_layers(self):
+        """ Returns indices of included layers. """
+        layers = [self.load_layer(i, graph=False) for i in range(self.depth)]
+        return [layer._id for layer in layers if layer.include]
 
     def initialize(self, bits=12):
         """
@@ -194,7 +201,7 @@ class Stack(StackIO):
             layer = Layer(layer_path)
             layer.initialize()
 
-    def train_annotator(self, attribute, save=False, **kwargs):
+    def train_annotator(self, attribute, save=False, logratio=True, **kwargs):
         """
         Train an Annotation model on all layers in this stack.
 
@@ -203,6 +210,8 @@ class Stack(StackIO):
             attribute (str) - measured attribute used to determine labels
 
             save (bool) - if True, save annotator and model selection routine
+
+            logratio (bool) - if True, weight edges by relative attribute value
 
             kwargs: keyword arguments for Annotation, including:
 
@@ -218,9 +227,20 @@ class Stack(StackIO):
 
         """
 
+        # build graph for each layer
+        graphs = []
+        for layer_id in self.included:
+            layer = self.load_layer(layer_id, False, False, False)
+            layer.build_graph(attribute, logratio=logratio)
+            graphs.append(layer.graph)
+
+            # save graph metadata
+            if save:
+                layer.save_metadata()
+
         # train annotator
         annotator = Annotation(attribute, **kwargs)
-        selector = annotator.train(*self.graphs)
+        selector = annotator.train(*graphs)
         self.annotator = annotator
 
         # save models
@@ -246,18 +266,20 @@ class Stack(StackIO):
 
         # load measurements from each included layer
         data = []
-        for layer_id in range(self.depth):
-            layer = self.load_layer(layer_id, process=process, full=False)
-            if layer.include == True:
+        for layer_id in self.included:
+            layer = self.load_layer(layer_id,
+                                    graph=process,
+                                    process=process,
+                                    full=False)
 
-                # get raw or processed measurements
-                if raw:
-                    layer_data = layer.measurements
-                else:
-                    layer_data = layer.data
+            # get raw or processed measurements
+            if raw:
+                layer_data = layer.measurements
+            else:
+                layer_data = layer.data
 
-                layer_data['layer'] = layer._id
-                data.append(layer_data)
+            layer_data['layer'] = layer._id
+            data.append(layer_data)
 
         # aggregate measurement data
         data = pd.concat(data, join='outer', sort=False)
@@ -269,13 +291,15 @@ class Stack(StackIO):
 
         return data
 
-    def load_layer(self, layer_id=0, process=False, full=True):
+    def load_layer(self, layer_id=0, graph=True, process=False, full=True):
         """
         Load individual layer.
 
         Args:
 
             layer_id (int) - layer index
+
+            graph (bool) - if True, load layer graph
 
             process (bool) - if True, re-process the layer measurement data
 
@@ -300,6 +324,6 @@ class Stack(StackIO):
         layer = Layer(layer_path, im, self.annotator)
 
         # load layer
-        layer.load(process=process)
+        layer.load(process=process, graph=graph)
 
         return layer

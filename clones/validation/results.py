@@ -2,30 +2,54 @@ from os.path import join
 import numpy as np
 import matplotlib.pyplot as plt
 
+from ..visualization import *
+
 
 class BenchmarkingResults:
     """
     Container for managing aggregated results of a benchmarking sweep.
     """
 
-    def __init__(self, data, shape, methods=None):
+    def __init__(self, data, shape,
+                 methods=None,
+                 clone_sizes=None,
+                 ambiguities=None):
         """
         Instantiate benchmarking results object.
 
         Args:
 
+            data (pd.DataFrame) - benchmarking performance data
+
+            shape (tuple) - shape of benchmarking sweep
+
             methods (array like) - methods included
+
+            clone_sizes (array like) - mean size of clones (x-values)
+
+            ambiguities (array like) - fluorescence ambiguities (y-values)
 
         """
 
         if methods is None:
-            methods = ['labels', 'levels_only', 'spatial_only', 'labels_comm']
+            methods = ['labels_MAE',
+                'level_only_MAE',
+                'spatial_only_MAE',
+                'community_MAE',
+                'labels_PCT',
+                'level_only_PCT',
+                'spatial_only_PCT',
+                'community_PCT']
             methods = [m for m in methods if m in data.columns]
+
         self.methods = {m: i for i, m in enumerate(methods)}
 
         columns = ['row_id', 'column_id', 'ambiguity_id']
         self.data = data.groupby(columns)[methods].mean()
         self.shape = shape
+
+        self.clone_sizes = clone_sizes
+        self.ambiguities = ambiguities
 
     @property
     def num_methods(self):
@@ -47,12 +71,6 @@ class BenchmarkingResults:
         return plt.subplots(nrows=nrows, ncols=ncols, figsize=figsize)
 
     @staticmethod
-    def format_ax(ax):
-        """ Apply basic formatting to axis. """
-        ax.set_ylabel('Fluorescence ambiguity')
-        ax.set_xlabel('Clone size')
-
-    @staticmethod
     def plot_image(ax, im, fliplr=False, flipud=False, **kwargs):
         """ Plot <im> on <ax>. """
 
@@ -64,61 +82,46 @@ class BenchmarkingResults:
 
         ax.imshow(im, **kwargs)
 
+    @default_figure
     def plot_relative_error(self,
-                            ax=None,
-                            method='labels',
-                            reference_method='levels_only',
+                            method='community_MAE',
+                            reference_method='level_only_MAE',
                             row_id=0,
                             vmin=-3,
                             vmax=3,
                             cmap=plt.cm.seismic,
+                            ax=None,
+                            figsize=(2., 2.),
                             **kwargs):
         """
         Plots relative error rate for a given <row_id>.
 
         """
 
-        # compile foldchange array (FC < 0 is good performance)
-        #drop_last_axis = lambda x: x.reshape(x.shape[:-1])
-        #matrices = np.split(self.slice(row_id), self.num_methods, -1)
-        #matrices = [drop_last_axis(x) for x in matrices]
-        #scores = matrices[self.methods[method]]
-        #reference_scores = matrices[self.methods[reference_method]]
-
         scores = self.slice(row_id)[:,:, self.methods[method]]
         reference_scores = self.slice(row_id)[:,:, self.methods[reference_method]]
         foldchange = np.log2(scores/reference_scores)
-
-        # plot
-        if ax is None:
-            fig, ax = self.build_figure()
-        else:
-            fig = plt.gcf()
 
         kw = dict(vmin=vmin, vmax=vmax, cmap=cmap)
         kw.update(kwargs)
         self.plot_image(ax, foldchange, fliplr=True, flipud=False, **kw)
         self.format_ax(ax)
 
-        return fig
-
+    @default_figure
     def plot_absolute_error(self,
-                            ax=None,
-                            method='labels',
+                            method='community_MAE',
                             row_id=0,
                             log=True,
                             vmin=0.,
-                            vmax=0.25,
-                            cmap=plt.cm.Greys,
+                            vmax=0.33,
+                            cmap=plt.cm.inferno,
+                            ax=None,
+                            figsize=(2., 2.),
                             **kwargs):
         """
         Plots absolute error rates for a given <row_id> and <method>.
         """
 
-        # compile absolute error arrays (low error is good performance)
-        # drop_last_axis = lambda x: x.reshape(x.shape[:-1])
-        # matrices = np.split(self.slice(row_id), self.num_methods, -1)
-        # matrices = [drop_last_axis(x) for x in matrices]
         matrix = self.slice(row_id)[:,:,self.methods[method]]
 
         # log-transform values
@@ -127,15 +130,31 @@ class BenchmarkingResults:
             vmin, vmax = np.log10(vmin), np.log10(vmax)
 
         # plot
-        if ax is None:
-            fig, axes = self.build_figure(figsize=(2, 2))
-        else:
-            fig = plt.gcf()
-
-        # plot
         kw = dict(vmin=vmin, vmax=vmax, cmap=cmap)
         kw.update(kwargs)
         self.plot_image(ax, matrix, fliplr=True, flipud=False, **kw)
         self.format_ax(ax)
 
-        return fig
+    def format_ax(self, ax):
+        """ Apply formatting to axis. """
+
+        if self.clone_sizes is not None:
+            xvals = self.clone_sizes[::-1]
+        else:
+            xvals = ax.get_xticks()
+
+        if self.ambiguities is not None:
+            yvals = self.ambiguities
+        else:
+            yvals = ax.get_yticks()
+
+        # set axis extent
+        extent = [xvals.min(), xvals.max(), yvals.max(), yvals.min()]
+        ax.images[0].set_extent(extent)
+        ax.invert_yaxis()
+        ax.set_aspect(xvals.ptp()/yvals.ptp())
+
+        ax.spines['right'].set_visible(False)
+        ax.spines['top'].set_visible(False)
+        ax.set_ylabel('Fluorescence ambiguity')
+        ax.set_xlabel('Clone size')

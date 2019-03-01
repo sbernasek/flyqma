@@ -126,6 +126,7 @@ class CloneComparison(PairwiseComparison):
 
     def plot(self,
              ax=None,
+             colors=None,
              mode='violin',
              ylabel=None,
              **kwargs):
@@ -135,6 +136,8 @@ class CloneComparison(PairwiseComparison):
         Args:
 
             ax (matplotlib.axes.AxesSubplot)
+
+            colors (dict) - color for each box/violin keyed by label
 
             mode (str) - type of comparison, either 'box', 'violin', or 'strip'
 
@@ -181,15 +184,17 @@ class CloneComparison(PairwiseComparison):
                     **kwargs)
 
         # format axis
-        self.format_axis(ax, ylabel=ylabel, mode=mode)
+        self.format_axis(ax, colors=colors, mode=mode, ylabel=ylabel)
 
-    def format_axis(self, ax, mode='violin', ylabel=None):
+    def format_axis(self, ax, colors=None, mode='violin', ylabel=None):
         """
         Format axis.
 
         Args:
 
             ax (matplotlib.axes.AxesSubplot)
+
+            colors (dict) - color for each box/violin keyed by label
 
             mode (str) - type of comparison, either 'box', 'violin', or 'strip'
 
@@ -201,8 +206,9 @@ class CloneComparison(PairwiseComparison):
         labels = {'m': '−/−', 'h': '−/+', 'w': '+/+',
                   '0': '−/−', '1': '−/+', '2': '+/+'}
 
-        colors = {'m': 'y', 'h': 'c', 'w': 'm',
-                  '0': 'y', '1': 'c', '2': 'm'}
+        if colors is None:
+            colors = {'m': '−/−', 'h': '−/+', 'w': '+/+',
+                      '0': 'y', '1': 'm', '2': 'c'}
 
         # format axes
         ax.grid(False)
@@ -221,11 +227,10 @@ class CloneComparison(PairwiseComparison):
         for i, label in enumerate(ax.get_xticklabels()):
 
             # set violin/box color
-            color = colors[label.get_text()[0]]
             if mode == 'violin':
-                polys[i].set_color(color)
+                polys[i].set_color(colors[label.get_text()[0]])
             else:
-                ax.artists[i].set_facecolor(color)
+                ax.artists[i].set_facecolor(colors[label.get_text()[0]])
 
             # set tick label as genotype
             label.set_text(labels[label.get_text()[0]])

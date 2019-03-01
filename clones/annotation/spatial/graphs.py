@@ -154,6 +154,40 @@ class SpatialProperties:
             attribute_values = np.log(attribute_values)
         return self.evaluate_fluctuations(attribute_values)
 
+    def _mark_boundary(self, attribute='genotype', max_edges=0):
+        """
+        Mark boundaries between nodes with differing attribute values. Boundaries are identified by nodes that share an edge with another node whose attribute value differs.
+
+        Args:
+
+            attribute (str) - used to identify distinct groups of nodes
+
+            max_edges (int) - max number of transgroup edges for interior nodes
+
+        Returns:
+
+            interior (np.vector[bool]) - mask for interior points
+
+        """
+
+        # assign genotype to edges
+        assign_genotype = np.vectorize(dict(self.data[attribute]).get)
+        edge_genotypes = assign_genotype(self.edges)
+
+        # find edges traversing clones
+        boundaries = (edge_genotypes[:, 0] != edge_genotypes[:, 1])
+
+        # get number of clone-traversing edges per node
+        boundary_edges = self.edges[boundaries]
+        edge_counts = Counter(boundary_edges.ravel())
+
+        # assign boundary label to nodes with too many clone-traversing edges
+        boundary_nodes = [n for n, c in edge_counts.items() if c>max_edges]
+        interior = np.ones(self.num_nodes, dtype=bool)
+        interior[self.position_map(boundary_nodes)] = False
+
+        return interior
+
 
 class GraphVisualizationMethods:
     """ Methods for visualizing a Graph instance. """

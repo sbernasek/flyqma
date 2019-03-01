@@ -25,14 +25,14 @@ class MixtureVisualization:
     @property
     def esupport(self):
         """ Empirical support vector (sorted values). """
-        return np.sort(self.values)
+        return np.sort(self.values, axis=0)
 
     @property
     def epdf(self):
         """ Empirical PDF over support. """
-        num_bins = self.num_samples // 50
+        num_bins = self.num_samples // 25
         bins = np.linspace(self.support.min(), self.support.max(), num_bins)
-        counts, edges = np.histogram(self.support, bins=bins, normed=True)
+        counts, edges = np.histogram(self.values, bins=bins, normed=True)
         bin_centers = [(edges[i]+edges[i+1])/2. for i in range(len(edges)-1)]
         return edges[:-1], counts
 
@@ -156,6 +156,7 @@ class MixtureVisualization:
 
     @default_figure
     def plot_cdfs(self,
+                  log=True,
                   cmap=plt.cm.Greys,
                   ax=None,
                   **kwargs):
@@ -163,8 +164,16 @@ class MixtureVisualization:
         Plot component cumulative distribution functions as stackplot.
         """
 
+        def to_linear(support):
+            """ Convert support to linear basis. """
+            return np.exp(support)
+
         # log transform data
-        support = self.support
+        support, esupport = self.support, self.esupport
+        if not log:
+            support, esupport = to_linear(support), to_linear(esupport)
+
+        # get component CDFs
         component_cdfs = self.component_cdfs
 
         # plot weighted CDF for each component
@@ -176,7 +185,7 @@ class MixtureVisualization:
         ax.stackplot(support, component_cdfs[order], colors=colors, **kwargs)
 
         # plot empirical CDF (data)
-        ax.plot(self.esupport, self.ecdf, '-r', lw=1.)
+        ax.plot(esupport, self.ecdf, '-r', lw=1.)
 
         # plot mixture CDF
         ax.plot(support, component_cdfs.sum(axis=0), '--k', lw=1)
@@ -270,7 +279,10 @@ class BivariateMixtureVisualization:
 
         labels = self.classifier(self.model.support)
         labels = labels.reshape(self.model.support_size)
-        fig.ax_joint.imshow(self.cmap(labels))
+
+        l, u = self.model.lbound, self.model.ubound
+        extent = (l, u, u, l)
+        fig.ax_joint.imshow(self.cmap(labels), extent=extent)
 
         # plot marginal pdfs
         self.model.plot_margin(0, ax=fig.ax_xmargin, component_color=self.label_colors)

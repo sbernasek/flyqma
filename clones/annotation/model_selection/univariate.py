@@ -83,6 +83,8 @@ class SelectionIO:
             model_path = join(path, 'classifier_{:d}'.format(num_components))
             if exists(model_path):
                 model = cls.load_model(model_path)
+                model._values = values
+                model.model.values = np.log(values)
                 models[num_components] = model
 
         return cls(values, attribute, models=models, **parameters)

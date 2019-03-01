@@ -41,7 +41,7 @@ class BatchBenchmark(Pickler, Training):
                  ambiguity=0.1,
                  num_replicates=1,
                  attribute='clonal_marker',
-                 logratio=False,
+                 logratio=True,
                  train_globally=True,
                  training_kw={},
                  testing_kw={}):

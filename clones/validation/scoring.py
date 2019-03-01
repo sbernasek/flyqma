@@ -33,8 +33,17 @@ class Scoring:
             predicted (array like) - predicted class labels
 
         """
-        data = np.vstack((measured, predicted)).T
-        self.data = pd.DataFrame(data, columns=('measured', 'predicted'))
+        columns = ('measured', 'predicted')
+
+        if type(measured) in (np.ndarray, list, tuple):
+            data = np.vstack((measured, predicted)).T
+            data = pd.DataFrame(data, columns=columns)
+        elif type(measured) == pd.Series:
+            data = pd.DataFrame([measured, predicted], index=columns).T
+        else:
+            raise ValueError('Type of <measured> not recognized.')
+
+        self.data = data
         self.n = len(self.data)
         self.compare()
 
@@ -63,6 +72,17 @@ class Scoring:
     def MAE(self):
         """ Mean absolute error averaged to correct for imbalance. """
         return self.data.groupby('measured')['difference'].mean().mean() / 2
+
+    @property
+    def percent_correct_per_layer(self):
+        """ Percent correct per layer. """
+        return (self.data.correct).groupby(['stack', 'layer']).mean()
+
+    @property
+    def MAE_per_layer(self):
+        """ Mean absolute error per layer. """
+        MAE = lambda x: x.groupby('measured')['difference'].mean().mean() / 2
+        return self.data.groupby(['stack', 'layer']).apply(MAE)
 
     def compare(self):
         """ Evaluate frequency of correct classification. """

@@ -25,9 +25,8 @@ class Training:
             graph (spatial.WeightedGraph)
 
         """
-        xykey = ['x', 'y']
         return WeightedGraph(measurements,
-                             xykey=xykey,
+                             xykey=['x', 'y'],
                              weighted_by=weighted_by,
                              logratio=logratio)
 

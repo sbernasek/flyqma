@@ -203,12 +203,32 @@ class NeighborSampler:
         _ = ax.hist(sizes, bins=np.arange(sizes.max()+1))
 
     @square_figure
-    def plot_neigborhood(self, node, ax=None, **kwargs):
-        """ Visualize neighborhood surrounding <node>. """
-        neighbors = self.neighbors[node]
-        colors = np.array(['k' for _ in range(self.graph.nodes.size)])
-        colors[self.graph.position_map(node)] = 'g'
-        colors[self.graph.position_map(neighbors)] = 'r'
+    def plot_neigborhood(self, node,
+                         color='r',
+                         bg_color='k',
+                         ax=None,
+                         **kwargs):
+        """
+        Visualize neighborhood surrounding <node>.
+
+        Args:
+
+            node (int) - node positional index
+
+            color (str or RGB tuple) - color for nodes within neighborhood
+
+            bg_color (str or RGB tuple) - color for nodes outside neighborhood
+
+            kwargs: keyword arguments for plt.scatter
+
+        """
+        node_id = self.graph.node_map(node)[0]
+        neighbors_id = self.neighbors[node_id]
+        neighbors = self.graph.position_map(neighbors_id)
+
+        colors = np.array([bg_color for _ in range(self.graph.nodes.size)])
+        colors[node] = color
+        colors[neighbors] = color
         ax.scatter(*self.data[self.graph.xykey].values.T, c=colors, **kwargs)
 
     @default_figure
@@ -512,7 +532,7 @@ class RadialSampler(NeighborSampler):
 
     @property
     def distance_matrix(self):
-        """ Euclidean distance matrix between nodes. """
+        """ Euclidean distance matrix between nodes (ordered by position in <self.data>). """
         return self.graph.distance_matrix
 
     @property
@@ -524,8 +544,10 @@ class RadialSampler(NeighborSampler):
 
     @property
     def neighbors(self):
-        """ Dictionary of neighbor indices keyed by node indices. """
-        return {n: r.nonzero()[0] for n, r in enumerate(self.neighbor_mask)}
+        """
+        Dictionary of neighbor positional indices keyed by node indices.
+        """
+        return  {n: r.nonzero()[0] for n, r in enumerate(self.neighbor_mask)}
 
     @property
     def size_attr(self):
@@ -557,86 +579,43 @@ class RadialSampler(NeighborSampler):
         self.data[self.size_attr] = (~masked_values.mask).sum(axis=1)
 
     @square_figure
-    def plot_neigborhood(self, node, ax=None, **kwargs):
-        """ Visualize neighborhood surrounding <node>. """
+    def plot_neigborhood(self, node,
+                         color='r',
+                         bg_color='k',
+                         radius=True,
+                         ax=None,
+                         **kwargs):
+        """
+        Visualize neighborhood surrounding <node>.
+
+        Args:
+
+            node (int) - node positional index
+
+            color (str or RGB tuple) - color for nodes within neighborhood
+
+            bg_color (str or RGB tuple) - color for nodes outside neighborhood
+
+            radius (bool) - if True, plot sampling radius
+
+            kwargs: keyword arguments for plt.scatter
+
+        """
 
         # draw selection boundary
-        idx = self.graph.position_map(node)
-        center = self.data[self.graph.xykey].values[idx]
-        circle = plt.Circle(center, self.radius, color='r', alpha=0.2)
-        ax.add_artist(circle)
+        if radius:
+            center = self.data[self.graph.xykey].values[node]
+            circle = plt.Circle(center, self.radius, color=color, alpha=0.2)
+            ax.add_artist(circle)
 
         # scatter points
-        super().plot_neigborhood(node, ax=ax, **kwargs)
+        colors = np.array([bg_color for _ in range(self.graph.nodes.size)])
+        colors[node] = color
+        colors[self.neighbors[node]] = color
+        ax.scatter(*self.data[self.graph.xykey].values.T, c=colors, **kwargs)
 
     @default_figure
     def plot_autocorrelation(self, ax=None, **kwargs):
         """ Plot autocorrelation versus community depth. """
         correlations = self.graph.get_correlations(self.attr, self.log)
         correlations.visualize(ax=ax, **kwargs)
-
-
-
-# """
-# COMPUTE DISTANCE CORRELATIONS WITHIN COMMUNITY BINS:
-# """
-
-# from clones.annotation.spatial.sampling import CommunitySampler
-# from copy import deepcopy
-# import pandas as pd
-
-# class Test(CommunitySampler):
-
-#     @staticmethod
-#     def evaluate_distances(xy):
-#         """ Euclidean distance matrix between all nodes. """
-#         x, y = xy.T
-#         x = x.reshape(-1, 1)
-#         y = y.reshape(-1, 1)
-#         x_component = np.repeat(x**2, x.size, axis=1) + np.repeat(x.T**2, x.size, axis=0) - 2*np.dot(x, x.T)
-#         y_component = np.repeat(y**2, y.size, axis=1) + np.repeat(y.T**2, y.size, axis=0) - 2*np.dot(y, y.T)
-#         distance_matrix = np.sqrt(x_component + y_component)
-#         return distance_matrix[np.triu_indices(len(distance_matrix), k=1)].tolist()
-
-#     @staticmethod
-#     def evaluate_fluctuations(values):
-#         """ Euclidean distance matrix between all nodes. """
-#         fluctuations_matrix = np.dot(values.reshape(-1, 1), values.reshape(1, -1))
-#         return fluctuations_matrix[np.triu_indices(len(fluctuations_matrix), k=1)].tolist()
-
-#     def plot_autocorrelation_with_distance(self, ax=None):
-#         """ Plot autocorrelation versus community depth. """
-
-#         # construct dataframe
-#         data = deepcopy(self.data[['community']+self.graph.xykey])
-#         data['levels'] = self.node_values
-#         data['zscore'] = (data.levels-data.levels.mean())/data.levels.std()
-
-#         def get_fluctuations(bin_id):
-#             #f = lambda x: pd.Series({'fluctuations': self.evaluate_fluctuations(x.values)})
-#             f = lambda x: self.evaluate_fluctuations(x.values)
-#             fluctuations = []
-#             for vector in data.groupby(bin_id)['zscore'].apply(f).values:
-#                 fluctuations += vector
-#             return fluctuations
-
-#         def get_distances(bin_id):
-#             d = lambda x: pd.Series({'distances': self.evaluate_distances(x.values)})
-#             distances = []
-#             for vector in data.groupby(bin_id)[self.graph.xykey].apply(d)['distances']:
-#                 distances += vector
-#             return distances
-
-#         # instantiate infomap clustering
-#         detector = InfoMap(self.graph.edge_list)
-
-#         # evaluate autocorrelation function
-#         distances, fluctuations = [], []
-#         for level in range(detector.aggregator.max_depth):
-#             bin_id = '{:d}'.format(level)
-#             data[bin_id] = detector.aggregator(data.community, level=level)
-
-#             distances.append(get_distances(bin_id))
-#             fluctuations.append(get_fluctuations(bin_id))
-
-#         return distances, fluctuations

@@ -374,7 +374,7 @@ class LayerIO(SilhouetteLayerIO):
         """
         return LayerCorrection.load(self)
 
-    def load(self, process=False):
+    def load(self, process=False, graph=True):
         """
         Load layer.
 
@@ -382,10 +382,20 @@ class LayerIO(SilhouetteLayerIO):
 
             process (bool) - if True, re-process the measurement data
 
+            graph (bool) - if True, load weighted graph
+
         """
 
         # load metadata and extract background channel
         self.load_metadata()
+
+        # load inclusion data
+        if 'selection' in self.subdirs.keys():
+            self.load_inclusion()
+
+        # if layer is not included, skip it
+        if not self.include:
+            return None
 
         # check whether annotation exists
         if 'annotation' in self.subdirs.keys() and process:
@@ -396,13 +406,21 @@ class LayerIO(SilhouetteLayerIO):
             # load annotator
             self.load_annotator()
 
-        # check whether segmentation exists
+        # check whether segmentation exists and load raw measurement data
         if 'measurements' in self.subdirs.keys():
-
-            # load raw measurements
             self.load_measurements()
 
-        # load existing data
+        # if processing measurements, ensure that graph is built
+        if process:
+            graph = True
+
+        # build graph
+        if graph and 'graph_weighted_by' in self.metadata['params'].keys():
+            graph_weighted_by = self.metadata['params']['graph_weighted_by']
+            graph_kw = self.metadata['params']['graph_kw']
+            self.build_graph(graph_weighted_by, **graph_kw)
+
+        # load processed data
         available = exists(join(self.subdirs['measurements'], 'processed.hdf'))
         if not process and available:
             self.load_processed_data()
@@ -522,37 +540,28 @@ class Layer(LayerIO, ImageRGB, LayerVisualization):
         """
         Augment measurements by:
             1. incorporating manual selection boundary
-            2. assigning cell genotypes
-            3. correcting for fluorescence bleedthrough
-            4. updating graph
-            5. marking clone boundaries
-            6. assigning celltype concurrency information
+            2. correcting for fluorescence bleedthrough
+            3. assigning measurement labels
+            4. marking clone boundaries
+            5. assigning label concurrency information
+
+        Operations 3-5 require construction of a WeightedGraph object.
 
         Args:
 
-            measurements (pd.DataFrame) - raw cell measurement data
+            measurements (pd.DataFrame) - raw measurement data
 
         Returns:
 
-            data (pd.DataFrame) - processed cell measurement data
+            data (pd.DataFrame) - processed measurement data
 
         """
 
         # copy raw measurements
         data = deepcopy(self.measurements)
 
-        # assign layer id
-        data['layer'] = self._id
-
-        # apply normalization
-        self.apply_normalization(data)
-
-        # construct graph
-        self.build_graph(data, **self.metadata['params']['graph_kw'])
-
         # load and apply selection
         if 'selection' in self.subdirs.keys():
-            self.load_inclusion()
             self.apply_selection(data)
 
         # load and apply correction
@@ -560,7 +569,7 @@ class Layer(LayerIO, ImageRGB, LayerVisualization):
             self.apply_correction(data)
 
         # annotate measurements (opt to load labels rather than annotate again)
-        if self.annotator is not None:
+        if self.annotator is not None and self.graph is not None:
             self._apply_annotation(data)
             self.mark_boundaries(data, basis='genotype', max_edges=1)
             self.apply_concurrency(data, basis='genotype')
@@ -637,25 +646,35 @@ class Layer(LayerIO, ImageRGB, LayerVisualization):
         data[yvar+'c'] = data[yvar] - trend
         data[yvar+'c_normalized'] = data[yvar+'c'] / data[self.metadata['bg']]
 
-    def build_graph(self, data, weighted_by='r_normalized', **graph_kw):
+    def build_graph(self, weighted_by, **graph_kw):
         """
         Compile weighted graph connecting adjacent cells.
 
         Args:
 
-            data (pd.DataFrame) - processed cell measurement data
-
             weighted_by (str) - attribute used to weight edges
 
-        Keyword Args:
+            graph_kw: keyword arguments, including:
 
-            q (float) - edge length quantile above which edges are pruned
+                xykey (list) - attribute keys for node x/y positions
+
+                logratio (bool) - if True, weight edges by log ratio
+
+                distance (bool) - if True, weights edges by distance
 
         """
-        self.metadata['params']['graph_kw'] = graph_kw
-        self.graph = WeightedGraph(data, weighted_by, **graph_kw)
 
-    def train_annotator(self, attribute, save_models=False, **kwargs):
+        # store metadata for graph reconstruction
+        self.metadata['params']['graph_weighted_by'] = weighted_by
+        self.metadata['params']['graph_kw'] = graph_kw
+
+        # build graph
+        self.graph = WeightedGraph(self.measurements, weighted_by, **graph_kw)
+
+    def train_annotator(self, attribute,
+                        save=False,
+                        logratio=True,
+                        **kwargs):
         """
         Train an Annotation model on the measurements in this layer.
 
@@ -663,7 +682,9 @@ class Layer(LayerIO, ImageRGB, LayerVisualization):
 
             attribute (str) - measured attribute used to determine labels
 
-            save_models (bool) - if True, save model selection routine
+            save (bool) - if True, save model selection routine
+
+            logratio (bool) - if True, weight edges by relative attribute value
 
             kwargs: keyword arguments for Annotation, including:
 
@@ -683,20 +704,26 @@ class Layer(LayerIO, ImageRGB, LayerVisualization):
 
         """
 
-        # train annotator
+        # instantiate annotator
         self.annotator = Annotation(attribute, **kwargs)
+
+        # build graph and use it to train annotator
+        self.build_graph(attribute, logratio=logratio)
         selector = self.annotator.train(self.graph)
 
-        # save models
-        if save_models:
+        # save trained annotator
+        if save:
+            self.save_metadata()
             self.make_subdir('annotation')
             selector.save(self.subdirs['annotation'])
 
         return selector
 
-    def _apply_annotation(self, data, label='genotype', **kwargs):
+    def _apply_annotation(self, data,
+                          label='genotype',
+                          **kwargs):
         """
-        Assign genotype and celltype labels to cell measurements.
+        Assign labels to cell measurements.
 
         Args:
 
@@ -710,13 +737,9 @@ class Layer(LayerIO, ImageRGB, LayerVisualization):
         if self.annotator is not None and self.graph is not None:
             data[label] = self.annotator(self.graph, **kwargs)
 
-        # assign cell types (e.g. 'w', 'h', 'm' string labels)
-        assign_celltypes = CelltypeLabeler('celltype', label)
-        assign_celltypes(data)
-
     def apply_annotation(self, label='genotype', **kwargs):
         """
-        Assign genotype and celltype labels to cell measurements in place.
+        Assign labels to cell measurements in place.
 
         Args:
 
@@ -838,7 +861,12 @@ class Layer(LayerIO, ImageRGB, LayerVisualization):
 
         # measure segment properties
         measurements = Measurements(self.im, self.labels)
-        self.measurements = measurements.build_dataframe()
+        measurements = measurements.build_dataframe()
+
+        # assign layer id, apply normalization, and save measurements
+        measurements['layer'] = self._id
+        self.apply_normalization(measurements)
+        self.measurements = measurements
 
         # process raw measurement data
         self.data = self.process_measurements(self.measurements)

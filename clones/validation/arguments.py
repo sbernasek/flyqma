@@ -106,7 +106,7 @@ class SweepArguments(RunArguments):
           self.add_argument('-w', '--walltime',
                               help='Estimated run time.',
                               type=int,
-                              default=10,
+                              default=24,
                               required=False)
 
           # add keyword argument for number of cores

@@ -9,7 +9,10 @@ def default_figure(func):
             fig, ax = plt.subplots(figsize=figsize)
             ax.spines['top'].set_visible(False)
             ax.spines['right'].set_visible(False)
-        return func(*args, ax=ax, **kwargs)
+        output = func(*args, ax=ax, **kwargs)
+        if output is None:
+            output = plt.gcf()
+        return output
     return wrapper
 
 
@@ -23,6 +26,8 @@ def square_figure(func):
         output = func(*args, ax=ax, **kwargs)
         ax.set_aspect(1)
         ax.axis('off')
+        if output is None:
+            output = plt.gcf()
         return output
     return wrapper
 

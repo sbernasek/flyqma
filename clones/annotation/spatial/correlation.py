@@ -166,12 +166,12 @@ class CorrelationVisualization:
 
         # plot zero reference line
         if zero:
-            ax.plot([0, xmax], np.zeros(2), '-r', linewidth=1, alpha=0.25)
+            ax.plot([0, max_distance], [0, 0], '-r', linewidth=1, alpha=0.25)
 
         # format
         ymin, ymax = -0.15, 0.7
         ax.set_ylim(ymin, ymax), ax.set_yticks([-0., 0.2, 0.4, .6])
-        ax.set_xlim(0, xmax)
+        ax.set_xlim(0, max_distance)
         ax.set_xlabel('Pairwise distance')
         ax.set_ylabel('Correlation')
 
