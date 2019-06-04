@@ -156,7 +156,7 @@ class AdjacencyMatrix(Figure):
     def __init__(self, measured, predicted,
                  ax=None,
                  text=None,
-                 figsize=(2, 2),
+                 figsize=(1.5, 1.5),
                  **kwargs):
         """
         Instantiate error matrix.
@@ -258,15 +258,26 @@ class AdjacencyMatrix(Figure):
         ax.invert_yaxis()
 
         # add labels
-        kw = dict(horizontalalignment='center', verticalalignment='center')
+        kw = dict(horizontalalignment='center',
+                  verticalalignment='center',
+                  fontsize=fontsize)
+
         for i in range(3):
             for j in range(3):
+
+                if i == j:
+                    color = 'w'
+                    weight = 'bold'
+                else:
+                    color = 'k'
+                    weight ='normal'
+
                 if text=='rates':
-                    s = '{:0.1%}'.format(rates[i, j])
-                    ax.text(i, j, s=s, fontsize=fontsize, **kw)
+                    s = '{:0.0%}'.format(rates[i, j])
+                    ax.text(i, j, s=s, color=color, weight=weight, **kw)
                 elif text=='counts':
                     s = '{:d}'.format(self.counts[i, j])
-                    ax.text(i, j, s=s, fontsize=fontsize, **kw)
+                    ax.text(i, j, s=s, color=color, weight=weight, **kw)
                 else:
                     continue
 
@@ -274,12 +285,12 @@ class AdjacencyMatrix(Figure):
         self.format_axis(ax)
 
     @staticmethod
-    def format_axis(ax):
+    def format_axis(ax, labelsize=8):
         """ Format individual axis. """
-        ax.set_xlabel('True label')
-        ax.set_ylabel('Assigned label')
+        ax.set_xlabel('True label', fontsize=labelsize)
+        ax.set_ylabel('Assigned label', fontsize=labelsize)
         ax.set_xticks(np.arange(2.5))
-        ax.set_xticklabels(['0x', '1x', '2x'])
+        ax.set_xticklabels(['0x', '1x', '2x'], fontsize=labelsize-1)
         ax.set_yticks(np.arange(2.5))
-        ax.set_yticklabels(['0x', '1x', '2x'])
+        ax.set_yticklabels(['0x', '1x', '2x'], fontsize=labelsize-1)
         ax.set_aspect(1)

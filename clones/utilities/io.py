@@ -53,7 +53,7 @@ class IO:
     def write_json(path, data):
         """ Write data to json. """
         with open(path, 'w') as f:
-             json.dump(data, f)
+             json.dump(data, f, sort_keys=True, indent='\t')
 
     @safeload
     def read_tiff(path):

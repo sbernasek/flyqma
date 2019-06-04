@@ -12,7 +12,9 @@ from .background import BackgroundExtraction
 
 
 class CorrectionVisualization:
-    """ Methods for visualizing correction procedure. """
+    """
+    Methods for visualizing correction procedure.
+    """
 
     def show_fit(self, mode='box', bin_size=0.05, figsize=(3, 2)):
         """ Plot fit to background pixels using sns.boxplot . """

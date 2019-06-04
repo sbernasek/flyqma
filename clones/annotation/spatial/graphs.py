@@ -225,11 +225,7 @@ class GraphVisualizationMethods:
         vertices = self.node_map(self.tri.triangles)
 
         # get value of each node
-        if label_by == 'community':
-            get_level = lambda node_id: self.community_labels[node_id]
-        else:
-            get_level = lambda node_id: self.data[label_by].loc[node_id]
-
+        get_level = lambda node_id: self.data[label_by].loc[node_id]
         levels = np.apply_along_axis(get_level, axis=1, arr=vertices)
 
         # aggregate within triangles
@@ -343,7 +339,7 @@ class CommunityDetection:
         """
         return self.imap(self.nodes[self.nodes_order], level)
 
-    def assign_community(self, level=None):
+    def assign_community(self, level=None, key='community'):
         """
         Assign communities using InfoMap clustering.
 
@@ -351,14 +347,10 @@ class CommunityDetection:
 
             level (int) - module level at which aggregation occurs, starting from the finest resolution
 
+            key (str) - name of community attribute
 
         """
-        labels = self._assign_community(level=level)
-        self.community_labels = labels
-
-        # add labels to dataframe
-        index = np.arange(len(self.data))
-        self.data['community'] = labels[self.node_map(index)]
+        self.data[key] = self._assign_community(level=level)
 
 
 class Graph(TopologicalProperties,

@@ -1,0 +1,119 @@
+\documentclass[12pt,reqno]{nuthesis}	% The nuthesis class is based on amsbook.cls.
+
+%\usepackage{mathptmx}
+%\usepackage{times}
+%\renewcommand{\familydefault}{\sfdefault}
+
+% paragraph spacing
+\setlength{\parindent}{0.5in} % indentation of paragraphs
+\setlength{\parskip}{5pt} % gap between paragraphs
+
+% figures
+\usepackage[margin=1in,letterpaper,includehead]{geometry}
+\usepackage{graphicx}
+\graphicspath{ {./figures/} } % define graphics location
+
+% figure setting
+%\setlength{\textfloatsep}{0.25in} % space between last top float or first bottom float and the text.
+%\setlength{\floatsep}{0.5in} % space left between floats.
+%\setlength{\intextsep}{0.25in} % space left on top and bottom of an in-text float.  
+\setlength{\textfloatsep}{15pt plus 3pt minus 2pt} % space between last top float or first bottom float and the text.
+\setlength{\intextsep}{15pt plus 3pt minus 2pt} % space left on top and bottom of an in-text float.  
+\setlength{\floatsep}{15pt plus 3pt minus 2pt} % space left between floats.
+\setlength{\abovecaptionskip}{10pt plus 3pt minus 3pt} % space above caption
+\setlength{\belowcaptionskip}{3pt plus 2pt minus 1pt} % space below caption
+
+% captions
+\usepackage{ccaption}
+\usepackage[margin=0in,skip=5pt,font={footnotesize,bf},labelfont=bf]{caption}
+\captionsetup[figure]{margin=20pt}
+%\usepackage{subcaption}
+
+% tables
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{booktabs}
+
+% formulas and symbols
+\usepackage{mathtools}
+\usepackage{amsmath,amssymb}
+\DeclareMathOperator*{\argmax}{\arg\!\max} % argmax formatter
+\DeclareMathOperator*{\argmin}{\arg\!\min} % argmin formatter
+\usepackage{siunitx} % scientific notation
+\usepackage{extarrows} % arrows
+\usepackage[euler]{textgreek} % greek characters
+\usepackage{textcomp} % degrees C
+\mathchardef\hyphy="2D % hyphen for mathmode
+
+% links
+\usepackage{hyperref}
+\usepackage{enumitem}
+
+% references formatting
+\usepackage[numbers,sort&compress]{natbib}
+
+% additional tools
+%\usepackage{comment}
+%\sloppy
+
+\usepackage[activate={true,nocompatibility},final,tracking=true,kerning=true,spacing=true,factor=1050,stretch=10,shrink=10]{microtype}
+\microtypecontext{spacing=nonfrench}
+% activate={true,nocompatibility} - activate protrusion and expansion
+% final - enable microtype; use "draft" to disable
+% tracking=true, kerning=true, spacing=true - activate these techniques
+% factor=1100 - add 10% to the protrusion amount (default is 1000)
+% stretch=10, shrink=10 - reduce stretchability/shrinkability (default is 20/20)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% USER-DEFINED MACROS AND VARIABLES %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% vertically centered and horizontally centered column
+\newcolumntype{C}[1]{>{\centering\arraybackslash}m{#1}}
+
+% vertically centered and horizontally right-aligned column
+\newcolumntype{R}[1]{>{\raggedleft\arraybackslash}m{#1}}
+
+% vertically centered and horizontally left-aligned column
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}m{#1}}
+
+% Always capitalize "Chapter" when using \autoref
+%\renewcommand{\chapterautorefname}{Chapter}
+		
+\begin{document}
+%\frontmatter		
+%\maketitle		
+%\copyrightpage	
+
+% abstract
+%\abstract       
+%\input{text/abstract}
+
+% table of contents
+\clearpage\phantomsection
+\tableofcontents	
+
+% list of figures
+\clearpage\phantomsection
+\listoffigures
+
+% list of tables
+\clearpage\phantomsection 
+\listoftables	
+
+% primary text
+\mainmatter     
+\input{text}
+
+% bibliography
+\begin{singlespace}
+\bibsep 10pt
+\bibliography{./thesis-clones}
+\bibliographystyle{unsrtnat}
+\end{singlespace}
+
+% appendix
+%\appendix
+%\input{appendix/main}
+
+\end{document}

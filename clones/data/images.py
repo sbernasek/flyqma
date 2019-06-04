@@ -183,15 +183,13 @@ class ImageScalar:
         self.clahe(clip_limit=clip_limit, factor=clip_factor)
 
 
-class ImageRGB(ImageScalar):
+class ImageMultichromatic(ImageScalar):
     """
-    Object represents an RGB image.
+    Object represents a multichromatic image.
 
     Attributes:
 
-        im (np.ndarray[float]) - 2D array of RGB pixel values
-
-        channels (dict) - {color: channel_index} pairs
+        im (np.ndarray[float]) - 2D array of pixel values in WHC format
 
     Inherited attributes:
 
@@ -215,15 +213,14 @@ class ImageRGB(ImageScalar):
 
         """
         super().__init__(im, labels=labels)
-        self.channels = dict(r=0, g=1, b=2)
 
-    def get_channel(self, channel='b', copy=True):
+    def get_channel(self, channel, copy=True):
         """
         Returns monochrome image of specified color channel.
 
         Args:
 
-            channel (str) - desired channel
+            channel (int) - desired channel
 
             copy (bool) - if True, instantiate from image copy
 
@@ -233,8 +230,47 @@ class ImageRGB(ImageScalar):
 
         """
         if copy:
-            monochrome = deepcopy(self.im[:, :, self.channels[channel]])
+            monochrome = deepcopy(self.im[:, :, channel])
         else:
-            monochrome = self.im[:, :, self.channels[channel]]
+            monochrome = self.im[:, :, channel]
 
         return ImageScalar(monochrome, labels=self.labels)
+
+    def to_RGB(self, channels_dict=None, copy=True):
+        """
+        Returns RGB image of specified color channels.
+
+        Args:
+
+            channels_dict (dict) - RGB channels keyed by channel index
+
+            copy (bool) - if True, instantiate from image copy
+
+        Returns:
+
+            image (ImageMultichromatic) - RGB image
+
+        """
+
+        # default to first three channels as R, G, and B
+        if channels_dict is None:
+            channels_dict = dict(enumerate('rgb'))
+
+        # copy image
+        if copy:
+            im = deepcopy(self.im)
+        else:
+            im = self.im
+
+        # concatenate channels
+        lookup = {v.lower().strip(): k for k, v in channels_dict.items()}
+        channels = []
+        for channel in 'rgb':
+            if channel in lookup.keys():
+                idx = lookup[channel]
+                channels.append(im[:, :, idx])
+            else:
+                channels.append(np.zeros_like(im[:,:,0]))
+        rgb = np.stack(channels, axis=-1)
+
+        return ImageMultichromatic(rgb, labels=self.labels)

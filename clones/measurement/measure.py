@@ -10,6 +10,8 @@ class Measurements:
 
     Attributes:
 
+        colordepth (int) - number of color channels
+
         segment_ids (np.ndarray[float]) - ordered segment labels
 
         levels (dict) - {channel: np.ndarray[float]} - expression levels
@@ -30,11 +32,13 @@ class Measurements:
 
         Args:
 
-            im (np.ndarray[float]) - 2D array of RGB pixel values
+            im (np.ndarray[float]) - 3D array of pixel values
 
             labels (np.ndarray[int]) - cell segment labels
 
         """
+
+        self.colordepth = im.shape[-1]
 
         # set segment ids (ordered)
         self.segment_ids = np.unique(labels[labels.nonzero()])
@@ -54,7 +58,7 @@ class Measurements:
 
         Args:
 
-            im (np.ndarray[float]) - 2D array of RGB pixel values
+            im (np.ndarray[float]) - 3D array of pixel values
 
             labels (np.ndarray[int]) - cell segment labels
 
@@ -63,24 +67,21 @@ class Measurements:
         """
 
         # split R/G/B image channels
-        drop_axis = lambda x: x.reshape(*x.shape[:2])
-        r, g, b = [drop_axis(x) for x in np.split(im, 3, axis=-1)]
+        drop = lambda x: x.reshape(*x.shape[:2])
+        channels = [drop(x) for x in np.split(im, self.colordepth, axis=-1)]
 
         # compute means
-        rmeans = mean(r, labels, segment_ids)
-        gmeans = mean(g, labels, segment_ids)
-        bmeans = mean(b, labels, segment_ids)
+        means = [mean(channel, labels, segment_ids) for channel in channels]
 
         # compute std
         with catch_warnings():
             filterwarnings('ignore')
-            rstd = standard_deviation(r, labels, segment_ids)
-            gstd = standard_deviation(g, labels, segment_ids)
-            bstd = standard_deviation(b, labels, segment_ids)
+            evaluate_std = lambda x: standard_deviation(x, labels, segment_ids)
+            stds = [evaluate_std(channel) for channel in channels]
 
         # compile dictionaries
-        self.levels = dict(r=rmeans, g=gmeans, b=bmeans)
-        self.std = dict(r=rstd, g=gstd, b=bstd)
+        self.levels = dict(enumerate(means))
+        self.std = dict(enumerate(stds))
 
     def measure_centroids(self, labels, segment_ids):
         """
@@ -145,15 +146,20 @@ class Measurements:
 
         # construct dataframe
         measurement_data = dict(
-                            segment_id=self.segment_ids,
-                            centroid_x=self.xpos,
-                            centroid_y=self.ypos,
-                            r=self.levels['r'],
-                            g=self.levels['g'],
-                            b=self.levels['b'],
-                            r_std=self.std['r'],
-                            g_std=self.std['g'],
-                            b_std=self.std['b'],
-                            pixel_count=self.voxel_counts)
+            segment_id=self.segment_ids,
+            centroid_x=self.xpos,
+            centroid_y=self.ypos,
+            pixel_count=self.voxel_counts)
+
+        # add intensity measurements
+        for channel_id in range(self.colordepth):
+
+            # define keys
+            key = 'ch{:d}'.format(channel_id)
+            key_std = key + '_std'
+
+            # store measured levels
+            measurement_data[key] = self.levels[channel_id]
+            measurement_data[key_std] = self.std[channel_id]
 
         return pd.DataFrame(measurement_data)

@@ -68,7 +68,7 @@ class Experiment:
         else:
             raise StopIteration
 
-    def load_stack(self, stack_id, full=False):
+    def load_stack(self, stack_id, full=False, **kwargs):
         """
         Load 3D RGB image stack.
 
@@ -83,7 +83,7 @@ class Experiment:
             stack (Stack)
 
         """
-        stack = Stack(self.stack_dirs[stack_id])
+        stack = Stack(self.stack_dirs[stack_id], **kwargs)
         if full:
             stack.load_image()
         return stack

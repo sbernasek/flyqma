@@ -48,31 +48,59 @@ class StackIO(SilhouetteIO):
     def load_image(self):
         """ Load 3D image from tif file. """
 
-        # load 3D RGB tif
-        self.stack = self._read_tif(self.tif_path) / (2**self.metadata['bits'])
+        # load tif, normalize pixel intensities, and convert to NWHC format
+        stack = self._read_tif(self.tif_path)
+        stack = self._pixel_norm(stack, self.metadata['bits'])
+        stack = self._to_NWHC(stack)
+        self.stack = stack
 
         # set stack shape
         self.metadata['depth'] = self.stack.shape[0]
+        self.metadata['colordepth'] = self.stack.shape[-1]
 
     @staticmethod
-    def _read_tif(path, bits=12):
+    def _read_tif(path):
+        """ Read tif from <path>. """
+        return IO().read_tiff(path)
+
+    @staticmethod
+    def _pixel_norm(pixels, bitdepth=12):
+        """ Normalize <pixels> intensities by <bitdepth>. """
+        return pixels / (2**bitdepth)
+
+    @staticmethod
+    def _reorder_channels(stack, idx):
+        """ Reorder channels in <stack> according to <idx>. """
+        return stack[:, :, :, idx]
+
+    @staticmethod
+    def _to_NWHC(stack):
         """
-        Read 3D RGB tif file.
+        Convert image to NWHC format. Native format is automatically detected using some heuristics regarding image size relative to channel depth.
 
         Args:
 
-            bits (int) - tif resolution
+            stack (np.ndarray[float]) - original image stack
 
-        Note: images are flipped from BGR to RGB
+        Returns:
+
+            stack_NWHC (np.ndarray[float]) - image stack in NWHC format
 
         """
-        io = IO()
-        stack = io.read_tiff(path)
+
+        # if only one layer is provided, append depth dimension (N)
         if len(stack.shape) == 3:
             stack = stack.reshape(1, *stack.shape)
-        stack = np.swapaxes(stack, 1, 2)
-        stack = np.swapaxes(stack, 2, 3)
-        return stack[:, :, :, ::-1]
+
+        # determine channel dimension (C) - assumes it's smaller than W & H
+        c_dim = np.argmin(stack.shape[1:]) + 1
+
+        # swap axes until C is the last dimension
+        while c_dim != 3:
+            stack = np.swapaxes(stack, c_dim, c_dim+1)
+            c_dim += 1
+
+        return stack
 
 
 class Stack(StackIO):
@@ -103,13 +131,15 @@ class Stack(StackIO):
 
     """
 
-    def __init__(self, path):
+    def __init__(self, path, bits=12):
         """
         Initialize stack.
 
         Args:
 
             path (str) - path to stack directory
+
+            bits (int) - bit depth
 
         """
 
@@ -125,7 +155,7 @@ class Stack(StackIO):
 
         # initialize stack if layers directory doesn't exist
         if not isdir(self.layers_path):
-            self.initialize()
+            self.initialize(bits=bits)
 
         # load metadata
         self.load_metadata()
@@ -164,6 +194,11 @@ class Stack(StackIO):
         """ Number of layers in stack. """
         return self.metadata['depth']
 
+    @property
+    def colordepth(self):
+        """ Number of color channels in stack. """
+        return self.metadata['colordepth']
+
     def get_included_layers(self):
         """ Returns indices of included layers. """
         layers = [self.load_layer(i, graph=False) for i in range(self.depth)]
@@ -188,8 +223,8 @@ class Stack(StackIO):
 
         # make metadata file
         io = IO()
-        metadata = dict(bits=bits, depth=stack.shape[0], params={})
-        io.write_json(join(self.path, 'metadata.json'), metadata)
+        self.metadata = dict(bits=bits, depth=stack.shape[0], params={})
+        io.write_json(join(self.path, 'metadata.json'), self.metadata)
 
         # load image
         if self.stack is None:
@@ -200,6 +235,38 @@ class Stack(StackIO):
             layer_path = join(self.layers_path, '{:d}'.format(layer_id))
             layer = Layer(layer_path)
             layer.initialize()
+
+    def segment(self, channel,
+                preprocessing_kws={},
+                seed_kws={},
+                seg_kws={},
+                min_area=250):
+        """
+        Segment all layers using watershed strategy.
+
+        Args:
+
+            channel (int) - channel index on which to segment image
+
+            preprocessing_kws (dict) - keyword arguments for image preprocessing
+
+            seed_kws (dict) - keyword arguments for seed detection
+
+            seg_kws (dict) - keyword arguments for segmentation
+
+            min_area (int) - threshold for minimum segment size, px
+
+        """
+
+        for layer in self:
+            _ = layer.segment(channel,
+                preprocessing_kws=preprocessing_kws,
+                seed_kws=seed_kws,
+                seg_kws=seg_kws,
+                min_area=min_area)
+
+            # save layer measurements and segmentation
+            layer.save()
 
     def train_annotator(self, attribute, save=False, logratio=True, **kwargs):
         """

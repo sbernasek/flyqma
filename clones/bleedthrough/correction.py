@@ -141,9 +141,7 @@ class LayerCorrection(Correction, LayerCorrectionVisualization):
 
     """
 
-    def __init__(self, layer,
-                 xvar='r',
-                 yvar='g',
+    def __init__(self, layer, xvar, yvar,
                  niters=50,
                  remove_zeros=False,
                  resample=True,
@@ -158,9 +156,9 @@ class LayerCorrection(Correction, LayerCorrectionVisualization):
 
             layer (Layer) - layer RGB image
 
-            xvar (str) - independent variable attribute in measurement data
+            xvar (int) - independent color channel
 
-            yvar (str) - dependent variable attribute in measurement data
+            yvar (int) - dependent color channel
 
             niters (int) - number of binary dilations applied to foreground
 
@@ -183,8 +181,8 @@ class LayerCorrection(Correction, LayerCorrectionVisualization):
         self.niters = niters
 
         # get foreground measurements
-        xt = layer.data[xvar].values
-        yt = layer.data[yvar].values
+        xt = layer.data[self.xkey].values
+        yt = layer.data[self.ykey].values
 
         # extract X and Y pixels from background
         bg_x, bg_y = self.extract_background()
@@ -197,6 +195,16 @@ class LayerCorrection(Correction, LayerCorrectionVisualization):
                          resample_cutoff=resample_cutoff,
                          store_pixels=store_pixels,
                          **fit_kw)
+
+    @property
+    def xkey(self):
+        """ DataFrame key for independent channel. """
+        return 'ch{:d}'.format(self.xvar)
+
+    @property
+    def ykey(self):
+        """ DataFrame key for dependent channel. """
+        return 'ch{:d}'.format(self.yvar)
 
     def extract_background(self):
         """ Returns raw background pixels. """

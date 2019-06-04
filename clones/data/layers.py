@@ -27,7 +27,7 @@ from ..annotation import CelltypeLabeler
 from ..bleedthrough import LayerCorrection
 
 # import image base class
-from .images import ImageRGB
+from .images import ImageMultichromatic
 from .silhouette import SilhouetteLayerIO
 
 # import default parameters
@@ -39,18 +39,17 @@ class LayerVisualization:
     """ Methods for visualizing a layer. """
 
     @default_figure
-    def plot_graph(self,
-                   channel='r',
+    def plot_graph(self, channel,
                    figsize=(15, 15),
                    image_kw={},
                    graph_kw={},
                    ax=None):
         """
-        Plot graph on top of relevant channel from RGB image.
+        Plot graph on top of relevant image channel.
 
         Args:
 
-            channel (str) - RGB channel to visualize
+            channel (str) - color channel to visualize
 
             figsize (tuple) - figure size
 
@@ -420,19 +419,22 @@ class LayerIO(SilhouetteLayerIO):
             graph_kw = self.metadata['params']['graph_kw']
             self.build_graph(graph_weighted_by, **graph_kw)
 
-        # load processed data
-        available = exists(join(self.subdirs['measurements'], 'processed.hdf'))
-        if not process and available:
-            self.load_processed_data()
+        # check whether measurements are available
+        if 'measurements' in self.subdirs.keys():
+            path = join(self.subdirs['measurements'], 'processed.hdf')
 
-        # otherwise, process raw measurement data
-        else:
-            self.data = self.process_measurements(self.measurements)
+            # load processed data
+            if not process and exists(path):
+                self.load_processed_data()
+
+            # otherwise, process raw measurement data
+            else:
+                self.data = self.process_measurements(self.measurements)
 
 
-class Layer(LayerIO, ImageRGB, LayerVisualization):
+class Layer(LayerIO, ImageMultichromatic, LayerVisualization):
     """
-    Object represents a single RGB image layer.
+    Object represents a single imaged layer.
 
     Attributes:
 
@@ -458,15 +460,17 @@ class Layer(LayerIO, ImageRGB, LayerVisualization):
 
     Inherited attributes:
 
-        im (np.ndarray[float]) - 2D array of RGB pixel values
-
-        channels (dict) - {color: channel_index} pairs
+        im (np.ndarray[float]) - 3D array of pixel values
 
         shape (array like) - image dimensions
 
         mask (np.ndarray[bool]) - image mask
 
         labels (np.ndarray[int]) - segment ID mask
+
+    Properties:
+
+        colordepth (int) - number of color channels
 
     """
 
@@ -478,7 +482,7 @@ class Layer(LayerIO, ImageRGB, LayerVisualization):
 
             path (str) - path to layer directory
 
-            im (np.ndarray[float]) - 2D array of RGB pixel values
+            im (np.ndarray[float]) - 3D array of pixel values
 
             annotator (Annotation) - object that assigns labels to measurements
 
@@ -491,6 +495,10 @@ class Layer(LayerIO, ImageRGB, LayerVisualization):
 
         # set path and subdirectories
         self.path = path
+
+        # make layers directory
+        if not exists(self.path):
+            self.initialize()
         self.find_subdirs()
 
         # load inclusion; defaults to True
@@ -502,10 +510,20 @@ class Layer(LayerIO, ImageRGB, LayerVisualization):
         # set annotator
         self.annotator = annotator
 
-        # load labels and instantiate RGB image if image was provided
+        # load labels and instantiate image
         if im is not None:
             self.load_labels()
             super().__init__(im, labels=self.labels)
+
+    @property
+    def colordepth(self):
+        """ Number of color channels. """
+        return self.im.shape[-1]
+
+    @property
+    def bg_key(self):
+        """ DataFrame key for background channel. """
+        return self._to_key(self.metadata['bg'])
 
     def initialize(self):
         """
@@ -521,6 +539,7 @@ class Layer(LayerIO, ImageRGB, LayerVisualization):
         # make layers directory
         if not exists(self.path):
             mkdir(self.path)
+        self.subdirs = {}
 
         # remove existing segmentation/annotation/measurement directories
         for key in ('segmentation', 'measurements', 'annotation'):
@@ -530,11 +549,10 @@ class Layer(LayerIO, ImageRGB, LayerVisualization):
         # make metadata file
         segmentation_kw = dict(preprocessing_kws={}, seed_kws={}, seg_kws={})
         params = dict(segmentation_kw=segmentation_kw, graph_kw={})
-        metadata = dict(bg='', params=params)
+        metadata = dict(bg=None, params=params)
 
         # save metadata
-        io = IO()
-        io.write_json(join(self.path, 'metadata.json'), metadata)
+        IO().write_json(join(self.path, 'metadata.json'), metadata)
 
     def process_measurements(self, measurements):
         """
@@ -590,8 +608,11 @@ class Layer(LayerIO, ImageRGB, LayerVisualization):
         bg = self.metadata['bg']
 
         # apply normalization to each foreground channel
-        for fg in 'rgb'.strip(bg):
-            data[fg+'_normalized'] = data[fg] / data[bg]
+        for fg in range(self.colordepth):
+            if fg == bg:
+                continue
+            fg_key = self._to_key(fg)
+            data['{:s}_normalized'.format(fg_key)] = data[fg_key]/data[self.bg_key]
 
     def apply_selection(self, data):
         """
@@ -802,8 +823,7 @@ class Layer(LayerIO, ImageRGB, LayerVisualization):
         data['boundary'] = False
         data.loc[boundary_nodes, 'boundary'] = True
 
-    def segment(self,
-                bg='b',
+    def segment(self, channel,
                 preprocessing_kws={},
                 seed_kws={},
                 seg_kws={},
@@ -813,7 +833,7 @@ class Layer(LayerIO, ImageRGB, LayerVisualization):
 
         Args:
 
-            bg (str) - background channel on which to segment RGB image
+            channel (int) - channel index on which to segment image
 
             preprocessing_kws (dict) - keyword arguments for image preprocessing
 
@@ -823,6 +843,10 @@ class Layer(LayerIO, ImageRGB, LayerVisualization):
 
             min_area (int) - threshold for minimum segment size, px
 
+        Returns:
+
+            background (ImageScalar) - background image post-processing
+
         """
 
         # append default parameter values
@@ -831,7 +855,7 @@ class Layer(LayerIO, ImageRGB, LayerVisualization):
         seg_kws = defaults('segmentation', seg_kws)
 
         # store parameters in metadata
-        self.metadata['bg'] = bg
+        self.metadata['bg'] = channel
         segmentation_kw = dict(preprocessing_kws=preprocessing_kws,
                                seed_kws=seed_kws,
                                seg_kws=seg_kws,
@@ -839,7 +863,7 @@ class Layer(LayerIO, ImageRGB, LayerVisualization):
         self.metadata['params']['segmentation_kw'] = segmentation_kw
 
         # extract and preprocess background
-        background = self.get_channel(bg)
+        background = self.get_channel(channel)
         background.preprocess(**preprocessing_kws)
 
         # run segmentation
@@ -850,9 +874,12 @@ class Layer(LayerIO, ImageRGB, LayerVisualization):
 
         # update segment labels
         self.labels = seg.labels
+        background.labels = seg.labels
 
         # update cell measurements
         self.measure()
+
+        return background
 
     def measure(self):
         """

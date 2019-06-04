@@ -1,3 +1,4 @@
+notebooks/figures/.ipynb_checkpoints/
 *.pdf
 *.png
 *.hdf
@@ -9,3 +10,12 @@ clones.egg-info/
 notebooks/.ipynb_checkpoints/*
 docs/source/.doctrees/
 notebooks/development/
+*.docx
+*.ai
+*.aux
+*.lof
+*.lot
+*.out
+*.gz
+*.toc
+

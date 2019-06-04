@@ -75,13 +75,13 @@ class BackgroundExtraction:
         bg_mask = ~fg_mask
         return bg_mask
 
-    def isolate_pixels(self, channel='r'):
+    def isolate_pixels(self, channel):
         """
         Isolate pixels in image background.
 
         Args:
 
-            channel (str) - channel to be extracted, 'r', 'g', or 'b'
+            channel (int) - color channel to be extracted
 
         Returns:
 
@@ -91,13 +91,13 @@ class BackgroundExtraction:
         px = self.layer.get_channel(channel).im
         return np.ma.masked_array(px, ~self.bg_mask)
 
-    def extract_pixels(self, channel='r'):
+    def extract_pixels(self, channel):
         """
         Extract pixels from image background.
 
         Args:
 
-            channel (str) - channel to be extracted, 'r', 'g', or 'b'
+            channel (int) - color channel to be extracted
 
         Returns:
 

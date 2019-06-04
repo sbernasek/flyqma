@@ -53,23 +53,14 @@ class LayerVisualization:
 
         """
 
-        # if cmap is None, use natural colors
-        if cmap is None:
-            b, r, g = 'brg'
-        else:
-            b, r, g = (cmap,)*3
-
         # visualize layers
-        ax0, ax1, ax2 = self.axes
-        _ = layer.get_channel('b').show(segments=False, ax=ax0, cmap=b)
-        _ = layer.get_channel('r').show(segments=False, ax=ax1, cmap=r)
-        _ = layer.get_channel('g').show(segments=False, ax=ax2, cmap=g)
-        for ax in self.axes:
+        for ch, ax in enumerate(self.axes):
+            _ = layer.get_channel(ch).show(segments=False, ax=ax, cmap=cmap)
             ax.set_aspect(1)
 
         # add layer number
         text = ' {:d}'.format(layer._id)
-        ax0.text(0, 0, text, fontsize=14, color='y', va='top')
+        self.axes[0].text(0, 0, text, fontsize=14, color='y', va='top')
 
     def add_marker(self, x, y, color='k', markersize=10):
         """ Add marker to layer images. """
@@ -289,8 +280,10 @@ class StackInterface:
         """
 
         # create figure
-        self.fig = plt.figure(figsize=(6.75, 2.25*stack.depth))
-        gs = GridSpec(nrows=stack.depth, ncols=3, wspace=.01, hspace=.01)
+        nrows, ncols = stack.depth, stack.colordepth
+        figsize = (2.25 * ncols, 2.25 * nrows)
+        self.fig = plt.figure(figsize=figsize)
+        gs = GridSpec(nrows=nrows, ncols=ncols, wspace=.01, hspace=.01)
 
         # instantiate maps
         self.layer_to_interface = {}
@@ -299,11 +292,8 @@ class StackInterface:
         # build interface for each layer
         for i, layer in enumerate(stack):
 
-            # create axes for current layer
-            ax0 = self.fig.add_subplot(gs[i*3])
-            ax1 = self.fig.add_subplot(gs[i*3+1])
-            ax2 = self.fig.add_subplot(gs[i*3+2])
-            axes=(ax0, ax1, ax2)
+            # create all axes for current layer
+            axes = [self.fig.add_subplot(gs[i*ncols]+j) for j in range(ncols)]
 
             # add layer gui to layer --> interface map
             self.layer_to_interface[i] = LayerInterface(layer, axes)
@@ -314,6 +304,7 @@ class StackInterface:
 
             # label top row
             if i == 0:
-                ax0.set_title('Disc {}\nDAPI'.format(stack._id), fontsize=14)
-                ax1.set_title('Disc {}\nUbiRFP'.format(stack._id), fontsize=14)
-                ax2.set_title('Disc {}\nPntGFP'.format(stack._id), fontsize=14)
+                for j, ax in enumerate(axes):
+                    ch_label = 'Channel {:d}'.format(j)
+                    d_label = 'Disc {:d}'.format(stack._id)
+                    ax.set_title('\n'.join([d_label, ch_label]), fontsize=14)
