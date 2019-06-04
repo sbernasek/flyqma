@@ -1,0 +1,804 @@
+\begin{thebibliography}{77}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Oates et~al.(2009)Oates, Gorfinkiel, Gonz{\'{a}}lez-Gait{\'{a}}n, and
+  Heisenberg]{Oates2009}
+Andrew~C. Oates, Nicole Gorfinkiel, Marcos Gonz{\'{a}}lez-Gait{\'{a}}n, and
+  Carl~Philipp Heisenberg.
+\newblock {Quantitative approaches in developmental biology}, aug 2009.
+\newblock ISSN 14710056.
+\newblock URL \url{http://www.nature.com/articles/nrg2548}.
+
+\bibitem[Muzzey and van Oudenaarden(2009)]{Muzzey2009a}
+Dale Muzzey and Alexander van Oudenaarden.
+\newblock {Quantitative Time-Lapse Fluorescence Microscopy in Single Cells}.
+\newblock \emph{Annu. Rev. Cell Dev. Biol.}, 25\penalty0 (1):\penalty0
+  301--327, nov 2009.
+\newblock ISSN 1081-0706.
+\newblock \doi{10.1146/annurev.cellbio.042308.113408}.
+\newblock URL
+  \url{http://www.annualreviews.org/doi/10.1146/annurev.cellbio.042308.113408}.
+
+\bibitem[Stelzer(2014)]{Stelzer2014}
+Ernst H~K Stelzer.
+\newblock {Light-sheet fluorescence microscopy for quantitative biology}.
+\newblock \emph{Nat. Methods}, 12\penalty0 (1):\penalty0 23--26, dec 2014.
+\newblock ISSN 1548-7091.
+\newblock \doi{10.1038/nmeth.3219}.
+
+\bibitem[Truong and Supatto(2011)]{Truong2011}
+Thai~V. Truong and Willy Supatto.
+\newblock {Toward high-content/high-throughput imaging and analysis of
+  embryonic morphogenesis}.
+\newblock \emph{Genesis}, 49\penalty0 (7):\penalty0 555--569, jul 2011.
+\newblock ISSN 1526954X.
+\newblock \doi{10.1002/dvg.20760}.
+\newblock URL \url{http://doi.wiley.com/10.1002/dvg.20760}.
+
+\bibitem[Aghaeepour et~al.(2013)Aghaeepour, Finak, Hoos, Mosmann, Brinkman,
+  Gottardo, Scheuermann, Dougall, Khodabakhshi, Mah, Obermoser, Spidlen,
+  Taylor, Wuensch, Bramson, Eaves, Weng, Fortuno, Ho, Kollmann, Rogers, {De
+  Rosa}, Dalai, Azad, Pothen, Brandes, Bretschneider, Bruggner, Finck, Jia,
+  Zimmerman, Linderman, Dill, Nolan, Chan, Khettabi, O'Neill, Chikina, Ge,
+  Sealfon, Sug{\'{a}}r, Gupta, Shooshtari, Zare, {De Jager}, Jiang, Keilwagen,
+  Maisog, Luta, Barbo, M{\'{a}}jek, Vil{\v{c}}ek, Manninen, Huttunen,
+  Ruusuvuori, Nykter, McLachlan, Wang, Naim, Sharma, Nikolic, Pyne, Qian, Qiu,
+  Quinn, Roth, Meyer, Stolovitzky, Saez-Rodriguez, Norel, Bhattacharjee, Biehl,
+  Bucher, Bunte, {Di Camillo}, Sambo, Sanavia, Trifoglio, Toffolo, {Slavica
+  Dimitrieva}, Dreos, Ambrosini, Grau, Grosse, Posch, Guex, Kursa, Rudnicki,
+  Liu, Maienschein-Cline, Schneider, Seifert, Strickert, and
+  Vilar]{Aghaeepour2013}
+Nima Aghaeepour, Greg Finak, Holger Hoos, Tim~R Mosmann, Ryan Brinkman, Raphael
+  Gottardo, Richard~H Scheuermann, David Dougall, Alireza~Hadj Khodabakhshi,
+  Phillip Mah, Gerlinde Obermoser, Josef Spidlen, Ian Taylor, Sherry~A.
+  Wuensch, Jonathan Bramson, Connie Eaves, Andrew~P. Weng, Edgardo~S. Fortuno,
+  Kevin Ho, Tobias~R. Kollmann, Wade Rogers, Stephen {De Rosa}, Bakul Dalai,
+  Ariful Azad, Alex Pothen, Aaron Brandes, Hannes Bretschneider, Robert
+  Bruggner, Rachel Finck, Robin Jia, Noah Zimmerman, Michael Linderman, David
+  Dill, Gary Nolan, Cliburn Chan, Faysal~El Khettabi, Kieran O'Neill, Maria
+  Chikina, Yongchao Ge, Stuart Sealfon, Istv{\'{a}}n Sug{\'{a}}r, Arvind Gupta,
+  Parisa Shooshtari, Habil Zare, Philip~L. {De Jager}, Mike Jiang, Jens
+  Keilwagen, Jose~M. Maisog, George Luta, Andrea~A. Barbo, Peter M{\'{a}}jek,
+  Jozef Vil{\v{c}}ek, Tapio Manninen, Heikki Huttunen, Pekka Ruusuvuori, Matti
+  Nykter, Geoffrey~J. McLachlan, Kui Wang, Iftekhar Naim, Gaurav Sharma, Radina
+  Nikolic, Saumyadipta Pyne, Yu~Qian, Peng Qiu, John Quinn, Andrew Roth, Pablo
+  Meyer, Gustavo Stolovitzky, Julio Saez-Rodriguez, Raquel Norel, Madhuchhanda
+  Bhattacharjee, Michael Biehl, Philipp Bucher, Kerstin Bunte, Barbara {Di
+  Camillo}, Francesco Sambo, Tiziana Sanavia, Emanuele Trifoglio, Gianna
+  Toffolo, S.~D. {Slavica Dimitrieva}, Rene Dreos, Giovanna Ambrosini, Jan
+  Grau, Ivo Grosse, Stefan Posch, Nicolas Guex, Miron Kursa, Witold Rudnicki,
+  Bo~Liu, Mark Maienschein-Cline, Petra Schneider, Michael Seifert, Marc
+  Strickert, and Jose~M.G. Vilar.
+\newblock {Critical assessment of automated flow cytometry data analysis
+  techniques}.
+\newblock \emph{Nat. Methods}, 10\penalty0 (3):\penalty0 228--238, mar 2013.
+\newblock ISSN 15487091.
+\newblock \doi{10.1038/NMETH.2365}.
+\newblock URL \url{http://www.nature.com/articles/nmeth.2365}.
+
+\bibitem[Chen et~al.(2015)Chen, Hasan, Libri, Urrutia, Beitz, Rouilly, Duffy,
+  Patin, Chalmond, Rogge, Quintana-Murci, Albert, and Schwikowski]{Chen2015}
+Xiaoyi Chen, Milena Hasan, Valentina Libri, Alejandra Urrutia, Beno{\^{i}}t
+  Beitz, Vincent Rouilly, Darragh Duffy, {\'{E}}tienne Patin, Bernard Chalmond,
+  Lars Rogge, Lluis Quintana-Murci, Matthew~L. Albert, and Benno Schwikowski.
+\newblock {Automated flow cytometric analysis across large numbers of samples
+  and cell types}.
+\newblock \emph{Clin. Immunol.}, 157\penalty0 (2):\penalty0 249--260, apr 2015.
+\newblock ISSN 15217035.
+\newblock \doi{10.1016/j.clim.2014.12.009}.
+\newblock URL
+  \url{https://www.sciencedirect.com/science/article/pii/S1521661614002873}.
+
+\bibitem[Pyne et~al.(2009)Pyne, Maier, Lin, Wang, Rossin, Hu, Tamayo, Hafler,
+  {De Jager}, McLachlan, Baecher-Allan, and Mesirov]{Pyne2009}
+Saumyadipta Pyne, Lisa~M Maier, T.-I Lin, Kui Wang, Elizabeth Rossin, Xinli Hu,
+  Pablo Tamayo, David~A Hafler, Philip~L {De Jager}, Geoffrey~J McLachlan,
+  Clare Baecher-Allan, and Jill~P Mesirov.
+\newblock {Automated high-dimensional flow cytometric data analysis}.
+\newblock \emph{Proc. Natl. Acad. Sci.}, 106\penalty0 (21):\penalty0
+  8519--8524, may 2009.
+\newblock ISSN 0027-8424.
+\newblock \doi{10.1073/pnas.0903028106}.
+\newblock URL \url{http://www.ncbi.nlm.nih.gov/pubmed/19443687
+  http://www.pubmedcentral.nih.gov/articlerender.fcgi?artid=PMC2682540}.
+
+\bibitem[Bernstein et~al.(2008)Bernstein, Brown, Johnson, Liu, Nussbaum, Myers,
+  Liu, Li, Meyer, Eeckhoute, and Zhang]{Bernstein2008}
+Bradley~E Bernstein, Myles Brown, David~S Johnson, X~Shirley Liu, Chad
+  Nussbaum, Richard~M Myers, Tao Liu, Wei Li, Clifford~A Meyer,
+  J{\'{e}}r{\^{o}}me Eeckhoute, and Yong Zhang.
+\newblock {Model-based Analysis of ChIP-Seq (MACS)}.
+\newblock \emph{Genome Biol.}, 9\penalty0 (9):\penalty0 R137, sep 2008.
+\newblock ISSN 1465-6906.
+\newblock \doi{10.1186/gb-2008-9-9-r137}.
+\newblock URL
+  \url{http://genomebiology.biomedcentral.com/articles/10.1186/gb-2008-9-9-r137}.
+
+\bibitem[Hellemans et~al.(2007)Hellemans, Mortier, {De Paepe}, Speleman, and
+  Vandesompele]{Hellemans2007}
+Jan Hellemans, Geert Mortier, Anne {De Paepe}, Frank Speleman, and
+  Jo~Vandesompele.
+\newblock {qBase relative quantification framework and software for management
+  and automated analysis of real-time quantitative PCR data}.
+\newblock \emph{Genome Biol.}, 8\penalty0 (2), feb 2007.
+\newblock ISSN 1465-6914.
+\newblock \doi{10.1186/gb-2007-8-2-r19}.
+\newblock URL
+  \url{http://genomebiology.biomedcentral.com/articles/10.1186/gb-2007-8-2-r19}.
+
+\bibitem[Langmead and Salzberg(2012)]{Langmead2012}
+Ben Langmead and Steven~L Salzberg.
+\newblock {Fast gapped-read alignment with Bowtie 2.}
+\newblock \emph{Nat. Methods}, 9\penalty0 (4):\penalty0 357--9, apr 2012.
+\newblock ISSN 1548-7105.
+\newblock \doi{10.1038/nmeth.1923}.
+\newblock URL \url{http://www.nature.com/articles/nmeth.1923
+  http://www.ncbi.nlm.nih.gov/pubmed/22388286{\%}0Ahttp://www.pubmedcentral.nih.gov/articlerender.fcgi?artid=PMC3322381}.
+
+\bibitem[Trapnell et~al.(2009)Trapnell, Pachter, and Salzberg]{Trapnell2009}
+Cole Trapnell, Lior Pachter, and Steven~L. Salzberg.
+\newblock {TopHat: Discovering splice junctions with RNA-Seq}.
+\newblock \emph{Bioinformatics}, 25\penalty0 (9):\penalty0 1105--1111, may
+  2009.
+\newblock ISSN 13674803.
+\newblock \doi{10.1093/bioinformatics/btp120}.
+\newblock URL
+  \url{https://academic.oup.com/bioinformatics/article-lookup/doi/10.1093/bioinformatics/btp120}.
+
+\bibitem[Costes et~al.(2004)Costes, Daelemans, Cho, Dobbin, Pavlakis, and
+  Lockett]{Costes2004}
+Sylvain~V. Costes, Dirk Daelemans, Edward~H. Cho, Zachary Dobbin, George
+  Pavlakis, and Stephen Lockett.
+\newblock {Automatic and quantitative measurement of protein-protein
+  colocalization in live cells}.
+\newblock \emph{Biophys. J.}, 86\penalty0 (6):\penalty0 3993--4003, jun 2004.
+\newblock ISSN 00063495.
+\newblock \doi{10.1529/biophysj.103.038422}.
+\newblock URL
+  \url{https://www.sciencedirect.com/science/article/pii/S0006349504744392}.
+
+\bibitem[Kelley et~al.(2015)Kelley, Mezulis, Yates, Wass, and
+  Sternberg]{Kelley2015}
+Lawrence~A Kelley, Stefans Mezulis, Christopher~M Yates, Mark~N Wass, and
+  Michael~J.E. Sternberg.
+\newblock {The Phyre2 web portal for protein modeling, prediction and
+  analysis}.
+\newblock \emph{Nat. Protoc.}, 10\penalty0 (6):\penalty0 845--858, jun 2015.
+\newblock ISSN 17502799.
+\newblock \doi{10.1038/nprot.2015.053}.
+\newblock URL \url{http://www.nature.com/articles/nprot.2015.053}.
+
+\bibitem[Carpenter et~al.(2006)Carpenter, Jones, Lamprecht, Clarke, Kang,
+  Friman, Guertin, Chang, Lindquist, Moffat, Golland, and
+  Sabatini]{Carpenter2006}
+Anne~E Carpenter, Thouis~R Jones, Michael~R Lamprecht, Colin Clarke, In~Han
+  Kang, Ola Friman, David~A Guertin, Joo~Han Chang, Robert~A Lindquist, Jason
+  Moffat, Polina Golland, and David~M Sabatini.
+\newblock {CellProfiler: Image analysis software for identifying and
+  quantifying cell phenotypes}.
+\newblock \emph{Genome Biol.}, 7\penalty0 (10):\penalty0 R100, oct 2006.
+\newblock ISSN 14747596.
+\newblock \doi{10.1186/gb-2006-7-10-r100}.
+\newblock URL
+  \url{http://genomebiology.biomedcentral.com/articles/10.1186/gb-2006-7-10-r100}.
+
+\bibitem[Paintdakhi et~al.(2016)Paintdakhi, Parry, Campos, Irnov, Elf,
+  Surovtsev, and Jacobs-Wagner]{Paintdakhi2016}
+Ahmad Paintdakhi, Bradley Parry, Manuel Campos, Irnov Irnov, Johan Elf, Ivan
+  Surovtsev, and Christine Jacobs-Wagner.
+\newblock {Oufti: An integrated software package for high-accuracy,
+  high-throughput quantitative microscopy analysis}.
+\newblock \emph{Mol. Microbiol.}, 99\penalty0 (4):\penalty0 767--777, feb 2016.
+\newblock ISSN 13652958.
+\newblock \doi{10.1111/mmi.13264}.
+\newblock URL \url{http://doi.wiley.com/10.1111/mmi.13264}.
+
+\bibitem[Schindelin et~al.(2012)Schindelin, Arganda-Carreras, Frise, Kaynig,
+  Longair, Pietzsch, Preibisch, Rueden, Saalfeld, Schmid, Tinevez, White,
+  Hartenstein, Eliceiri, Tomancak, and Cardona]{Schindelin2012}
+Johannes Schindelin, Ignacio Arganda-Carreras, Erwin Frise, Verena Kaynig, Mark
+  Longair, Tobias Pietzsch, Stephan Preibisch, Curtis Rueden, Stephan Saalfeld,
+  Benjamin Schmid, Jean~Yves Tinevez, Daniel~James White, Volker Hartenstein,
+  Kevin Eliceiri, Pavel Tomancak, and Albert Cardona.
+\newblock {Fiji: An open-source platform for biological-image analysis}, jul
+  2012.
+\newblock ISSN 15487091.
+\newblock URL \url{http://www.nature.com/articles/nmeth.2019}.
+
+\bibitem[Sommer et~al.(2011)Sommer, Straehle, Kothe, and Hamprecht]{Sommer2011}
+Christoph Sommer, Christoph Straehle, Ullrich Kothe, and Fred~A. Hamprecht.
+\newblock {Ilastik: Interactive learning and segmentation toolkit}.
+\newblock In \emph{Proc. - Int. Symp. Biomed. Imaging}, pages 230--233. IEEE,
+  mar 2011.
+\newblock ISBN 9781424441280.
+\newblock \doi{10.1109/ISBI.2011.5872394}.
+\newblock URL \url{http://ieeexplore.ieee.org/document/5872394/}.
+
+\bibitem[Jug et~al.(2014)Jug, Pietzsch, Preibisch, and Tomancak]{Jug2014}
+Florian Jug, Tobias Pietzsch, Stephan Preibisch, and Pavel Tomancak.
+\newblock {Bioimage Informatics in the context of Drosophila research}.
+\newblock \emph{Methods}, 68\penalty0 (1):\penalty0 60--73, jun 2014.
+\newblock ISSN 10959130.
+\newblock \doi{10.1016/j.ymeth.2014.04.004}.
+\newblock URL
+  \url{https://www.sciencedirect.com/science/article/pii/S1046202314001480}.
+
+\bibitem[Sbalzarini(2016)]{Sbalzarini2016}
+Ivo~F. Sbalzarini.
+\newblock {Seeing is believing: Quantifying is convincing: Computational image
+  analysis in biology}.
+\newblock \emph{Adv. Anatomy, Embryol. Cell Biol.}, 219:\penalty0 1--39, 2016.
+\newblock ISSN 03015556.
+\newblock \doi{10.1007/978-3-319-28549-8_1}.
+\newblock URL \url{http://link.springer.com/10.1007/978-3-319-28549-8{\_}1}.
+
+\bibitem[Schindelin et~al.(2015)Schindelin, Rueden, Hiner, and
+  Eliceiri]{Schindelin2015}
+Johannes Schindelin, Curtis~T. Rueden, Mark~C. Hiner, and Kevin~W. Eliceiri.
+\newblock {The ImageJ ecosystem: An open platform for biomedical image
+  analysis}, jul 2015.
+\newblock ISSN 10982795.
+\newblock URL \url{http://doi.wiley.com/10.1002/mrd.22489}.
+
+\bibitem[Simpson and Price(2002)]{IanSimpson2002}
+Ian~T. Simpson and David~J. Price.
+\newblock {Pax6; a pleiotropic player in development}, nov 2002.
+\newblock ISSN 02659247.
+\newblock URL \url{http://doi.wiley.com/10.1002/bies.10174}.
+
+\bibitem[Parody and Muskavitch(1993)]{Parody1993}
+T~R Parody and M.~A~T Muskavitch.
+\newblock {The pleiotropic function of Delta during postembryonic development
+  of Drosophila melanogaster}.
+\newblock \emph{Genetics}, 135\penalty0 (2):\penalty0 527--539, 1993.
+\newblock ISSN 00166731.
+
+\bibitem[Shilo and Raz(1991)]{Shilo1991}
+Ben~Zion Shilo and Erez Raz.
+\newblock {Developmental control by the Drosophila EGF receptor homolog DER},
+  nov 1991.
+\newblock ISSN 01689525.
+\newblock URL
+  \url{https://www.sciencedirect.com/science/article/pii/016895259190261N}.
+
+\bibitem[Xu and Rubin(1993)]{Xu1993}
+T~Xu and G~M Rubin.
+\newblock {Analysis of genetic mosaics in developing and adult Drosophila
+  tissues.}
+\newblock \emph{Development}, 117\penalty0 (4):\penalty0 1223--37, apr 1993.
+\newblock ISSN 0950-1991.
+\newblock \doi{8404527}.
+\newblock URL \url{http://www.ncbi.nlm.nih.gov/pubmed/8404527}.
+
+\bibitem[Xu and Rubin(2012)]{Xu2012}
+Tian Xu and Gerald~M Rubin.
+\newblock {The effort to make mosaic analysis a household tool}.
+\newblock \emph{Development}, 139\penalty0 (24):\penalty0 4501--4503, dec 2012.
+\newblock ISSN 0950-1991.
+\newblock \doi{10.1242/dev.085183}.
+\newblock URL \url{http://www.ncbi.nlm.nih.gov/pubmed/23172911
+  http://www.pubmedcentral.nih.gov/articlerender.fcgi?artid=PMC3509720}.
+
+\bibitem[Newsome et~al.(2000)Newsome, Asling, and Dickson]{Newsome2000}
+T~P Newsome, B~Asling, and B~J Dickson.
+\newblock {Analysis of Drosophila photoreceptor axon guidance in eye-specific
+  mosaics.}
+\newblock \emph{Development}, 127\penalty0 (4):\penalty0 851--60, feb 2000.
+\newblock ISSN 0950-1991.
+\newblock URL \url{http://www.ncbi.nlm.nih.gov/pubmed/10648243}.
+
+\bibitem[Theodosiou and Xu(1998)]{Theodosiou1998}
+Nicole~A. Theodosiou and Tian Xu.
+\newblock {Use of FLP/FRT system to study Drosophila development}.
+\newblock \emph{Methods A Companion to Methods Enzymol.}, 14\penalty0
+  (4):\penalty0 355--365, apr 1998.
+\newblock ISSN 10462023.
+\newblock \doi{10.1006/meth.1998.0591}.
+\newblock URL
+  \url{https://www.sciencedirect.com/science/article/pii/S1046202398905916?via{\%}3Dihub}.
+
+\bibitem[Struhl and Basler(1993)]{Struhl1993}
+Gary Struhl and Konrad Basler.
+\newblock {Organizing activity of wingless protein in Drosophila}.
+\newblock \emph{Cell}, 1993.
+\newblock ISSN 00928674.
+\newblock \doi{10.1016/0092-8674(93)90072-X}.
+
+\bibitem[Halfar et~al.(2001)Halfar, Rommel, Stocker, and Hafen]{Halfar2001}
+K~Halfar, C~Rommel, H~Stocker, and E~Hafen.
+\newblock {Ras controls growth, survival and differentiation in the Drosophila
+  eye by different thresholds of MAP kinase activity.}
+\newblock \emph{Development}, 128\penalty0 (9):\penalty0 1687--96, may 2001.
+\newblock ISSN 0950-1991.
+\newblock URL \url{http://www.ncbi.nlm.nih.gov/pubmed/11290305}.
+
+\bibitem[Tomlinson and Struhl(2001)]{Tomlinson2001}
+A~Tomlinson and G~Struhl.
+\newblock {Delta/Notch and Boss/Sevenless signals act combinatorially to
+  specify the Drosophila R7 photoreceptor.}
+\newblock \emph{Mol. Cell}, 7\penalty0 (3):\penalty0 487--95, mar 2001.
+\newblock ISSN 1097-2765.
+\newblock URL \url{http://www.ncbi.nlm.nih.gov/pubmed/11463374}.
+
+\bibitem[Yang and Baker(2001)]{Yang2001}
+L~Yang and N~E Baker.
+\newblock {Role of the EGFR/Ras/Raf pathway in specification of photoreceptor
+  cells in the Drosophila retina.}
+\newblock \emph{Development}, 128\penalty0 (7):\penalty0 1183--91, apr 2001.
+\newblock ISSN 0950-1991.
+\newblock URL \url{http://www.ncbi.nlm.nih.gov/pubmed/11245584}.
+
+\bibitem[Huang et~al.(2005)Huang, Wu, Barrera, Matthews, and Pan]{Huang2005}
+Jianbin Huang, Shian Wu, Jose Barrera, Krista Matthews, and Duojia Pan.
+\newblock {The Hippo signaling pathway coordinately regulates cell
+  proliferation and apoptosis by inactivating Yorkie, the Drosophila homolog of
+  YAP}.
+\newblock \emph{Cell}, 122\penalty0 (3):\penalty0 421--434, aug 2005.
+\newblock ISSN 00928674.
+\newblock \doi{10.1016/j.cell.2005.06.007}.
+\newblock URL
+  \url{https://www.sciencedirect.com/science/article/pii/S0092867405005520}.
+
+\bibitem[Thompson and Cohen(2006)]{Thompson2006}
+Barry~J. Thompson and Stephen~M. Cohen.
+\newblock {The Hippo Pathway Regulates the bantam microRNA to Control Cell
+  Proliferation and Apoptosis in Drosophila}.
+\newblock \emph{Cell}, 126\penalty0 (4):\penalty0 767--774, aug 2006.
+\newblock ISSN 00928674.
+\newblock \doi{10.1016/j.cell.2006.07.013}.
+\newblock URL
+  \url{https://www.sciencedirect.com/science/article/pii/S0092867406009536{\#}bib4}.
+
+\bibitem[Atkins(2019)]{Atkins2019}
+Mardelle Atkins.
+\newblock {Drosophila Genetics: The Power of Genetic Mosaic Approaches.}
+\newblock In \emph{Methods Mol. Biol.}, volume 1893, pages 27--42. Humana
+  Press, New York, NY, 2019.
+\newblock \doi{10.1007/978-1-4939-8910-2_2}.
+\newblock URL \url{http://link.springer.com/10.1007/978-1-4939-8910-2{\_}2}.
+
+\bibitem[Enomoto et~al.(2018)Enomoto, Siow, and Igaki]{Enomoto2018}
+Masato Enomoto, Carmen Siow, and Tatsushi Igaki.
+\newblock {Drosophila as a cancer model.}
+\newblock In \emph{Adv. Exp. Med. Biol.}, volume 1076, pages 173--194.
+  Springer, Singapore, 2018.
+\newblock ISBN 9789811305290.
+\newblock \doi{10.1007/978-981-13-0529-0_10}.
+\newblock URL \url{http://link.springer.com/10.1007/978-981-13-0529-0{\_}10}.
+
+\bibitem[Germani et~al.(2018)Germani, Bergantinos, and Johnston]{Germani2018}
+Federico Germani, Cora Bergantinos, and Laura~A Johnston.
+\newblock {Mosaic analysis in Drosophila}.
+\newblock \emph{Genetics}, 208\penalty0 (2):\penalty0 473--490, feb 2018.
+\newblock ISSN 19432631.
+\newblock \doi{10.1534/genetics.117.300256}.
+\newblock URL \url{http://www.ncbi.nlm.nih.gov/pubmed/29378809
+  http://www.pubmedcentral.nih.gov/articlerender.fcgi?artid=PMC5788516}.
+
+\bibitem[Dai et~al.(2017)Dai, Peterson, Kenney, Burrous, and Montell]{Dai2017}
+Wei Dai, Amy Peterson, Thomas Kenney, Haley Burrous, and Denise~J. Montell.
+\newblock {Quantitative microscopy of the Drosophila ovary shows multiple niche
+  signals specify progenitor cell fate}.
+\newblock \emph{Nat. Commun.}, 8\penalty0 (1):\penalty0 1244, dec 2017.
+\newblock ISSN 2041-1723.
+\newblock \doi{10.1038/s41467-017-01322-9}.
+\newblock URL \url{http://www.nature.com/articles/s41467-017-01322-9}.
+
+\bibitem[Bernasek et~al.(2018)Bernasek, Lachance, Pel{\'{a}}ez, Bakker,
+  Navarro, Amaral, Bagheri, Rebay, and Carthew]{Bernasek2018}
+Sebastian~M. Bernasek, Jean-Fran{\c{c}}ois~Boisclair Lachance, Nicol{\'{a}}s
+  Pel{\'{a}}ez, Rachael Bakker, Heliodoro~Tejedor Navarro, Luis A.~N. Amaral,
+  Neda Bagheri, Ilaria Rebay, and Richard~W. Carthew.
+\newblock {Ratio-based sensing of two transcription factors regulates the
+  transit to differentiation}.
+\newblock \emph{bioRxiv}, page 430744, sep 2018.
+\newblock \doi{http://dx.doi.org/10.1101/430744}.
+\newblock URL \url{https://www.biorxiv.org/content/10.1101/430744v1}.
+
+\bibitem[Ghiglione et~al.(2018)Ghiglione, Jouandin, C{\'{e}}r{\'{e}}zo, and
+  Noselli]{Ghiglione2018}
+Christian Ghiglione, Patrick Jouandin, Delphine C{\'{e}}r{\'{e}}zo, and
+  St{\'{e}}phane Noselli.
+\newblock {The Drosophila insulin pathway controls Profilin expression and
+  dynamic actin-rich protrusions during collective cell migration}.
+\newblock \emph{Development}, 145\penalty0 (14):\penalty0 dev161117, jul 2018.
+\newblock ISSN 0950-1991.
+\newblock \doi{10.1242/dev.161117}.
+\newblock URL
+  \url{http://dev.biologists.org/content/145/14/dev161117.abstract}.
+
+\bibitem[Li and Baker(2018)]{Li2018}
+Ke~Li and Nicholas~E Baker.
+\newblock {Regulation of the Drosophila ID protein Extra macrochaetae by
+  proneural dimerization partners}.
+\newblock \emph{Elife}, 7, 2018.
+\newblock ISSN 2050-084X.
+\newblock \doi{10.7554/elife.33967}.
+\newblock URL \url{http://www.ncbi.nlm.nih.gov/pubmed/29687780
+  http://www.pubmedcentral.nih.gov/articlerender.fcgi?artid=PMC5915177}.
+
+\bibitem[Bacia et~al.(2012)Bacia, Petr{\'{a}}{\v{s}}ek, and
+  Schwille]{Bacia2012}
+Kirsten Bacia, Zden{\v{e}}k Petr{\'{a}}{\v{s}}ek, and Petra Schwille.
+\newblock {Correcting for spectral cross-talk in dual-color fluorescence
+  cross-correlation spectroscopy}.
+\newblock \emph{ChemPhysChem}, 13\penalty0 (5):\penalty0 1221--1231, apr 2012.
+\newblock ISSN 14394235.
+\newblock \doi{10.1002/cphc.201100801}.
+\newblock URL \url{http://doi.wiley.com/10.1002/cphc.201100801}.
+
+\bibitem[Elangovan et~al.(2003)Elangovan, Wallrabe, Chen, Day, Barroso, and
+  Periasamy]{Elangovan2003}
+Masilamani Elangovan, Horst Wallrabe, Ye~Chen, Richard~N. Day, Margarida
+  Barroso, and Ammasi Periasamy.
+\newblock {Characterization of one- and two-photon excitation fluorescence
+  resonance energy transfer microscopy}.
+\newblock \emph{Methods}, 29\penalty0 (1):\penalty0 58--73, jan 2003.
+\newblock ISSN 10462023.
+\newblock \doi{10.1016/S1046-2023(02)00283-9}.
+\newblock URL
+  \url{https://www.sciencedirect.com/science/article/pii/S1046202302002839}.
+
+\bibitem[Mort(2009)]{Mort2009}
+Richard~L. Mort.
+\newblock {Quantitative analysis of patch patterns in mosaic tissues with
+  ClonalTools software}.
+\newblock \emph{J. Anat.}, 215\penalty0 (6):\penalty0 698--704, dec 2009.
+\newblock ISSN 00218782.
+\newblock \doi{10.1111/j.1469-7580.2009.01150.x}.
+\newblock URL \url{http://doi.wiley.com/10.1111/j.1469-7580.2009.01150.x}.
+
+\bibitem[Helmuth et~al.(2010)Helmuth, Paul, and Sbalzarini]{Helmuth2010}
+Jo~A Helmuth, Gr{\'{e}}gory Paul, and Ivo~F Sbalzarini.
+\newblock {Beyond co-localization: Inferring spatial interactions between
+  sub-cellular structures from microscopy images}.
+\newblock \emph{BMC Bioinformatics}, 11\penalty0 (1):\penalty0 372, jul 2010.
+\newblock ISSN 14712105.
+\newblock \doi{10.1186/1471-2105-11-372}.
+\newblock URL
+  \url{http://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-372}.
+
+\bibitem[Shivanandan et~al.(2013)Shivanandan, Radenovic, and
+  Sbalzarini]{Shivanandan2013}
+Arun Shivanandan, Aleksandra Radenovic, and Ivo~F Sbalzarini.
+\newblock {MosaicIA: An ImageJ/Fiji plugin for spatial pattern and interaction
+  analysis}.
+\newblock \emph{BMC Bioinformatics}, 14\penalty0 (1):\penalty0 349, dec 2013.
+\newblock ISSN 14712105.
+\newblock \doi{10.1186/1471-2105-14-349}.
+\newblock URL
+  \url{http://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-14-349}.
+
+\bibitem[van~der Walt et~al.(2014)van~der Walt, Sch{\"{o}}nberger,
+  Nunez-Iglesias, Boulogne, Warner, Yager, Gouillart, and Yu]{VanderWalt2014}
+St{\'{e}}fan van~der Walt, Johannes~L. Sch{\"{o}}nberger, Juan Nunez-Iglesias,
+  Fran{\c{c}}ois Boulogne, Joshua~D. Warner, Neil Yager, Emmanuelle Gouillart,
+  and Tony Yu.
+\newblock {scikit-image: image processing in Python}.
+\newblock \emph{PeerJ}, 2014.
+\newblock ISSN 2167-8359.
+\newblock \doi{10.7717/peerj.453}.
+
+\bibitem[{Nobuyuki Otsu}(1979)]{NobuyukiOtsu1979}
+{Nobuyuki Otsu}.
+\newblock {A Threshold Selection Method from Gray-Level Histograms}.
+\newblock \emph{IEEE Trans. Syst. Man. Cybern.}, 1979.
+
+\bibitem[Bugarski et~al.(2014)Bugarski, Mansouri, Niemann, Rizk, Berger,
+  Ziegler, Sbalzarini, Incardona, and Paul]{Bugarski2014}
+Milica Bugarski, Maysam Mansouri, Axel Niemann, Aur{\'{e}}lien Rizk, Philipp
+  Berger, Urs Ziegler, Ivo~F Sbalzarini, Pietro Incardona, and Gr{\'{e}}gory
+  Paul.
+\newblock {Segmentation and quantification of subcellular structures in
+  fluorescence microscopy images using Squassh}.
+\newblock \emph{Nat. Protoc.}, 9\penalty0 (3):\penalty0 586--596, mar 2014.
+\newblock ISSN 1754-2189.
+\newblock \doi{10.1038/nprot.2014.037}.
+\newblock URL \url{http://www.nature.com/articles/nprot.2014.037}.
+
+\bibitem[Pel{\'{a}}ez et~al.(2015)Pel{\'{a}}ez, Gavalda-Miralles, Wang,
+  Navarro, Gudjonson, Rebay, Dinner, Katsaggelos, Amaral, and
+  Carthew]{Pelaez2015a}
+Nicol{\'{a}}s Pel{\'{a}}ez, Arnau Gavalda-Miralles, Bao Wang, Heliodoro~Tejedor
+  Navarro, Herman Gudjonson, Ilaria Rebay, Aaron~R. Dinner, Aggelos~K.
+  Katsaggelos, Lu{\'{i}}s A.~Nunes Amaral, and Richard~W. Carthew.
+\newblock {Dynamics and heterogeneity of a fate determinant during transition
+  towards cell differentiation}.
+\newblock \emph{Elife}, 4, nov 2015.
+\newblock ISSN 2050-084X.
+\newblock \doi{10.7554/eLife.08924}.
+\newblock URL \url{http://www.ncbi.nlm.nih.gov/pubmed/26583752
+  http://www.pubmedcentral.nih.gov/articlerender.fcgi?artid=PMC4720516}.
+
+\bibitem[Zinchuk et~al.(2007)Zinchuk, Zinchuk, and Okada]{Zinchuk2007}
+Vadim Zinchuk, Olga Zinchuk, and Teruhiko Okada.
+\newblock {Quantitative Colocalization Analysis of Multicolor Confocal
+  Immunofluorescence Microscopy Images: Pushing Pixels to Explore Biological
+  Phenomena}.
+\newblock \emph{Acta Histochem. Cytochem.}, 40\penalty0 (4):\penalty0 101--111,
+  2007.
+\newblock ISSN 0044-5991.
+\newblock \doi{10.1267/ahc.07002}.
+\newblock URL
+  \url{http://joi.jlc.jst.go.jp/JST.JSTAGE/ahc/07002?from=CrossRef}.
+
+\bibitem[Arsenovic et~al.(2017)Arsenovic, Mayer, and Conway]{Arsenovic2017}
+Paul~T. Arsenovic, Carl~R. Mayer, and Daniel~E. Conway.
+\newblock {SensorFRET: A Standardless Approach to Measuring Pixel-based
+  Spectral Bleed-through and FRET Efficiency using Spectral Imaging}.
+\newblock \emph{Sci. Rep.}, 7\penalty0 (1), dec 2017.
+\newblock ISSN 20452322.
+\newblock \doi{10.1038/s41598-017-15411-8}.
+\newblock URL \url{http://www.nature.com/articles/s41598-017-15411-8}.
+
+\bibitem[Kim et~al.(2013)Kim, Curthoys, Parent, and Hess]{Kim2013}
+Dahan Kim, Nikki~M Curthoys, Matthew~T Parent, and Samuel~T Hess.
+\newblock {Bleed-through correction for rendering and correlation analysis in
+  multi-colour localization microscopy}.
+\newblock \emph{J. Opt.}, 15\penalty0 (9), sep 2013.
+\newblock ISSN 20408978.
+\newblock \doi{10.1088/2040-8978/15/9/094011}.
+\newblock URL \url{http://www.ncbi.nlm.nih.gov/pubmed/26185614
+  http://www.pubmedcentral.nih.gov/articlerender.fcgi?artid=PMC4501387}.
+
+\bibitem[McMullen et~al.(2010)McMullen, Morimoto, and Amaral]{McMullen2010}
+Patrick~D. McMullen, Richard~I. Morimoto, and Lu{\'{i}}s A.~Nunes Amaral.
+\newblock {Physically grounded approach for estimating gene expression from
+  microarray data}.
+\newblock \emph{Proc. Natl. Acad. Sci.}, 107\penalty0 (31):\penalty0
+  13690--13695, aug 2010.
+\newblock ISSN 1091-6490.
+\newblock \doi{10.1073/pnas.1000938107}.
+\newblock URL \url{http://www.ncbi.nlm.nih.gov/pubmed/20643961
+  http://www.pubmedcentral.nih.gov/articlerender.fcgi?artid=PMC2922271
+  http://dx.doi.org/10.1073/pnas.1000938107{\%}5Cnhttp://www.pnas.org/content/107/31/13690.abstract{\%}5Cnhttp://www.pnas.org/content/107/31/13690.ful}.
+
+\bibitem[Gaudette and Japkowicz(2009)]{Gaudette2009}
+Lisa Gaudette and Nathalie Japkowicz.
+\newblock {Evaluation methods for ordinal classification.}
+\newblock In \emph{Lect. Notes Comput. Sci.}, volume 5549 LNAI, pages 207--210.
+  Springer, Berlin, Heidelberg, 2009.
+\newblock ISBN 3642018173.
+\newblock \doi{10.1007/978-3-642-01818-3_25}.
+\newblock URL \url{http://link.springer.com/10.1007/978-3-642-01818-3{\_}25}.
+
+\bibitem[Nguyen and Wu(2012)]{Nguyen2012}
+Thanh~Minh Nguyen and Q.~M.Jonathan Wu.
+\newblock {Gaussian mixture-model-based spatial neighborhood relationships for
+  pixel labeling problems}.
+\newblock \emph{IEEE Trans. Syst. Man. Cybern.}, 42\penalty0 (1):\penalty0
+  193--202, feb 2012.
+\newblock ISSN 10834419.
+\newblock \doi{10.1109/TSMCB.2011.2161284}.
+\newblock URL \url{http://ieeexplore.ieee.org/document/5983453/}.
+
+\bibitem[Gambis et~al.(2011)Gambis, Dourlen, Steller, and
+  Mollereau]{Gambis2011}
+Alexis Gambis, Pierre Dourlen, Hermann Steller, and Bertrand Mollereau.
+\newblock {Two-color in vivo imaging of photoreceptor apoptosis and development
+  in Drosophila}.
+\newblock \emph{Dev. Biol.}, 351\penalty0 (1):\penalty0 128--134, mar 2011.
+\newblock ISSN 1095564X.
+\newblock \doi{10.1016/j.ydbio.2010.12.040}.
+\newblock URL
+  \url{https://www.sciencedirect.com/science/article/pii/S0012160610012960}.
+
+\bibitem[Dourlen et~al.(2013)Dourlen, Levet, Mejat, Gambis, and
+  Mollereau]{Dourlen2013}
+Pierre Dourlen, Clemence Levet, Alexandre Mejat, Alexis Gambis, and Bertrand
+  Mollereau.
+\newblock {The Tomato/GFP-FLP/FRT Method for Live Imaging of Mosaic Adult
+  Drosophila Photoreceptor Cells}.
+\newblock \emph{J. Vis. Exp.}, 79, sep 2013.
+\newblock ISSN 1940-087X.
+\newblock \doi{10.3791/50610}.
+\newblock URL \url{http://www.ncbi.nlm.nih.gov/pubmed/24084155
+  http://www.pubmedcentral.nih.gov/articlerender.fcgi?artid=PMC3923918}.
+
+\bibitem[Fisher et~al.(2017)Fisher, Yang, Isaacman-Beck, Xie, Gohl, and
+  Clandinin]{Fisher2017}
+Yvette~E Fisher, Helen~H Yang, Jesse Isaacman-Beck, Marjorie Xie, Daryl~M Gohl,
+  and Thomas~R Clandinin.
+\newblock {FlpStop, a tool for conditional gene control in Drosophila}.
+\newblock \emph{Elife}, 6, 2017.
+\newblock ISSN 2050084X.
+\newblock \doi{10.7554/eLife.22279}.
+\newblock URL \url{http://www.ncbi.nlm.nih.gov/pubmed/28211790
+  http://www.pubmedcentral.nih.gov/articlerender.fcgi?artid=PMC5342825}.
+
+\bibitem[Wu and Luo(2007)]{Wu2007}
+Joy~S Wu and Liqun Luo.
+\newblock {A protocol for mosaic analysis with a repressible cell marker
+  (MARCM) in Drosophila}.
+\newblock \emph{Nat. Protoc.}, 1\penalty0 (6):\penalty0 2583--2589, jan 2007.
+\newblock ISSN 1754-2189.
+\newblock \doi{10.1038/nprot.2006.320}.
+\newblock URL \url{http://www.ncbi.nlm.nih.gov/pubmed/17406512
+  http://www.nature.com/doifinder/10.1038/nprot.2006.320}.
+
+\bibitem[Zhou et~al.(2016)Zhou, Neal, and Pignoni]{Zhou2016}
+Qingxiang Zhou, Scott~J. Neal, and Francesca Pignoni.
+\newblock {Mutant analysis by rescue gene excision: New tools for mosaic
+  studies in Drosophila}.
+\newblock \emph{Genesis}, 54\penalty0 (11):\penalty0 589--592, nov 2016.
+\newblock ISSN 1526968X.
+\newblock \doi{10.1002/dvg.22984}.
+\newblock URL \url{http://doi.wiley.com/10.1002/dvg.22984}.
+
+\bibitem[Heffern et~al.(2009)Heffern, Perrimon, Hohl, {del Valle Rodriguez},
+  Bakal, Bonvin, Sustar, Grunwald, Griffin, Villalta, Wu, Bateman, Desplan,
+  Binari, and Schubiger]{Heffern2009}
+Elleard Heffern, Norbert Perrimon, Amber~M Hohl, Alberto {del Valle Rodriguez},
+  Chris Bakal, Marianne Bonvin, Anne Sustar, Didier Grunwald, Ruth Griffin,
+  Christians Villalta, C-ting Wu, Jack~R Bateman, Claude Desplan, Richard
+  Binari, and Gerold Schubiger.
+\newblock {The twin spot generator for differential Drosophila lineage
+  analysis}.
+\newblock \emph{Nat. Methods}, 6\penalty0 (8):\penalty0 600--602, aug 2009.
+\newblock ISSN 1548-7091.
+\newblock \doi{10.1038/nmeth.1349}.
+\newblock URL \url{http://www.ncbi.nlm.nih.gov/pubmed/19633664
+  http://www.pubmedcentral.nih.gov/articlerender.fcgi?artid=PMC2720837}.
+
+\bibitem[Yu et~al.(2010)Yu, Kao, He, Ding, Kao, and Lee]{Yu2010}
+Hung~Hsiang Yu, Chih~Fei Kao, Yisheng He, Peng Ding, Jui~Chun Kao, and Tzumin
+  Lee.
+\newblock {A complete developmental sequence of a Drosophila neuronal lineage
+  as revealed by twin-spot MARCM}.
+\newblock \emph{PLoS Biol.}, 8\penalty0 (8):\penalty0 39--40, aug 2010.
+\newblock ISSN 15449173.
+\newblock \doi{10.1371/journal.pbio.1000461}.
+\newblock URL \url{https://dx.plos.org/10.1371/journal.pbio.1000461}.
+
+\bibitem[Denes et~al.(2013)Denes, Caussinus, Affolter, Kanca, and
+  Percival-Smith]{Denes2013}
+Alexandru~S. Denes, Emmanuel Caussinus, Markus Affolter, Oguz Kanca, and
+  Anthony Percival-Smith.
+\newblock {Raeppli: a whole-tissue labeling tool for live imaging of Drosophila
+  development}.
+\newblock \emph{Development}, 141\penalty0 (2):\penalty0 472--480, jan 2013.
+\newblock ISSN 0950-1991.
+\newblock \doi{10.1242/dev.102913}.
+\newblock URL \url{http://dev.biologists.org/content/141/2/472.short}.
+
+\bibitem[Hadjieconomou et~al.(2011)Hadjieconomou, Rotkopf, Alexandre, Bell,
+  Dickson, and Salecker]{Hadjieconomou2011}
+Dafni Hadjieconomou, Shay Rotkopf, Cyrille Alexandre, Donald~M Bell, Barry~J
+  Dickson, and Iris Salecker.
+\newblock {Flybow: Genetic multicolor cell labeling for neural circuit analysis
+  in Drosophila melanogaster}.
+\newblock \emph{Nat. Methods}, 8\penalty0 (3):\penalty0 260--266, mar 2011.
+\newblock ISSN 15487091.
+\newblock \doi{10.1038/nmeth.1567}.
+\newblock URL \url{http://www.nature.com/articles/nmeth.1567}.
+
+\bibitem[Hampel et~al.(2011)Hampel, Chung, McKellar, Hall, Looger, and
+  Simpson]{Hampel2011}
+Stefanie Hampel, Phuong Chung, Claire~E McKellar, Donald Hall, Loren~L Looger,
+  and Julie~H Simpson.
+\newblock {Drosophila Brainbow: a recombinase-based fluorescence labeling
+  technique to subdivide neural expression patterns}.
+\newblock \emph{Nat. Methods}, 8\penalty0 (3):\penalty0 253--259, mar 2011.
+\newblock ISSN 1548-7091.
+\newblock \doi{10.1038/nmeth.1566}.
+\newblock URL \url{http://www.nature.com/articles/nmeth.1566}.
+
+\bibitem[Neufeld et~al.(1998)Neufeld, {De La Cruz}, Johnston, and
+  Edgar]{Neufeld1998}
+Thomas~P Neufeld, Aida Flor~A. {De La Cruz}, Laura~A Johnston, and Bruce~A
+  Edgar.
+\newblock {Coordination of growth and cell division in the Drosophila wing}.
+\newblock \emph{Cell}, 93\penalty0 (7):\penalty0 1183--1193, jun 1998.
+\newblock ISSN 00928674.
+\newblock \doi{10.1016/S0092-8674(00)81462-2}.
+\newblock URL
+  \url{https://www.sciencedirect.com/science/article/pii/S0092867400814622}.
+
+\bibitem[Tworoger et~al.(1999)Tworoger, Larkin, Bryant, and
+  Ruohola-Baker]{Tworoger1999}
+Michael Tworoger, Michele~Keller Larkin, Zev Bryant, and Hannele Ruohola-Baker.
+\newblock {Mosaic analysis in the Drosophila ovary reveals a common Hedgehog-
+  inducible precursor stage for stalk and polar cells}.
+\newblock \emph{Genetics}, 1999.
+\newblock ISSN 00166731.
+
+\bibitem[Collins et~al.(2010)Collins, Linker, and Lewis]{Collins2010}
+Russell~T Collins, Claudia Linker, and Julian Lewis.
+\newblock {MAZe: A tool for mosaic analysis of gene function in zebrafish}.
+\newblock \emph{Nat. Methods}, 7\penalty0 (3):\penalty0 219--223, mar 2010.
+\newblock ISSN 15487091.
+\newblock \doi{10.1038/nmeth.1423}.
+\newblock URL \url{http://www.nature.com/doifinder/10.1038/nmeth.1423}.
+
+\bibitem[Mu{\~{n}}oz-Jim{\'{e}}nez et~al.(2017)Mu{\~{n}}oz-Jim{\'{e}}nez,
+  Ayuso, Dobrzynska, Torres-Mend{\'{e}}z, Ruiz, and Askjaer]{Munoz-Jimenez2017}
+Celia Mu{\~{n}}oz-Jim{\'{e}}nez, Cristina Ayuso, Agnieszka Dobrzynska, Antonio
+  Torres-Mend{\'{e}}z, Patricia de la~Cruz Ruiz, and Peter Askjaer.
+\newblock {An efficient FLP-based toolkit for spatiotemporal control of gene
+  expression in Caenorhabditis elegans}.
+\newblock \emph{Genetics}, 206\penalty0 (4):\penalty0 1763--1778, aug 2017.
+\newblock ISSN 19432631.
+\newblock \doi{10.1534/genetics.117.201012}.
+\newblock URL \url{http://www.ncbi.nlm.nih.gov/pubmed/28646043
+  http://www.pubmedcentral.nih.gov/articlerender.fcgi?artid=PMC5560786}.
+
+\bibitem[Wang et~al.(2007)Wang, Warren, and Bradley]{Wang2007}
+Wei Wang, Madhuri Warren, and Allan Bradley.
+\newblock {Induced mitotic recombination of p53 in vivo}.
+\newblock \emph{Proc. Natl. Acad. Sci.}, 104\penalty0 (11):\penalty0
+  4501--4505, mar 2007.
+\newblock ISSN 0027-8424.
+\newblock \doi{10.1073/pnas.0607953104}.
+\newblock URL \url{http://www.ncbi.nlm.nih.gov/pubmed/17360553
+  http://www.pubmedcentral.nih.gov/articlerender.fcgi?artid=PMC1838630}.
+
+\bibitem[Meijering(2012)]{Meijering2012}
+Erik Meijering.
+\newblock {Cell Segmentation: 50 Years Down the Road}.
+\newblock \emph{IEEE Signal Process. Mag.}, 29\penalty0 (5):\penalty0 140--145,
+  sep 2012.
+\newblock ISSN 1053-5888.
+\newblock \doi{10.1109/msp.2012.2204190}.
+\newblock URL \url{http://ieeexplore.ieee.org/document/6279591/}.
+
+\bibitem[Furusawa et~al.(2005)Furusawa, Suzuki, Kashiwagi, Yomo, and
+  Kaneko]{Furusawa2005}
+Chikara Furusawa, Takao Suzuki, Akiko Kashiwagi, Tetsuya Yomo, and Kunihiko
+  Kaneko.
+\newblock {Ubiquity of Log-normal Distributions in Intra-cellular Reaction
+  Dynamics}.
+\newblock \emph{Biophysics (Oxf).}, 1:\penalty0 25--31, 2005.
+\newblock ISSN 1349-2942.
+\newblock \doi{10.2142/biophysics.1.25}.
+\newblock URL \url{http://www.ncbi.nlm.nih.gov/pubmed/27857550
+  http://www.pubmedcentral.nih.gov/articlerender.fcgi?artid=PMC5036630
+  http://arxiv.org/abs/q-bio/0503040}.
+
+\bibitem[Beal(2017)]{Beal2017}
+Jacob Beal.
+\newblock {Biochemical complexity drives log-normal variation in genetic
+  expression}.
+\newblock \emph{Eng. Biol.}, 1\penalty0 (1):\penalty0 55--60, jun 2017.
+\newblock ISSN 2398-6182.
+\newblock \doi{10.1049/enb.2017.0004}.
+\newblock URL
+  \url{https://digital-library.theiet.org/content/journals/10.1049/enb.2017.0004}.
+
+\bibitem[Teicher(1963)]{Teicher1963}
+Henry Teicher.
+\newblock {Identifiability of Finite Mixtures}.
+\newblock \emph{Ann. Math. Stat.}, 34\penalty0 (4):\penalty0 1265--1269, dec
+  1963.
+\newblock ISSN 0003-4851.
+\newblock \doi{10.1214/aoms/1177703862}.
+\newblock URL \url{http://projecteuclid.org/euclid.aoms/1177703862}.
+
+\bibitem[Rosvall et~al.(2009)Rosvall, Axelsson, and Bergstrom]{Rosvall2009}
+M.~Rosvall, D.~Axelsson, and C.~T. Bergstrom.
+\newblock {The map equation}.
+\newblock \emph{Eur. Phys. J. Spec. Top.}, 2009.
+\newblock ISSN 19516355.
+\newblock \doi{10.1140/epjst/e2010-01179-1}.
+
+\bibitem[Katz(1953)]{Katz1953}
+Leo Katz.
+\newblock {A new status index derived from sociometric analysis}.
+\newblock \emph{Psychometrika}, 1953.
+\newblock ISSN 00333123.
+\newblock \doi{10.1007/BF02289026}.
+
+\bibitem[Kamada and Kawai(1989)]{Kamada1989}
+Tomihisa Kamada and Satoru Kawai.
+\newblock {An algorithm for drawing general undirected graphs}.
+\newblock \emph{Inf. Process. Lett.}, 31\penalty0 (1):\penalty0 7--15, apr
+  1989.
+\newblock ISSN 00200190.
+\newblock \doi{10.1016/0020-0190(89)90102-6}.
+\newblock URL
+  \url{https://www.sciencedirect.com/science/article/pii/0020019089901026?via{\%}3Dihub}.
+
+\end{thebibliography}

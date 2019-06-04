@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016) (preloaded format=pdflatex 2016.5.22)  16 MAY 2019 12:39
+This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016) (preloaded format=pdflatex 2016.5.22)  4 JUN 2019 09:48
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -812,7 +812,7 @@ Package microtype Info: Loading configuration file microtype.cfg.
 (/usr/local/texlive/2016/texmf-dist/tex/latex/microtype/microtype.cfg
 File: microtype.cfg 2016/05/14 v2.6a microtype main configuration file (RS)
 ))
-No file main.aux.
+(./main.aux)
 \openout1 = `main.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 83.
@@ -831,14 +831,13 @@ LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 83.
 LaTeX Font Info:    ... okay on input line 83.
 LaTeX Font Info:    Checking defaults for LGR/cmr/m/n on input line 83.
 LaTeX Font Info:    Try loading font information for LGR+cmr on input line 83.
-(/usr/local/texlive/2016/texmf-dist/tex/latex/cbfonts-fd/lgrcmr.fd
+ (/usr/local/texlive/2016/texmf-dist/tex/latex/cbfonts-fd/lgrcmr.fd
 File: lgrcmr.fd 2016/03/04 v1.1 Greek European Computer Regular
 )
 LaTeX Font Info:    ... okay on input line 83.
 LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 83.
 LaTeX Font Info:    Try loading font information for TS1+cmr on input line 83.
-
-(/usr/local/texlive/2016/texmf-dist/tex/latex/base/ts1cmr.fd
+ (/usr/local/texlive/2016/texmf-dist/tex/latex/base/ts1cmr.fd
 File: ts1cmr.fd 2014/09/29 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    ... okay on input line 83.
@@ -866,6 +865,8 @@ Package: gettitlestring 2016/05/16 v1.5 Cleanup title references (HO)
 LaTeX Info: Redefining \ref on input line 83.
 LaTeX Info: Redefining \pageref on input line 83.
 LaTeX Info: Redefining \nameref on input line 83.
+
+(./main.out) (./main.out)
 \@outlinefile=\write3
 \openout3 = `main.out'.
 
@@ -977,6 +978,9 @@ Package microtype Info: Loading generic settings for font family
 (microtype)             `cmtt' (encoding: OT1).
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
+
+Table of Contents
+(./main.toc)
 \tf@toc=\write4
 \openout4 = `main.toc'.
 
@@ -987,7 +991,11 @@ Overfull \vbox (5.73332pt too high) has occurred while \output is active []
 [1{/usr/local/texlive/2016/texmf-var/fonts/map/pdftex/updmap/pdftex.map}
 
 
+
+
 ]
+List of Figures
+(./main.lof)
 \tf@lof=\write5
 \openout5 = `main.lof'.
 
@@ -997,113 +1005,26 @@ Overfull \vbox (5.73332pt too high) has occurred while \output is active []
 
 [2
 
+
+
 ]
+List of Tables
+(./main.lot)
 \tf@lot=\write6
 \openout6 = `main.lot'.
 
- (./text.tex
+
 Overfull \vbox (5.73332pt too high) has occurred while \output is active []
 
 
 [3
 
-]
+
+
+] (./text.tex
 Chapter 1
 
-Package natbib Warning: Citation `Oates2009' on page 4 undefined on input line 
-17.
-
-
-Package natbib Warning: Citation `Muzzey2009a' on page 4 undefined on input lin
-e 17.
-
-
-Package natbib Warning: Citation `Stelzer2014' on page 4 undefined on input lin
-e 17.
-
-
-Package natbib Warning: Citation `Truong2011' on page 4 undefined on input line
- 17.
-
-
-Package natbib Warning: Citation `Aghaeepour2013' on page 4 undefined on input 
-line 17.
-
-
-Package natbib Warning: Citation `Chen2015' on page 4 undefined on input line 1
-7.
-
-
-Package natbib Warning: Citation `Pyne2009' on page 4 undefined on input line 1
-7.
-
-
-Package natbib Warning: Citation `Bernstein2008' on page 4 undefined on input l
-ine 17.
-
-
-Package natbib Warning: Citation `Hellemans2007' on page 4 undefined on input l
-ine 17.
-
-
-Package natbib Warning: Citation `Langmead2012' on page 4 undefined on input li
-ne 17.
-
-
-Package natbib Warning: Citation `Trapnell2009' on page 4 undefined on input li
-ne 17.
-
-
-Package natbib Warning: Citation `Costes2004' on page 4 undefined on input line
- 17.
-
-
-Package natbib Warning: Citation `Kelley2015' on page 4 undefined on input line
- 17.
-
-
-Package natbib Warning: Citation `Carpenter2006' on page 4 undefined on input l
-ine 17.
-
-
-Package natbib Warning: Citation `Paintdakhi2016' on page 4 undefined on input 
-line 17.
-
-
-Package natbib Warning: Citation `Schindelin2012' on page 4 undefined on input 
-line 17.
-
-
-Package natbib Warning: Citation `Sommer2011' on page 4 undefined on input line
- 17.
-
-
-Package natbib Warning: Citation `Jug2014' on page 4 undefined on input line 17
-.
-
-
-Package natbib Warning: Citation `Sbalzarini2016' on page 4 undefined on input 
-line 17.
-
-
-Package natbib Warning: Citation `Schindelin2015' on page 4 undefined on input 
-line 17.
-
-
-LaTeX Warning: Reference `fig:clones:fig1a' on page 4 undefined on input line 1
-9.
-
-
-Package natbib Warning: Citation `IanSimpson2002' on page 4 undefined on input 
-line 19.
-
-
-Package natbib Warning: Citation `Parody1993' on page 4 undefined on input line
- 19.
-
-
-Package natbib Warning: Citation `Shilo1991' on page 4 undefined on input line 
-19.
+Underfull \vbox (badness 4479) has occurred while \output is active []
 
 
 Overfull \vbox (5.73332pt too high) has occurred while \output is active []
@@ -1113,199 +1034,41 @@ Overfull \vbox (5.73332pt too high) has occurred while \output is active []
 
 
 ]
-
-Package natbib Warning: Citation `Xu1993' on page 5 undefined on input line 21.
-
-
-
-Package natbib Warning: Citation `Xu2012' on page 5 undefined on input line 21.
-
-
-
-Package natbib Warning: Citation `Beira2016' on page 5 undefined on input line 
-21.
-
-
-Package natbib Warning: Citation `Newsome2000' on page 5 undefined on input lin
-e 21.
-
-
-Package natbib Warning: Citation `Theodosiou1998' on page 5 undefined on input 
-line 21.
-
-
-Package natbib Warning: Citation `Struhl1993' on page 5 undefined on input line
- 21.
-
-
-LaTeX Warning: Reference `fig:clones:fig1a' on page 5 undefined on input line 2
-1.
-
-
-LaTeX Warning: Reference `fig:clones:fig1b' on page 5 undefined on input line 2
-1.
-
-
-LaTeX Warning: Reference `fig:clones:fig1b' on page 5 undefined on input line 2
-1.
-
-
-Package natbib Warning: Citation `Halfar2001' on page 5 undefined on input line
- 21.
-
-
-Package natbib Warning: Citation `Tomlinson2001' on page 5 undefined on input l
-ine 21.
-
-
-Package natbib Warning: Citation `Yang2001' on page 5 undefined on input line 2
-1.
-
-
-Package natbib Warning: Citation `Huang2005' on page 5 undefined on input line 
-21.
-
-
-Package natbib Warning: Citation `Thompson2006' on page 5 undefined on input li
-ne 21.
-
-
-Package natbib Warning: Citation `Atkins2019' on page 5 undefined on input line
- 21.
-
-
-Package natbib Warning: Citation `Enomoto2018' on page 5 undefined on input lin
-e 21.
-
-
-Package natbib Warning: Citation `Germani2018' on page 5 undefined on input lin
-e 21.
-
-
-! LaTeX Error: File `./figure_1a' not found.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.25 ...phics[width=0.95\columnwidth]{./figure_1a}
-                                                  
-I could not locate the file with any of these extensions:
-.png,.pdf,.jpg,.mps,.jpeg,.jbig2,.jb2,.PNG,.PDF,.JPG,.JPEG,.JBIG2,.JB2,.eps
-Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
-
-
-LaTeX Warning: Reference `fig:clones:fig1b' on page 5 undefined on input line 3
-0.
-
-
-Package natbib Warning: Citation `Dai2017' on page 5 undefined on input line 30
-.
-
-
-Package natbib Warning: Citation `Bernasek2018' on page 5 undefined on input li
-ne 30.
-
-
-Package natbib Warning: Citation `Ghiglione2018' on page 5 undefined on input l
-ine 30.
-
-
-Package natbib Warning: Citation `Li2018' on page 5 undefined on input line 30.
-
-
-
-Underfull \vbox (badness 2856) has occurred while \output is active []
-
-
-Overfull \vbox (5.73332pt too high) has occurred while \output is active []
-
-
-[5]
-
-LaTeX Warning: Reference `fig:clones:fig1b' on page 6 undefined on input line 3
-2.
-
-
-LaTeX Warning: Reference `fig:clones:fig1b' on page 6 undefined on input line 3
-2.
-
-
-LaTeX Warning: Reference `fig:clones:fig1b' on page 6 undefined on input line 3
-2.
-
-
-Package natbib Warning: Citation `Bacia2012' on page 6 undefined on input line 
-32.
-
-
-Package natbib Warning: Citation `Elangovan2003' on page 6 undefined on input l
-ine 32.
-
-
-LaTeX Warning: Reference `fig:clones:fig1b' on page 6 undefined on input line 3
-2.
-
-Missing character: There is no â in font cmr12!
-Missing character: There is no € in font cmr12!
-Missing character: There is no ™ in font cmr12!
-
-LaTeX Warning: Reference `fig:clones:fig1b' on page 6 undefined on input line 3
-2.
-
-
-LaTeX Warning: Reference `fig:clones:fig1b' on page 6 undefined on input line 3
-2.
-
-
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 Overfull \vbox (5.73332pt too high) has occurred while \output is active []
 
 
-[6]
+[5] <./figures/./figure_1a.png, id=173, 397.2441pt x 121.4136pt>
+File: ./figures/./figure_1a.png Graphic file (type png)
 
-! LaTeX Error: File `./figure_1b' not found.
+<use ./figures/./figure_1a.png>
+Package pdftex.def Info: ./figures/./figure_1a.png used on input line 29.
+(pdftex.def)             Requested size: 446.26582pt x 136.4047pt.
+Missing character: There is no â in font cmr12!
+Missing character: There is no € in font cmr12!
+Missing character: There is no ™ in font cmr12!
 
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.36 ...aphics[width=1.0\columnwidth]{./figure_1b}
-                                                  
-I could not locate the file with any of these extensions:
-.png,.pdf,.jpg,.mps,.jpeg,.jbig2,.jb2,.PNG,.PDF,.JPG,.JPEG,.JBIG2,.JB2,.eps
-Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
+Underfull \vbox (badness 2261) has occurred while \output is active []
 
 
-Package natbib Warning: Citation `Mort2009' on page 7 undefined on input line 4
-1.
+Overfull \vbox (5.73332pt too high) has occurred while \output is active []
 
 
-Package natbib Warning: Citation `Helmuth2010' on page 7 undefined on input lin
-e 41.
+[6 <./figures/./figure_1a.png (PNG copy)>]
+<./figures/./figure_1b.png, id=200, 500.46976pt x 424.10445pt>
+File: ./figures/./figure_1b.png Graphic file (type png)
+
+<use ./figures/./figure_1b.png>
+Package pdftex.def Info: ./figures/./figure_1b.png used on input line 40.
+(pdftex.def)             Requested size: 469.75502pt x 398.09523pt.
 
 
-Package natbib Warning: Citation `Shivanandan2013' on page 7 undefined on input
- line 41.
+LaTeX Warning: `!h' float specifier changed to `!ht'.
 
 
-Package natbib Warning: Citation `Dai2017' on page 7 undefined on input line 41
-.
-
-
-Package natbib Warning: Citation `Ghiglione2018' on page 7 undefined on input l
-ine 41.
-
-
-Package natbib Warning: Citation `Li2018' on page 7 undefined on input line 41.
-
-
-
-Underfull \vbox (badness 3158) has occurred while \output is active []
+Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 Overfull \vbox (5.73332pt too high) has occurred while \output is active []
@@ -1313,370 +1076,79 @@ Overfull \vbox (5.73332pt too high) has occurred while \output is active []
 
 [7]
 
-Package natbib Warning: Citation `Pelaez2015a' on page 8 undefined on input lin
-e 43.
+LaTeX Warning: Text page 8 contains only floats.
 
 
-Package natbib Warning: Citation `Bernasek2018' on page 8 undefined on input li
-ne 43.
-
-
-LaTeX Warning: Reference `fig:clones:fig1b' on page 8 undefined on input line 4
-3.
-
-
-LaTeX Warning: Reference `ch:ratio' on page 8 undefined on input line 48.
-
-
-LaTeX Warning: Reference `fig:clones:figS1' on page 8 undefined on input line 4
-8.
-
-
-LaTeX Warning: Reference `fig:clones:figS1' on page 8 undefined on input line 4
-8.
-
-
-LaTeX Warning: Reference `appendix:ratio:genetics' on page 8 undefined on input
- line 48.
-
-
-LaTeX Warning: Reference `ch:ratio' on page 8 undefined on input line 50.
+Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 Overfull \vbox (5.73332pt too high) has occurred while \output is active []
 
 
-[8]
-
-! LaTeX Error: File `./figure_S1' not found.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.53 ...phics[width=0.95\columnwidth]{./figure_S1}
-                                                  
-I could not locate the file with any of these extensions:
-.png,.pdf,.jpg,.mps,.jpeg,.jbig2,.jb2,.PNG,.PDF,.JPG,.JPEG,.JBIG2,.JB2,.eps
-Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
-
-
-Package natbib Warning: Citation `VanderWalt2014' on page 9 undefined on input 
-line 61.
-
-
-Package natbib Warning: Citation `NobuyukiOtsu1979' on page 9 undefined on inpu
-t line 61.
-
-
-Package natbib Warning: Citation `VanderWalt2014' on page 9 undefined on input 
-line 61.
-
-
-LaTeX Warning: Reference `fig:clones:figS1' on page 9 undefined on input line 6
-1.
-
-
-Package natbib Warning: Citation `Bugarski2014' on page 9 undefined on input li
-ne 63.
-
-
-Package natbib Warning: Citation `Pelaez2015a' on page 9 undefined on input lin
-e 63.
-
-
+[8 <./figures/./figure_1b.png (PNG copy)>]
 Overfull \vbox (5.73332pt too high) has occurred while \output is active []
 
 
-[9]
+[9] <./figures/./figure_2.png, id=242, 371.2269pt x 121.8954pt>
+File: ./figures/./figure_2.png Graphic file (type png)
 
-LaTeX Warning: Reference `fig:clones:fig1b' on page 10 undefined on input line 
-68.
-
-
-Package natbib Warning: Citation `Bacia2012' on page 10 undefined on input line
- 68.
-
-
-Package natbib Warning: Citation `Zinchuk2007' on page 10 undefined on input li
-ne 68.
-
-
-LaTeX Warning: Reference `fig:clones:fig2' on page 10 undefined on input line 7
-0.
-
-
-LaTeX Warning: Reference `fig:clones:figS1' on page 10 undefined on input line 
-70.
-
-
-LaTeX Warning: Reference `fig:clones:fig2' on page 10 undefined on input line 7
-0.
-
-
-LaTeX Warning: Reference `fig:clones:fig2' on page 10 undefined on input line 7
-0.
-
-
-! LaTeX Error: File `./figure_2' not found.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.74 \includegraphics[scale=1.0]{./figure_2}
-                                            
-I could not locate the file with any of these extensions:
-.png,.pdf,.jpg,.mps,.jpeg,.jbig2,.jb2,.PNG,.PDF,.JPG,.JPEG,.JBIG2,.JB2,.eps
-Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
-
-
-LaTeX Warning: Reference `fig:clones:figS2' on page 10 undefined on input line 
-75.
-
-
-LaTeX Warning: Reference `fig:clones:figS2' on page 10 undefined on input line 
-75.
-
-
-Package natbib Warning: Citation `Bacia2012' on page 10 undefined on input line
- 79.
-
-
-Package natbib Warning: Citation `Zinchuk2007' on page 10 undefined on input li
-ne 79.
-
-
-Package natbib Warning: Citation `Arsenovic2017' on page 10 undefined on input 
-line 79.
-
-
-Package natbib Warning: Citation `Kim2013' on page 10 undefined on input line 7
-9.
-
-
-Package natbib Warning: Citation `Elangovan2003' on page 10 undefined on input 
-line 79.
-
-
-Package natbib Warning: Citation `Bacia2012' on page 10 undefined on input line
- 79.
-
+<use ./figures/./figure_2.png>
+Package pdftex.def Info: ./figures/./figure_2.png used on input line 70.
+(pdftex.def)             Requested size: 371.22598pt x 121.8951pt.
 
 Overfull \vbox (5.73332pt too high) has occurred while \output is active []
 
 
 [10]
-
-Package natbib Warning: Citation `McMullen2010' on page 11 undefined on input l
-ine 83.
-
-
-Underfull \vbox (badness 5548) has occurred while \output is active []
+Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 Overfull \vbox (5.73332pt too high) has occurred while \output is active []
 
 
-[11]
-
-LaTeX Warning: Reference `fig:clones:figS2' on page 12 undefined on input line 
-105.
-
-
-LaTeX Warning: Reference `fig:clones:figS2' on page 12 undefined on input line 
-105.
-
-
-LaTeX Warning: Reference `fig:clones:figS2' on page 12 undefined on input line 
-105.
-
-
-LaTeX Warning: Reference `eq:clones:bg_model' on page 12 undefined on input lin
-e 105.
-
-
-LaTeX Warning: Reference `fig:clones:figS2' on page 12 undefined on input line 
-105.
-
-
-LaTeX Warning: Reference `eq:clones:correction' on page 12 undefined on input l
-ine 105.
-
-
-LaTeX Warning: Reference `fig:clones:figS2' on page 12 undefined on input line 
-107.
-
-
-LaTeX Warning: Reference `fig:clones:figS2' on page 12 undefined on input line 
-107.
-
-
-LaTeX Warning: Reference `fig:clones:figS2' on page 12 undefined on input line 
-107.
-
-
-LaTeX Warning: Reference `fig:clones:fig2' on page 12 undefined on input line 1
-07.
-
-
-Underfull \vbox (badness 2088) has occurred while \output is active []
-
-
+[11 <./figures/./figure_2.png (PNG copy)>]
 Overfull \vbox (5.73332pt too high) has occurred while \output is active []
 
 
-[12]
+[12] <./figures/./figure_S3.png, id=288, 410.7345pt x 221.98935pt>
+File: ./figures/./figure_S3.png Graphic file (type png)
 
-! LaTeX Error: File `./figure_S2' not found.
+<use ./figures/./figure_S3.png>
+Package pdftex.def Info: ./figures/./figure_S3.png used on input line 107.
+(pdftex.def)             Requested size: 410.73349pt x 221.9888pt.
 
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.110 \includegraphics[scale=1.0]{./figure_S2}
-                                              
-I could not locate the file with any of these extensions:
-.png,.pdf,.jpg,.mps,.jpeg,.jbig2,.jb2,.PNG,.PDF,.JPG,.JPEG,.JBIG2,.JB2,.eps
-Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 Overfull \vbox (5.73332pt too high) has occurred while \output is active []
 
 
 [13]
-
-LaTeX Warning: Reference `fig:clones:figS3' on page 14 undefined on input line 
-123.
-
-
-LaTeX Warning: Reference `fig:clones:figS3' on page 14 undefined on input line 
-123.
-
-
-LaTeX Warning: Reference `fig:clones:figS3' on page 14 undefined on input line 
-123.
-
-
-LaTeX Warning: Reference `fig:clones:figS3' on page 14 undefined on input line 
-123.
-
-
-LaTeX Warning: Reference `fig:clones:figS3' on page 14 undefined on input line 
-123.
-
-
-! LaTeX Error: File `./figure_S3' not found.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.126 \includegraphics[scale=1.0]{./figure_S3}
-                                              
-I could not locate the file with any of these extensions:
-.png,.pdf,.jpg,.mps,.jpeg,.jbig2,.jb2,.PNG,.PDF,.JPG,.JPEG,.JBIG2,.JB2,.eps
-Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
-
-
-LaTeX Warning: Reference `fig:clones:figS3' on page 14 undefined on input line 
-127.
-
-
-LaTeX Warning: Reference `fig:clones:figS3' on page 14 undefined on input line 
-127.
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-
-LaTeX Warning: Reference `fig:clones:figS4' on page 14 undefined on input line 
-131.
-
-
-LaTeX Warning: Reference `fig:clones:figS4' on page 14 undefined on input line 
-131.
-
-
-LaTeX Warning: Reference `fig:clones:figS4' on page 14 undefined on input line 
-131.
-
-
-LaTeX Warning: Reference `fig:clones:figS4' on page 14 undefined on input line 
-131.
-
-
-LaTeX Warning: Reference `fig:clones:figS4' on page 14 undefined on input line 
-131.
-
-
-LaTeX Warning: Reference `fig:clones:figS4' on page 14 undefined on input line 
-131.
-
-
-LaTeX Warning: Reference `fig:clones:figS4' on page 14 undefined on input line 
-131.
-
-
-LaTeX Warning: Reference `fig:clones:figS4' on page 14 undefined on input line 
-131.
-
-
 Overfull \vbox (5.73332pt too high) has occurred while \output is active []
 
 
-[14]
+[14 <./figures/./figure_S3.png (PNG copy)>]
+<./figures/./figure_S4.png, id=309, 535.0389pt x 398.9304pt>
+File: ./figures/./figure_S4.png Graphic file (type png)
 
-! LaTeX Error: File `./figure_S4' not found.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.134 ...phics[width=1.0\columnwidth]{./figure_S4}
-                                                  
-I could not locate the file with any of these extensions:
-.png,.pdf,.jpg,.mps,.jpeg,.jbig2,.jb2,.PNG,.PDF,.JPG,.JPEG,.JBIG2,.JB2,.eps
-Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
+<use ./figures/./figure_S4.png>
+Package pdftex.def Info: ./figures/./figure_S4.png used on input line 115.
+(pdftex.def)             Requested size: 469.75502pt x 350.25633pt.
 
 
 LaTeX Warning: `h' float specifier changed to `ht'.
-
-
-LaTeX Warning: Reference `fig:clones:figS3' on page 15 undefined on input line 
-139.
-
-
-LaTeX Warning: Reference `fig:clones:figS4' on page 15 undefined on input line 
-139.
-
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 Overfull \vbox (5.73332pt too high) has occurred while \output is active []
 
 
 [15]
-Underfull \vbox (badness 1400) has occurred while \output is active []
 
-
-Overfull \vbox (5.73332pt too high) has occurred while \output is active []
-
-
-[16]
-
-Package natbib Warning: Citation `Furusawa2005' on page 17 undefined on input l
-ine 155.
-
-
-Package natbib Warning: Citation `Beal2017' on page 17 undefined on input line 
-155.
+LaTeX Warning: Text page 16 contains only floats.
 
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
@@ -1685,11 +1157,46 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 Overfull \vbox (5.73332pt too high) has occurred while \output is active []
 
 
-[17]
+[16 <./figures/./figure_S4.png (PNG copy)>]
+<./figures/./figure_3.png, id=327, 277.9986pt x 139.722pt>
+File: ./figures/./figure_3.png Graphic file (type png)
 
-Package natbib Warning: Citation `Teicher1963' on page 18 undefined on input li
-ne 187.
+<use ./figures/./figure_3.png>
+Package pdftex.def Info: ./figures/./figure_3.png used on input line 129.
+(pdftex.def)             Requested size: 277.99791pt x 139.72165pt.
 
+Overfull \hbox (2.64935pt too wide) in paragraph at lines 144--144
+ []|\OT1/cmr/bx/n/10 Layer| 
+ []
+
+<./figures/./figure_S5.png, id=330, 320.03564pt x 115.51155pt>
+File: ./figures/./figure_S5.png Graphic file (type png)
+
+<use ./figures/./figure_S5.png>
+Package pdftex.def Info: ./figures/./figure_S5.png used on input line 161.
+(pdftex.def)             Requested size: 320.03485pt x 115.51125pt.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+Overfull \vbox (5.73332pt too high) has occurred while \output is active []
+
+
+[17 <./figures/./figure_3.png (PNG copy)>]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+
+Overfull \vbox (5.73332pt too high) has occurred while \output is active []
+
+
+[18 <./figures/./figure_S5.png (PNG copy)>]
+<./figures/./figure_4.png, id=348, 248.127pt x 105.7551pt>
+File: ./figures/./figure_4.png Graphic file (type png)
+
+<use ./figures/./figure_4.png>
+Package pdftex.def Info: ./figures/./figure_4.png used on input line 182.
+(pdftex.def)             Requested size: 248.12637pt x 105.75484pt.
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
@@ -1697,30 +1204,52 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 Overfull \vbox (5.73332pt too high) has occurred while \output is active []
 
 
-[18]
-Underfull \vbox (badness 10000) has occurred while \output is active []
+[19 <./figures/./figure_4.png (PNG copy)>]
+<./figures/./figure_S8.png, id=359, 243.5499pt x 109.6095pt>
+File: ./figures/./figure_S8.png Graphic file (type png)
+
+<use ./figures/./figure_S8.png>
+Package pdftex.def Info: ./figures/./figure_S8.png used on input line 192.
+(pdftex.def)             Requested size: 243.5493pt x 109.6092pt.
 
 
-Overfull \vbox (5.73332pt too high) has occurred while \output is active []
-
-
-[19]
-
-Package natbib Warning: Citation `Rosvall2009' on page 20 undefined on input li
-ne 224.
-
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
+LaTeX Warning: `h' float specifier changed to `ht'.
 
 
 Overfull \vbox (5.73332pt too high) has occurred while \output is active []
 
 
 [20]
+Underfull \vbox (badness 2846) has occurred while \output is active []
 
-Package natbib Warning: Citation `Katz1953' on page 21 undefined on input line 
-226.
 
+Overfull \vbox (5.73332pt too high) has occurred while \output is active []
+
+
+[21 <./figures/./figure_S8.png (PNG copy)>]
+Underfull \vbox (badness 4954) has occurred while \output is active []
+
+
+Overfull \vbox (5.73332pt too high) has occurred while \output is active []
+
+
+[22] <./figures/./figure_S1.png, id=405, 532.50945pt x 141.8901pt>
+File: ./figures/./figure_S1.png Graphic file (type png)
+
+<use ./figures/./figure_S1.png>
+Package pdftex.def Info: ./figures/./figure_S1.png used on input line 224.
+(pdftex.def)             Requested size: 446.26582pt x 118.90973pt.
+
+Overfull \vbox (5.73332pt too high) has occurred while \output is active []
+
+
+[23 <./figures/./figure_S1.png (PNG copy)>]
+<./figures/./figure_S2.png, id=417, 405.1938pt x 310.761pt>
+File: ./figures/./figure_S2.png Graphic file (type png)
+
+<use ./figures/./figure_S2.png>
+Package pdftex.def Info: ./figures/./figure_S2.png used on input line 236.
+(pdftex.def)             Requested size: 405.19281pt x 310.76024pt.
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
@@ -1728,173 +1257,7 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 Overfull \vbox (5.73332pt too high) has occurred while \output is active []
 
 
-[21]
-
-LaTeX Warning: Reference `fig:clones:fig3' on page 22 undefined on input line 2
-52.
-
-
-LaTeX Warning: Reference `fig:clones:fig3' on page 22 undefined on input line 2
-52.
-
-
-LaTeX Warning: Reference `fig:clones:figS5' on page 22 undefined on input line 
-252.
-
-
-LaTeX Warning: Reference `table:agreement' on page 22 undefined on input line 2
-52.
-
-
-LaTeX Warning: Reference `fig:clones:figS5' on page 22 undefined on input line 
-252.
-
-
-! LaTeX Error: File `./figure_3' not found.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.256 \includegraphics[scale=1.0]{./figure_3}
-                                             
-I could not locate the file with any of these extensions:
-.png,.pdf,.jpg,.mps,.jpeg,.jbig2,.jb2,.PNG,.PDF,.JPG,.JPEG,.JBIG2,.JB2,.eps
-Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
-
-
-LaTeX Warning: Reference `fig:clones:figS1' on page 22 undefined on input line 
-257.
-
-
-LaTeX Warning: Reference `fig:clones:figS1' on page 22 undefined on input line 
-257.
-
-
-Overfull \hbox (2.64935pt too wide) in paragraph at lines 271--271
- []|\OT1/cmr/bx/n/10 Layer| 
- []
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-
-! LaTeX Error: File `./figure_S5' not found.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.288 \includegraphics[scale=1.0]{./figure_S5}
-                                              
-I could not locate the file with any of these extensions:
-.png,.pdf,.jpg,.mps,.jpeg,.jbig2,.jb2,.PNG,.PDF,.JPG,.JPEG,.JBIG2,.JB2,.eps
-Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
-
-
-Overfull \vbox (5.73332pt too high) has occurred while \output is active []
-
-
-[22]
-
-LaTeX Warning: Reference `fig:clones:figS6' on page 23 undefined on input line 
-298.
-
-
-LaTeX Warning: Reference `fig:clones:figS6' on page 23 undefined on input line 
-300.
-
-
-LaTeX Warning: Reference `fig:clones:figS6' on page 23 undefined on input line 
-300.
-
-
-Overfull \vbox (5.73332pt too high) has occurred while \output is active []
-
-
-[23]
-
-LaTeX Warning: Reference `fig:clones:figS6' on page 24 undefined on input line 
-302.
-
-
-Package natbib Warning: Citation `Kamada1989' on page 24 undefined on input lin
-e 302.
-
-
-LaTeX Warning: Reference `fig:clones:figS6' on page 24 undefined on input line 
-304.
-
-
-LaTeX Warning: Reference `fig:clones:figS6' on page 24 undefined on input line 
-304.
-
-
-! LaTeX Error: File `./figure_S6' not found.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.307 ...phics[width=1.0\columnwidth]{./figure_S6}
-                                                  
-I could not locate the file with any of these extensions:
-.png,.pdf,.jpg,.mps,.jpeg,.jbig2,.jb2,.PNG,.PDF,.JPG,.JPEG,.JBIG2,.JB2,.eps
-Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
-
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
-
-Overfull \vbox (5.73332pt too high) has occurred while \output is active []
-
-
-[24]
-
-LaTeX Warning: Reference `fig:clones:figS6' on page 25 undefined on input line 
-312.
-
-
-LaTeX Warning: Reference `fig:clones:figS7' on page 25 undefined on input line 
-312.
-
-
-LaTeX Warning: Reference `fig:clones:figS7' on page 25 undefined on input line 
-320.
-
-
-LaTeX Warning: Reference `fig:clones:figS7' on page 25 undefined on input line 
-320.
-
-
-! LaTeX Error: File `./figure_S7' not found.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.323 ...phics[width=1.0\columnwidth]{./figure_S7}
-                                                  
-I could not locate the file with any of these extensions:
-.png,.pdf,.jpg,.mps,.jpeg,.jbig2,.jb2,.PNG,.PDF,.JPG,.JPEG,.JBIG2,.JB2,.eps
-Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
-
-
-LaTeX Warning: `h' float specifier changed to `ht'.
-
-
-LaTeX Warning: Reference `fig:clones:figS6' on page 25 undefined on input line 
-331.
-
-
-LaTeX Warning: Reference `fig:clones:figS7' on page 25 undefined on input line 
-331.
-
-
+[24 <./figures/./figure_S2.png (PNG copy)>]
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
@@ -1902,21 +1265,106 @@ Overfull \vbox (5.73332pt too high) has occurred while \output is active []
 
 
 [25]
-
-LaTeX Warning: Reference `eq:clones:bivariate_mixture' on page 26 undefined on 
-input line 333.
+Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
-Package natbib Warning: Citation `Gaudette2009' on page 26 undefined on input l
-ine 333.
+Overfull \vbox (5.73332pt too high) has occurred while \output is active []
 
 
-LaTeX Warning: Reference `fig:clones:fig4' on page 26 undefined on input line 3
-35.
+[26]
+Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
-LaTeX Warning: Reference `fig:clones:fig4' on page 26 undefined on input line 3
-35.
+Overfull \vbox (5.73332pt too high) has occurred while \output is active []
+
+
+[27]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+
+Overfull \vbox (5.73332pt too high) has occurred while \output is active []
+
+
+[28]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+
+Overfull \vbox (5.73332pt too high) has occurred while \output is active []
+
+
+[29]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+
+Overfull \vbox (5.73332pt too high) has occurred while \output is active []
+
+
+[30]
+Overfull \vbox (5.73332pt too high) has occurred while \output is active []
+
+
+[31] <./figures/./figure_S6.png, id=501, 459.6372pt x 280.6485pt>
+File: ./figures/./figure_S6.png Graphic file (type png)
+
+<use ./figures/./figure_S6.png>
+Package pdftex.def Info: ./figures/./figure_S6.png used on input line 364.
+(pdftex.def)             Requested size: 469.75502pt x 286.83151pt.
+
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+<./figures/./figure_S7.png, id=506, 405.6756pt x 293.29575pt>
+File: ./figures/./figure_S7.png Graphic file (type png)
+
+<use ./figures/./figure_S7.png>
+Package pdftex.def Info: ./figures/./figure_S7.png used on input line 383.
+(pdftex.def)             Requested size: 469.75502pt x 339.63701pt.
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+
+Overfull \vbox (5.73332pt too high) has occurred while \output is active []
+
+
+[32]
+
+LaTeX Warning: `h' float specifier changed to `ht'.
+
+
+Overfull \vbox (5.73332pt too high) has occurred while \output is active []
+
+
+[33 <./figures/./figure_S6.png (PNG copy)>]
+Overfull \vbox (5.73332pt too high) has occurred while \output is active []
+
+
+[34 <./figures/./figure_S7.png (PNG copy)>]) (./main.bbl
+Overfull \vbox (5.73332pt too high) has occurred while \output is active []
+
+
+[35]
+References
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+
+Overfull \vbox (5.73332pt too high) has occurred while \output is active []
+
+
+[36
+
+
+]
+Underfull \hbox (badness 2293) in paragraph at lines 134--141
+[]\OT1/cmr/m/n/12 (+10) Ben Lang-mead and Steven L Salzberg.  Fast gapped-read 
+align-ment with
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 134--141
+\OT1/cmtt/m/n/12 / / www . ncbi . nlm . nih . gov / pubmed / 22388286{%}0Ahttp 
+: / / www . pubmedcentral . nih .
+ []
 
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
@@ -1925,165 +1373,95 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 Overfull \vbox (5.73332pt too high) has occurred while \output is active []
 
 
-[26]
-
-! LaTeX Error: File `./figure_4' not found.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.339 \includegraphics[scale=1.0]{./figure_4}
-                                             
-I could not locate the file with any of these extensions:
-.png,.pdf,.jpg,.mps,.jpeg,.jbig2,.jb2,.PNG,.PDF,.JPG,.JPEG,.JBIG2,.JB2,.eps
-Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
-
-
-LaTeX Warning: Reference `fig:clones:figS4' on page 27 undefined on input line 
-344.
-
-
-LaTeX Warning: Reference `fig:clones:figS8' on page 27 undefined on input line 
-344.
-
-
-LaTeX Warning: Reference `fig:clones:figS8' on page 27 undefined on input line 
-344.
-
-
-Package natbib Warning: Citation `Nguyen2012' on page 27 undefined on input lin
-e 346.
+[37]
+Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 Overfull \vbox (5.73332pt too high) has occurred while \output is active []
 
 
-[27]
-
-! LaTeX Error: File `./figure_S8' not found.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.349 \includegraphics[scale=1]{./figure_S8}
-                                            
-I could not locate the file with any of these extensions:
-.png,.pdf,.jpg,.mps,.jpeg,.jbig2,.jb2,.PNG,.PDF,.JPG,.JPEG,.JBIG2,.JB2,.eps
-Try typing  <return>  to proceed.
-If that doesn't work, type  X <return>  to quit.
-
-
-Package natbib Warning: Citation `Gambis2011' on page 28 undefined on input lin
-e 359.
-
-
-Package natbib Warning: Citation `Dourlen2013' on page 28 undefined on input li
-ne 359.
-
-
-Package natbib Warning: Citation `Fisher2017' on page 28 undefined on input lin
-e 359.
-
-
-Package natbib Warning: Citation `Wu2007' on page 28 undefined on input line 35
-9.
-
-
-Package natbib Warning: Citation `Zhou2016' on page 28 undefined on input line 
-359.
-
-
-Package natbib Warning: Citation `Heffern2009' on page 28 undefined on input li
-ne 359.
-
-
-Package natbib Warning: Citation `Yu2010' on page 28 undefined on input line 35
-9.
-
-
-Package natbib Warning: Citation `Denes2013' on page 28 undefined on input line
- 359.
-
-
-Package natbib Warning: Citation `Hadjieconomou2011' on page 28 undefined on in
-put line 359.
-
-
-Package natbib Warning: Citation `Hampel2011' on page 28 undefined on input lin
-e 359.
+[38]
+Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
 Overfull \vbox (5.73332pt too high) has occurred while \output is active []
 
 
-[28]
-
-Package natbib Warning: Citation `Neufeld1998' on page 29 undefined on input li
-ne 361.
+[39]
+Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
-Package natbib Warning: Citation `Tworoger1999' on page 29 undefined on input l
-ine 361.
+Overfull \vbox (5.73332pt too high) has occurred while \output is active []
 
 
-Package natbib Warning: Citation `Collins2010' on page 29 undefined on input li
-ne 361.
+[40]
+Underfull \vbox (badness 10000) has occurred while \output is active []
 
 
-Package natbib Warning: Citation `Munoz-Jimenez2017' on page 29 undefined on in
-put line 361.
+Overfull \vbox (5.73332pt too high) has occurred while \output is active []
 
 
-Package natbib Warning: Citation `Wang2007' on page 29 undefined on input line 
-361.
+[41]
+Underfull \hbox (badness 1383) in paragraph at lines 549--559
+\OT1/cmr/m/n/12 (+10) pnas . 1000938107$.  URL []$\OT1/cmtt/m/n/12 http : / / w
+ww . ncbi . nlm . nih . gov / pubmed / 20643961http :
+ []
 
 
-Package natbib Warning: Citation `Meijering2012' on page 29 undefined on input 
-line 361.
+Underfull \hbox (badness 10000) in paragraph at lines 549--559
+\OT1/cmtt/m/n/12 / / www . pubmedcentral . nih . gov / articlerender . fcgi ? a
+rtid = PMC2922271http :
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 549--559
+\OT1/cmtt/m/n/12 / / dx . doi . org / 10 . 1073 / pnas . 1000938107{%}5Cnhttp :
+ / / www . pnas . org / content /
+ []
+
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+
+Overfull \vbox (5.73332pt too high) has occurred while \output is active []
+
+
+[42]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+
+Overfull \vbox (5.73332pt too high) has occurred while \output is active []
+
+
+[43]
+Underfull \hbox (badness 10000) in paragraph at lines 750--760
+\OT1/cmtt/m/n/12 nih . gov / articlerender . fcgi ? artid = PMC5036630http : / 
+/ arxiv . org / abs / q-[]bio /
+ []
 
 )
-No file main.bbl.
-
-Package natbib Warning: There were undefined citations.
-
 Package atveryend Info: Empty hook `BeforeClearDocument' on input line 119.
 
 Overfull \vbox (5.73332pt too high) has occurred while \output is active []
 
 
-[29]
+[44]
 Package atveryend Info: Empty hook `AfterLastShipout' on input line 119.
  (./main.aux)
 Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 119.
 Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 119.
-
-
-Package rerunfilecheck Warning: File `main.out' has changed.
-(rerunfilecheck)                Rerun to get outlines right
-(rerunfilecheck)                or use package `bookmark'.
-
-Package rerunfilecheck Info: Checksums for `main.out':
-(rerunfilecheck)             Before: <no file>
-(rerunfilecheck)             After:  AFC43401CBD22AA2FA7ED8116C96C8E0;915.
-
-LaTeX Warning: There were undefined references.
-
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
+Package rerunfilecheck Info: File `main.out' has not changed.
+(rerunfilecheck)             Checksum: 5CF1C27EB1BF416703C9A84FBEC21B9B;944.
 Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 119.
  ) 
 Here is how much of TeX's memory you used:
- 21726 strings out of 493014
- 404016 string characters out of 6133351
- 476036 words of memory out of 5000000
- 24713 multiletter control sequences out of 15000+600000
- 17229 words of font info for 100 fonts, out of 8000000 for 9000
+ 22068 strings out of 493014
+ 410543 string characters out of 6133351
+ 486343 words of memory out of 5000000
+ 24933 multiletter control sequences out of 15000+600000
+ 18838 words of font info for 113 fonts, out of 8000000 for 9000
  1302 hyphenation exceptions out of 8191
- 42i,10n,42p,10386b,761s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 42i,10n,42p,10386b,1040s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
 ></usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb>
 </usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmbxti10.pfb
@@ -2101,11 +1479,12 @@ e/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texlive
 /2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/local/texlive/2
 016/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/201
 6/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2016
-/texmf-dist/fonts/type1/public/amsfonts/cm/cmti12.pfb>
-Output written on main.pdf (29 pages, 279458 bytes).
+/texmf-dist/fonts/type1/public/amsfonts/cm/cmti12.pfb></usr/local/texlive/2016/
+texmf-dist/fonts/type1/public/amsfonts/cm/cmtt12.pfb>
+Output written on main.pdf (44 pages, 31653933 bytes).
 PDF statistics:
- 282 PDF objects out of 1000 (max. 8388607)
- 230 compressed objects within 3 object streams
- 90 named destinations out of 1000 (max. 500000)
- 21505 words of extra memory for PDF output out of 24883 (max. 10000000)
+ 809 PDF objects out of 1000 (max. 8388607)
+ 720 compressed objects within 8 object streams
+ 186 named destinations out of 1000 (max. 500000)
+ 22186 words of extra memory for PDF output out of 24883 (max. 10000000)
 

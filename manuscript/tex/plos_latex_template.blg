@@ -1,0 +1,50 @@
+This is BibTeX, Version 0.99d (TeX Live 2016)
+Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+The top-level auxiliary file: plos_latex_template.aux
+The style file: plos2015.bst
+Database file #1: ./thesis-clones.bib
+Reallocated glb_str_ptr (elt_size=4) to 20 items from 10.
+Reallocated global_strs (elt_size=20001) to 20 items from 10.
+Reallocated glb_str_end (elt_size=4) to 20 items from 10.
+Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
+You've used 77 entries,
+            3058 wiz_defined-function locations,
+            1292 strings with 29085 characters,
+and the built_in function-call counts, 157992 in all, are:
+= -- 19627
+> -- 1152
+< -- 8
++ -- 636
+- -- 288
+* -- 13878
+:= -- 17478
+add.period$ -- 359
+call.type$ -- 77
+change.case$ -- 8
+chr.to.int$ -- 0
+cite$ -- 77
+duplicate$ -- 10594
+empty$ -- 15311
+format.name$ -- 356
+if$ -- 36414
+int.to.chr$ -- 0
+int.to.str$ -- 77
+missing$ -- 728
+newline$ -- 444
+num.names$ -- 77
+pop$ -- 1211
+preamble$ -- 1
+purify$ -- 0
+quote$ -- 0
+skip$ -- 1251
+stack$ -- 0
+substring$ -- 34270
+swap$ -- 1847
+text.length$ -- 8
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 0
+warning$ -- 0
+while$ -- 770
+width$ -- 79
+write$ -- 966
