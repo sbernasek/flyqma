@@ -1,6 +1,5 @@
 %%%%%%  TO DO
 % author summary
-%
 %%%%%%
 
 %\bibliography{./thesis-clones}
@@ -236,7 +235,7 @@ Mosaic analysis provides a means to probe developmental processes in situ by gen
 % Use first person. PLOS ONE authors please skip this step. 
 % Author Summary not valid for PLOS ONE submissions.   
 \section*{Author summary}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur eget porta erat. Morbi consectetur est vel gravida pretium. Suspendisse ut dui eu ante cursus gravida non sed sem. Nullam sapien tellus, commodo id velit id, eleifend volutpat quam. Phasellus mauris velit, dapibus finibus elementum vel, pulvinar non tellus. Nunc pellentesque pretium diam, quis maximus dolor faucibus id. Nunc convallis sodales ante, ut ullamcorper est egestas vitae. Nam sit amet enim ultrices, ultrices elit pulvinar, volutpat risus.
+Biologists use mosaic tissues to compare the behavior of genetically distinct cells within an otherwise equivalent context. The ensuing analysis is often limited to qualitative insight. However, it is becoming clear that quantitative models are needed to unravel the complexities of many biological systems. In this manuscript we introduce Fly-QMA, an open-source software framework that automates the quantification of mosaic analysis for Drosophila imaginal discs, a common setting for studies of developmental processes. The software automatically extracts quantitative measurements from confocal images of mosaic tissues, rectifies any cross-talk between fluorescent reporters, and identifies clonally-related subpopulations of cells. Together, these functions allow users to rigorously ascribe changes in gene expression to the presence or absence of particular genes. We validate the performance of our framework using both real and synthetic data. Through its publication, we aim to contribute to the current move toward automated quantitative analysis among biologists.
 
 \linenumbers
 
@@ -276,6 +275,144 @@ Automation promises to alleviate this bottleneck, yet the literature bears surpr
 
 Here, we introduce Fly-QMA, an open-source framework for automated QMA of \textit{Drosophila} imaginal discs. Fly-QMA supports segmentation, bleedthrough correction, and annotation of confocal microscopy data (Fig \ref{fig2}D-H). We demonstrate each of these functions by applying them to real confocal images of clones in the eye imaginal disc, and find that our automated approach yields results consistent with manual analysis by a human expert. We then generate and use synthetic data to survey the performance of our framework across a broad range of biologically plausible conditions.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% RESULTS
+
+% Results and Discussion can be combined.
+\section*{Results}
+
+\subsection*{Quantification of nuclear fluorescence levels}
+\label{ch:segmentation}
+
+We implemented a segmentation strategy based upon a standard watershed approach \cite{VanderWalt2014}. Briefly, we construct a foreground mask by Otsu thresholding the nuclear stain image following a series of smoothing and contrast-limited adaptive histogram equalization operations \cite{NobuyukiOtsu1979,VanderWalt2014}. We then apply a Euclidean distance transform to the foreground mask, identify the local maxima, and use them as seeds for watershed segmentation. When applied to the microscopy data, few visible spots in the nuclear stain were neglected, and the vast majority of segments outlined individual nuclei (\nameref{S1_Fig} C).
+
+This approach is flexible and should perform adequately in many scenarios. However, we acknowledge that no individual strategy can address all microscopy data because segmentation is strongly context dependent. All subsequent stages of analysis were therefore designed to be compatible with any data that conform to our standardized file structure. This modular arrangement grants users the freedom to use one of the many other available segmentation platforms \cite{Bugarski2014}, including FlyEye Silhouette \cite{Pelaez2015a}, before applying the remaining functionalities of our framework. Regardless of how nuclear contours are identified, averaging the pixel intensities within them yields fluorescence intensity measurements for each reporter in each identified nucleus. We next sought to ensure that these measurements were suitable for comparison across clones.
+
+
+\subsection*{Bleedthrough correction}
+\label{ch:correction}
+
+Despite efforts to select non-overlapping reporter bandwidths and excite them sequentially, it is not uncommon for reporters excited at one wavelength to emit some fluorescence in another channel (Fig \ref{fig2}B, yellow lines) \cite{Bacia2012,Zinchuk2007}. The end result is a positive correlation, or crosstalk, between the measured fluorescence intensities of two or more reporters. Exogenous correlations are problematic given that the purpose of the experiment is to detect changes in reporter levels with respect to the clonal marker.
+
+In our microscopy data, individual clones were distinguished by their low, medium, or high expression levels of an RFP-tagged clonal marker (Fig \ref{fig3}A). These images should not have shown any detectable difference in GFP levels across clones because all cells carried an equivalent dosage of the control reporter (\nameref{S1_Fig} A). However, the images visibly suffered from bleedthrough between the RFP and GFP channels (Fig \ref{fig3}A,B). Bleedthrough was similarly evident when we compared measured GFP levels across labeled clones. Nuclei labeled mutant, heterozygous, or homozygous for the clonal marker had low, medium, and high expression levels of the control reporter, respectively (Fig \ref{fig3}C, black boxes). The data were therefore ripe for systematic correction.
+
+\begin{figure}[t]
+\centering
+\includegraphics[scale=1.0]{./figure_3}
+\caption{\textbf{Automated correction of fluorescence bleedthrough in the larval eye.}
+(A) Low, medium, and high expression levels of the RFP-tagged clonal marker. (B) GFP-tagged control reporter expression. RFP fluorescence bleedthrough is visually apparent upon comparison with A. (C) Comparison of control reporter expression between clones. Includes data aggregated across nine images taken from six separate eye discs. Data were limited to cells within the region of elevated GFP expression that were of approximately comparable developmental age (see \nameref{S2_Fig} E-G). Measurements are stratified by their assigned labels. Before correction, expression differs between clones (black boxes, $p<10^{-5}$). No difference is detected after correction (red boxes, $p>0.05$).}
+\label{fig3}
+\end{figure}
+
+Spectral bleedthrough correction is common practice in other forms of cross-correlation and co-localization microscopy \cite{Bacia2012,Zinchuk2007}. These methods typically entail characterizing the extent of crosstalk between fluorophores globally \cite{Arsenovic2017,Kim2013}, on a pixel-by-pixel basis \cite{Elangovan2003}, or by experimental calibration \cite{Bacia2012}, then detrending all images or measurements prior to subsequent analysis. Our framework adopts the global approach, using the background pixels in each image to infer the extent of fluorescence bleedthrough across spectral channels.
+
+Specifically, we assume the fluorescence intensity $F_{ij}$ for channel $i$ at pixel $j$ is a superposition of a background intensity $B_{ij}$ and some function of the expression level $E_{ij}$ that we seek to compare across cells \cite{McMullen2010}:
+\begin{linenomath} \begin{gather}
+F_{ij} = B_{ij} + f(E_{ij})
+\end{gather} \end{linenomath}
+We further assume that the background intensity of a channel includes linear contributions from the fluorescence intensity of each of the other channels:
+\begin{linenomath} \begin{gather}
+B_{ij} = \sum_{k \neq i}{\alpha_k F_{kj}} + \beta
+\end{gather} \end{linenomath}
+where $k$ is indexed over $K$ anticipated sources of bleedthrough. Given estimates for each $\{\alpha_1, \alpha_2, \ldots \alpha_K\}$ and $\beta$ we can then estimate the background intensity of each measurement:
+\begin{linenomath} \begin{gather} \label{eq:bg_model}
+\langle\ B_{ij}\ \rangle = \sum_{k \neq i}{\alpha_k \langle F_{kj} \rangle} + \beta
+\end{gather} \end{linenomath}
+where the braces denote the average across all pixels within a single nucleus. The corrected signal value is obtained by subtracting the background intensity from the measured fluorescence level:
+\begin{linenomath} \begin{gather} \label{eq:correction}
+\langle\ f(E_{ij}) \ \rangle = \langle\ F_{ij}\ \rangle - \langle\ B_{ij}\ \rangle
+\end{gather} \end{linenomath}
+
+Repeating this procedure for each nucleus facilitates comparison of relative expression levels across nuclei in the absence of bleedthrough effects. Bleedthrough correction performance is therefore strongly dependent upon accurate estimation of the bleedthrough contribution strengths, $\{\alpha_1, \alpha_2, \ldots \alpha_K\}$. 
+
+We estimate these parameters by characterizing their impact on background pixels (see Methods). When applied to the microscopy data, bleedthrough correction successfully eliminated any detectable difference in GFP expression across clones (Fig \ref{fig2}C, red boxes, $p>0.05$ two-sided Mann-Whitney \textit{U} test).
+
+
+\subsection*{Automated annotation of clones}
+\label{ch:annotation}
+
+Our annotation strategy seeks to label each identified cell as homozygous mutant, heterozygous wildtype, or homozygous wildtype for the clonal marker. Variation within each clone precludes accurate classification of a cell's genotype solely on the basis of its individual expression level. However, clonal lineages are unlikely to exist in isolation because recombination events are typically timed to generate large clones. Our strategy therefore integrates both clonal marker expression and spatial context to identify clusters of cells with locally homogeneous expression behavior, then maps each cluster to one of the possible labels. This unsupervised approach lends itself to automated annotation because the clusters are inferred directly from the data without any guidance from the user.
+
+We first train a statistical model to estimate the probability that a given measurement came from a cell carrying zero, one, or two copies of the clonal marker (\nameref{S3_Fig} A). This entails fitting a weighted mixture of three or more bivariate lognormal distributions (components) to a two dimensional set of observations (\nameref{S3_Fig} B,C). The first dimension corresponds to the clonal marker fluorescence level measured within each cell. The second dimension describes the local average expression level within the region surrounding each cell. We evaluate the latter by estimating a neighborhood radius from the decay of the radial correlation of the expression levels, then averaging the expression levels of all cells within that radius (\nameref{S3_Fig} D). The second dimension therefore measures the spatial context in which a cell resides. We balance model fidelity against overfitting by using the Bayesian information criterion to determine the optimal number of model components (\nameref{S3_Fig} E). We then cluster the components into three groups on the basis of their mean values (\nameref{S3_Fig} F), effectively mapping each component to one of the three possible gene dosages. The model may be trained using observations derived from a single image, or with a collection of observations derived from multiple images. Once trained, the model is able to predict the conditional probability that an individual observation belongs to one of the model's components, given its measured expression level.
+
+We then use the learned conditional probabilities to detect entire clones, thus assigning a label to each cell. Rather than using the trained model to classify each observation, we compile a new set of observations by limiting each estimate of spatial context to spatially collocated communities with similar expression behavior (\nameref{S4_Fig} A). We identify these communities by applying a community detection algorithm to an undirected graph connecting adjacent cells (\nameref{S4_Fig} B). Edges in this graph are weighted by the similarity of clonal marker expression between neighbors, resulting in communities with similar expression levels (\nameref{S4_Fig} E, Steps I and II). The graph-based approach increases spatial resolution by limiting the information shared by dissimilar neighbors. Applying the mixture model yields an initial estimate of the probability that an observation belongs to one of the model's components (\nameref{S4_Fig} E, Step III). We further refine these estimates by allowing the probabilities estimated for each cell to diffuse throughout the graph (\nameref{S4_Fig} E, Step IV). The rate of diffusion between neighbors is determined by the weight of the edge that connects them, with more similar neighbors exerting stronger influence on each other. We then use the diffused probabilities to identify the most probable source component and label each observation (\nameref{S4_Fig} E, Step V). These probabilities also provide a measure of confidence in the assigned labels. We replace any low-confidence labels with alternate labels assigned using a marginal classifier that neglects spatial context (\nameref{S4_Fig} F,G), resulting in a fully labeled image (\nameref{S4_Fig} H).
+
+The algorithm leverages the collective wisdom of neighboring measurements to override spatially isolated fluctuations in clonal marker expression, and thereby enforces consistent annotation within contiguous regions of the image field. The size of these regions depends upon the granularity of estimates for the spatial context surrounding each cell. We used an unsupervised approach to choose an appropriate spatial resolution in a principled manner. In short, the resolution is matched to the approximate length scale over which expression levels remain correlated among cells. Both the training and application stages of our annotation algorithm use this automated approach (\nameref{S3_Fig} D and \nameref{S4_Fig} D), thus averting any need for user input.
+
+
+\subsection*{Manual assessment of annotation performance}
+
+We sought to validate the performance of the annotation algorithm by assessing its ability to accurately reproduce human-assigned labels. We manually labeled nuclei in each eye imaginal disc as homozygous mutant, heterozygous wildtype, or homozygous wildtype for the clonal marker, then automatically labeled the same cells (Fig \ref{fig4}A). The two sets of labels showed strong overall agreement (Fig \ref{fig4}B and \nameref{S5_Fig} A). Excluding cells on the border of each clone revealed greater than 97\% agreement in seven of the nine annotated images (see Table \ref{table:agreement}). Upon secondary inspection of the sole instance of substantial disagreement (\nameref{S5_Fig} B), we are unable to confidently discern which set of labels are more accurate.
+
+\begin{figure}[t]
+\centering
+\includegraphics[scale=1.0]{./figure_4}
+\caption{\textbf{Automated unsupervised annotation of clones in the larval eye.}
+(A) Labels assigned by automated annotation. Yellow, cyan, and magenta denote the label assigned to each contour. Labels are overlayed on the RFP channel of the image shown in \nameref{S1_Fig} B. Cells on the periphery of each clone are excluded. (B) Comparison of automated annotation with manually-assigned labels. Confusion matrix includes data aggregated across nine images taken from six separate eye discs. Cells on the periphery of each clone are included. Columns sum to one.}
+\label{fig4}
+\end{figure}
+
+% TABLE OF ANNOTATION SCORES
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{table}[!ht]
+%\begin{adjustwidth}{-2.25in}{0in} % Comment out/remove adjustwidth environment if table fits in text column.
+\centering
+\captionsetup{justification=centering}
+\caption{ {\bf Automated vs. manual annotation} }
+\begin{tabular}{|l|l+l|}
+\hline
+\bf Disc & \bf Layer & \bf Agreement* \\
+\thickhline
+1 & 1 & 93.1\% (97.3\%) \\ \hline
+1 & 2 & 95.3\% (97.3\%) \\ \hline
+2 & 1 & 91.3\% (99.1\%) \\ \hline
+2 & 2 & 95.2\% (96.4\%) \\ \hline
+3 & 1 & 67.2\% (75.6\%) \\ \hline
+4 & 1 & 82.5\% (89.2\%) \\ \hline
+5 & 1 & 96.2\% (100\%) \\ \hline
+6 & 1 & 99.1\% (99.3\%) \\ \hline
+6 & 2 & 95.2\% (97.5\%) \\ \hline
+\end{tabular}
+\label{table:agreement}
+%\end{adjustwidth}
+\begin{center} \small *Values in parentheses denote agreement\\ when clone borders are excluded. \end{center}
+\end{table}
+
+While it is common practice to use human-labeled data as the gold standard, manually assigned labels do not represent a reliable and reproducible ground truth. Furthermore, we contend that validation with manually-labeled data entrains implicit human biases in the selection of performant algorithms. These biases are particularly pronounced in biological image data where intrinsic variation, measurement noise, and transient processes can make cell-type annotation a highly subjective, and thus irreproducible, task. 
+
+
+\subsection*{Synthetic benchmarking of annotation performance}
+\label{ch:benchmarking}
+
+Synthetic benchmarking provides a powerful alternative to validation against manually labeled data. The idea is simple; measure how accurately an algorithm is able to label synthetic data for which the labels are known. The synthetic data generation procedure may be modeled after the process underlying formation of the real data, providing a means to assess the performance of an algorithm across the range of conditions that it is likely to encounter. The strategy therefore provides a means to survey the breadth of biologically plausible conditions under which the algorithm provides adequate performance. Synthetic benchmarking also facilitates unbiased comparison of competing algorithms, resulting in a reliable standard that may be called upon at any time. 
+
+We used synthetic microscopy data to benchmark the performance of our annotation strategy. Each synthetic dataset depicts a simulated culture of cells distributed roughly uniformly in space (\nameref{S6_Fig} A). Cells in this culture contain zero, one, or two copies of a gene encoding an RFP-tagged clonal marker (\nameref{S6_Fig} B). Our simulation procedure ensures that cells tend to remain proximal to their clonal siblings (\nameref{S6_Fig} C), thus forming synthetic clones with tunable size and spatial heterogeneity (\nameref{S6_Fig} D,E). We generated synthetic measurements by randomly sampling fluorescence levels in a dosage-depend manner (\nameref{S7_Fig} A-C). We varied the similarity of fluorescence levels across clones using an ambiguity parameter, $\sigma_{\alpha}$, that modulates the spread of the distributions used to generate fluorescence levels (\nameref{S7_Fig} D-F). 
+
+Using this schema as a template, we generated a large synthetic dataset, annotated each set of measurements, and compared the assigned labels with their true values. We used the mean absolute error as a comparison metric because it provides a stable measure of accuracy for multiclass classification problems in which the labels are intrinsically ordered \cite{Gaudette2009}. In other words, it penalizes egregious misclassifications more severely than mild ones.
+
+Annotation performance is very strong for all cases in which $\sigma_{\alpha} \leq 0.3$ (Fig \ref{fig5}). Unsurprisingly, performance suffers as the difficulty of the classification problem is increased. The same trends are evident when performance is graded strictly on accuracy (\nameref{S8_Fig}). As cells on the periphery of each clone were not excluded from these analyses, the observed metrics provide a lower bound on the performance that may be anticipated in practice.
+
+\begin{figure}[t]
+\centering
+\includegraphics[scale=1.0]{figure_5}
+\caption{\textbf{Synthetic benchmarking of automated annotation performance.}
+Each pixel reflects the mean MAE across 50 replicates. Clone size reflects the mean number of cells per clone. Performance improves with increasing clone size and worsens with increasing fluorescence ambiguity.}
+\label{fig5}
+\end{figure}
+
+Performance improved with increasing clone size. We suspected this was caused by larger clones offering additional spatial context to inform the identify of each cell. We verified our assertion by re-evaluating performance relative to a variant of our annotation algorithm that neglects spatial context (\nameref{S4_Fig} G). As expected, the variant's performance exhibited no dependence on clone size (\nameref{S9_Fig} A). Comparing the two strategies confirmed that spatial context confers the most benefit when clones are large (\nameref{S9_Fig} B). Inclusion of spatial context also becomes increasingly advantageous as the fluorescence ambiguity is increased, even for smaller clones. Thus, spatial context adds progressively more value as the classification task becomes more difficult.
+
+This observation may be rationalized from a statistical perspective. Each cell is classified by maximizing the probability that the assigned label is correct. We compute these probabilities using the estimated expression level of each cell. Neglecting spatial context, this estimate is limited to a single sample and is therefore highly sensitive to both measurement and biological noise. Incorporating spatial context expands the sample size and thereby reduces the standard error of the estimated fluorescence level. The strategy is thus generally well suited to scenarios in which fluorescence intensities correlate across large clones, and closely parallels computer vision methods that exploit spatial contiguity to segment image features with ill-defined borders \cite{Nguyen2012}. Because increased measurement precision comes at the expense of spatial resolution, we expect strong performance when measurements are aggregated across relatively large clones, but failure to detect small, heterogeneous clones. These expectations are consistent with the observed results. They are also conveniently aligned with the anticipated properties of real data, as experiments typically attempt to mitigate edge effects by driving early recombination events to generate large clones.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CONCLUSION
+
+\section*{Conclusion}
+
+We used synthetic data to survey the performance of our annotation strategy across a much broader range of conditions than would have otherwise been possible with manually labeled data. This included conditions well beyond those of practical use. In particular, experiments designed to compare gene expression levels across clones would likely seek to avoid generating small clones with ambiguous clonal marker expression. Synthetic data provided a means to survey these edge cases and establish a lower bound on annotation performance. The strong performance observed across the remaining conditions bolsters our confidence that our annotation strategy is well suited to the images it is likely to encounter.
+
+In each of our examples, clones were distinguished by ternary segregation of clonal marker fluorescence levels. Modern mosaic analysis techniques continue to deploy ternary labeling \cite{Gambis2011,Dourlen2013}, but also frequently opt for binary labeling of mutant versus non-mutant clones \cite{Fisher2017,Wu2007,Zhou2016} and dichromic labeling of twin-spots \cite{Heffern2009,Yu2010}. Our annotation scheme readily adapts to each of these scenarios provided that the number of anticipated labels is adjusted accordingly. In the case of dichromic labeling, binary classification would be performed separately for each color channel before merging the assigned labels. Extending the same logic to combinatorial pairs of colors suggests that our framework may also be compatible with multicolor labeling schemes used to simultaneously trace many clonal lineages over time \cite{Denes2013,Hadjieconomou2011,Hampel2011}. Our framework is thus well suited to many different mosaic analysis platforms deployed in imaginal discs.
+
+In principle, the framework described here should also be applicable to a wide variety of other tissues \cite{Neufeld1998,Tworoger1999} and model organisms \cite{Collins2010,Munoz-Jimenez2017,Wang2007} in which mosaics are studied. In practice, application to alternate contexts would require modifying some stages of the analysis. Most notably, image segmentation is strongly context dependent and any attempts to develop a universally successful strategy are likely to prove futile \cite{Meijering2012}. For this reason, we implemented a modular design in which each stage of analysis may be applied separately. For example, a user could perform their own segmentation before using our bleedthrough correction and clone annotation tools. By offering modular functionalities we hope to extend the utility of our software to the wider community of developmental biologists. Furthermore, the open-source nature of our framework supports continued development of more advanced features as various demands arise. Our synthetic benchmarking platform could then be used to objectively confirm the benefit conferred by any future developments.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% METHODS
 
@@ -428,147 +565,6 @@ To annotate each set of measurements, the mixture model given by Eq~\ref{eq:biva
 
 We have distributed the automated mosaic analysis framework as an open-source python package available at https://github.com/sebastianbernasek/clones. We also intend to incorporate its core features into future versions of \textit{FlyEye Silhouette}, our open-source platform for quantitative analysis of the larval eye. The code used to generate synthetic microscopy data is also freely available at https://github.com/sebastianbernasek/growth. All segmented and annotated eye discs are accessible via our data repository (https://doi.org/10.21985/N2F207). These include a series of Jupyter notebooks that enable complete reproduction of all figures and analysis presented in this manuscript.
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% RESULTS
-
-% Results and Discussion can be combined.
-\section*{Results}
-
-\subsection*{Quantification of nuclear fluorescence levels}
-\label{ch:segmentation}
-
-We implemented a segmentation strategy based upon a standard watershed approach \cite{VanderWalt2014}. Briefly, we construct a foreground mask by Otsu thresholding the nuclear stain image following a series of smoothing and contrast-limited adaptive histogram equalization operations \cite{NobuyukiOtsu1979,VanderWalt2014}. We then apply a Euclidean distance transform to the foreground mask, identify the local maxima, and use them as seeds for watershed segmentation. When applied to the microscopy data, few visible spots in the nuclear stain were neglected, and the vast majority of segments outlined individual nuclei (\nameref{S1_Fig} C).
-
-This approach is flexible and should perform adequately in many scenarios. However, we acknowledge that no individual strategy can address all microscopy data because segmentation is strongly context dependent. All subsequent stages of analysis were therefore designed to be compatible with any data that conform to our standardized file structure. This modular arrangement grants users the freedom to use one of the many other available segmentation platforms \cite{Bugarski2014}, including FlyEye Silhouette \cite{Pelaez2015a}, before applying the remaining functionalities of our framework. Regardless of how nuclear contours are identified, averaging the pixel intensities within them yields fluorescence intensity measurements for each reporter in each identified nucleus. We next sought to ensure that these measurements were suitable for comparison across clones.
-
-
-\subsection*{Bleedthrough correction}
-\label{ch:correction}
-
-Despite efforts to select non-overlapping reporter bandwidths and excite them sequentially, it is not uncommon for reporters excited at one wavelength to emit some fluorescence in another channel (Fig \ref{fig2}B, yellow lines) \cite{Bacia2012,Zinchuk2007}. The end result is a positive correlation, or crosstalk, between the measured fluorescence intensities of two or more reporters. Exogenous correlations are problematic given that the purpose of the experiment is to detect changes in reporter levels with respect to the clonal marker.
-
-In our microscopy data, individual clones were distinguished by their low, medium, or high expression levels of an RFP-tagged clonal marker (Fig \ref{fig3}A). These images should not have shown any detectable difference in GFP levels across clones because all cells carried an equivalent dosage of the control reporter (\nameref{S1_Fig} A). However, the images visibly suffered from bleedthrough between the RFP and GFP channels (Fig \ref{fig3}A,B). Bleedthrough was similarly evident when we compared measured GFP levels across labeled clones. Nuclei labeled mutant, heterozygous, or homozygous for the clonal marker had low, medium, and high expression levels of the control reporter, respectively (Fig \ref{fig3}C, black boxes). The data were therefore ripe for systematic correction.
-
-\begin{figure}[t]
-\centering
-\includegraphics[scale=1.0]{./figure_3}
-\caption{\textbf{Automated correction of fluorescence bleedthrough in the larval eye.}
-(A) Low, medium, and high expression levels of the RFP-tagged clonal marker. (B) GFP-tagged control reporter expression. RFP fluorescence bleedthrough is visually apparent upon comparison with A. (C) Comparison of control reporter expression between clones. Includes data aggregated across nine images taken from six separate eye discs. Data were limited to cells within the region of elevated GFP expression that were of approximately comparable developmental age (see \nameref{S2_Fig} E-G). Measurements are stratified by their assigned labels. Before correction, expression differs between clones (black boxes, $p<10^{-5}$). No difference is detected after correction (red boxes, $p>0.05$).}
-\label{fig3}
-\end{figure}
-
-Spectral bleedthrough correction is common practice in other forms of cross-correlation and co-localization microscopy \cite{Bacia2012,Zinchuk2007}. These methods typically entail characterizing the extent of crosstalk between fluorophores globally \cite{Arsenovic2017,Kim2013}, on a pixel-by-pixel basis \cite{Elangovan2003}, or by experimental calibration \cite{Bacia2012}, then detrending all images or measurements prior to subsequent analysis. Our framework adopts the global approach, using the background pixels in each image to infer the extent of fluorescence bleedthrough across spectral channels.
-
-Specifically, we assume the fluorescence intensity $F_{ij}$ for channel $i$ at pixel $j$ is a superposition of a background intensity $B_{ij}$ and some function of the expression level $E_{ij}$ that we seek to compare across cells \cite{McMullen2010}:
-\begin{linenomath} \begin{gather}
-F_{ij} = B_{ij} + f(E_{ij})
-\end{gather} \end{linenomath}
-We further assume that the background intensity of a channel includes linear contributions from the fluorescence intensity of each of the other channels:
-\begin{linenomath} \begin{gather}
-B_{ij} = \sum_{k \neq i}{\alpha_k F_{kj}} + \beta
-\end{gather} \end{linenomath}
-where $k$ is indexed over $K$ anticipated sources of bleedthrough. Given estimates for each $\{\alpha_1, \alpha_2, \ldots \alpha_K\}$ and $\beta$ we can then estimate the background intensity of each measurement:
-\begin{linenomath} \begin{gather} \label{eq:bg_model}
-\langle\ B_{ij}\ \rangle = \sum_{k \neq i}{\alpha_k \langle F_{kj} \rangle} + \beta
-\end{gather} \end{linenomath}
-where the braces denote the average across all pixels within a single nucleus. The corrected signal value is obtained by subtracting the background intensity from the measured fluorescence level:
-\begin{linenomath} \begin{gather} \label{eq:correction}
-\langle\ f(E_{ij}) \ \rangle = \langle\ F_{ij}\ \rangle - \langle\ B_{ij}\ \rangle
-\end{gather} \end{linenomath}
-
-Repeating this procedure for each nucleus facilitates comparison of relative expression levels across nuclei in the absence of bleedthrough effects. Bleedthrough correction performance is therefore strongly dependent upon accurate estimation of the bleedthrough contribution strengths, $\{\alpha_1, \alpha_2, \ldots \alpha_K\}$. 
-
-We estimate these parameters by characterizing their impact on background pixels (see Methods). When applied to the microscopy data, bleedthrough correction successfully eliminated any detectable difference in GFP expression across clones (Fig \ref{fig2}C, red boxes, $p>0.05$ two-sided Mann-Whitney \textit{U} test).
-
-
-\subsection*{Automated annotation of clones}
-\label{ch:annotation}
-
-Our annotation strategy seeks to label each identified cell as homozygous mutant, heterozygous wildtype, or homozygous wildtype for the clonal marker. Variation within each clone precludes accurate classification of a cell's genotype solely on the basis of its individual expression level. However, clonal lineages are unlikely to exist in isolation because recombination events are typically timed to generate large clones. Our strategy therefore integrates both clonal marker expression and spatial context to identify clusters of cells with locally homogeneous expression behavior, then maps each cluster to one of the possible labels. This unsupervised approach lends itself to automated annotation because the clusters are inferred directly from the data without any guidance from the user.
-
-We first train a statistical model to estimate the probability that a given measurement came from a cell carrying zero, one, or two copies of the clonal marker (\nameref{S3_Fig} A). This entails fitting a weighted mixture of three or more bivariate lognormal distributions (components) to a two dimensional set of observations (\nameref{S3_Fig} B,C). The first dimension corresponds to the clonal marker fluorescence level measured within each cell. The second dimension describes the local average expression level within the region surrounding each cell. We evaluate the latter by estimating a neighborhood radius from the decay of the radial correlation of the expression levels, then averaging the expression levels of all cells within that radius (\nameref{S3_Fig} D). The second dimension therefore measures the spatial context in which a cell resides. We balance model fidelity against overfitting by using the Bayesian information criterion to determine the optimal number of model components (\nameref{S3_Fig} E). We then cluster the components into three groups on the basis of their mean values (\nameref{S3_Fig} F), effectively mapping each component to one of the three possible gene dosages. The model may be trained using observations derived from a single image, or with a collection of observations derived from multiple images. Once trained, the model is able to predict the conditional probability that an individual observation belongs to one of the model's components, given its measured expression level.
-
-We then use the learned conditional probabilities to detect entire clones, thus assigning a label to each cell. Rather than using the trained model to classify each observation, we compile a new set of observations by limiting each estimate of spatial context to spatially collocated communities with similar expression behavior (\nameref{S4_Fig} A). We identify these communities by applying a community detection algorithm to an undirected graph connecting adjacent cells (\nameref{S4_Fig} B). Edges in this graph are weighted by the similarity of clonal marker expression between neighbors, resulting in communities with similar expression levels (\nameref{S4_Fig} E, Steps I and II). The graph-based approach increases spatial resolution by limiting the information shared by dissimilar neighbors. Applying the mixture model yields an initial estimate of the probability that an observation belongs to one of the model's components (\nameref{S4_Fig} E, Step III). We further refine these estimates by allowing the probabilities estimated for each cell to diffuse throughout the graph (\nameref{S4_Fig} E, Step IV). The rate of diffusion between neighbors is determined by the weight of the edge that connects them, with more similar neighbors exerting stronger influence on each other. We then use the diffused probabilities to identify the most probable source component and label each observation (\nameref{S4_Fig} E, Step V). These probabilities also provide a measure of confidence in the assigned labels. We replace any low-confidence labels with alternate labels assigned using a marginal classifier that neglects spatial context (\nameref{S4_Fig} F,G), resulting in a fully labeled image (\nameref{S4_Fig} H).
-
-The algorithm leverages the collective wisdom of neighboring measurements to override spatially isolated fluctuations in clonal marker expression, and thereby enforces consistent annotation within contiguous regions of the image field. The size of these regions depends upon the granularity of estimates for the spatial context surrounding each cell. We used an unsupervised approach to choose an appropriate spatial resolution in a principled manner. In short, the resolution is matched to the approximate length scale over which expression levels remain correlated among cells. Both the training and application stages of our annotation algorithm use this automated approach (\nameref{S3_Fig} D and \nameref{S4_Fig} D), thus averting any need for user input.
-
-
-\subsection*{Manual assessment of annotation performance}
-
-We sought to validate the performance of the annotation algorithm by assessing its ability to accurately reproduce human-assigned labels. We manually labeled nuclei in each eye imaginal disc as homozygous mutant, heterozygous wildtype, or homozygous wildtype for the clonal marker, then automatically labeled the same cells (Fig \ref{fig4}A). The two sets of labels showed strong overall agreement (Fig \ref{fig4}B and \nameref{S5_Fig} A). Excluding cells on the border of each clone revealed greater than 97\% agreement in seven of the nine annotated images (see Table \ref{table:agreement}). Upon secondary inspection of the sole instance of substantial disagreement (\nameref{S5_Fig} B), we are unable to confidently discern which set of labels are more accurate.
-
-\begin{figure}[t]
-\centering
-\includegraphics[scale=1.0]{./figure_4}
-\caption{\textbf{Automated unsupervised annotation of clones in the larval eye.}
-(A) Labels assigned by automated annotation. Yellow, cyan, and magenta denote the label assigned to each contour. Labels are overlayed on the RFP channel of the image shown in \nameref{S1_Fig} B. Cells on the periphery of each clone are excluded. (B) Comparison of automated annotation with manually-assigned labels. Confusion matrix includes data aggregated across nine images taken from six separate eye discs. Cells on the periphery of each clone are included. Columns sum to one.}
-\label{fig4}
-\end{figure}
-
-% TABLE OF ANNOTATION SCORES
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{table}[!ht]
-%\begin{adjustwidth}{-2.25in}{0in} % Comment out/remove adjustwidth environment if table fits in text column.
-\centering
-\captionsetup{justification=centering}
-\caption{ {\bf Automated vs. manual annotation} }
-\begin{tabular}{|l|l+l|}
-\hline
-\bf Disc & \bf Layer & \bf Agreement* \\
-\thickhline
-1 & 1 & 93.1\% (97.3\%) \\ \hline
-1 & 2 & 95.3\% (97.3\%) \\ \hline
-2 & 1 & 91.3\% (99.1\%) \\ \hline
-2 & 2 & 95.2\% (96.4\%) \\ \hline
-3 & 1 & 67.2\% (75.6\%) \\ \hline
-4 & 1 & 82.5\% (89.2\%) \\ \hline
-5 & 1 & 96.2\% (100\%) \\ \hline
-6 & 1 & 99.1\% (99.3\%) \\ \hline
-6 & 2 & 95.2\% (97.5\%) \\ \hline
-\end{tabular}
-\label{table:agreement}
-%\end{adjustwidth}
-\begin{center} \small *Values in parentheses denote agreement\\ when clone borders are excluded. \end{center}
-\end{table}
-
-While it is common practice to use human-labeled data as the gold standard, manually assigned labels do not represent a reliable and reproducible ground truth. Furthermore, we contend that validation with manually-labeled data entrains implicit human biases in the selection of performant algorithms. These biases are particularly pronounced in biological image data where intrinsic variation, measurement noise, and transient processes can make cell-type annotation a highly subjective, and thus irreproducible, task. 
-
-
-\subsection*{Synthetic benchmarking of annotation performance}
-\label{ch:benchmarking}
-
-Synthetic benchmarking provides a powerful alternative to validation against manually labeled data. The idea is simple; measure how accurately an algorithm is able to label synthetic data for which the labels are known. The synthetic data generation procedure may be modeled after the process underlying formation of the real data, providing a means to assess the performance of an algorithm across the range of conditions that it is likely to encounter. The strategy therefore provides a means to survey the breadth of biologically plausible conditions under which the algorithm provides adequate performance. Synthetic benchmarking also facilitates unbiased comparison of competing algorithms, resulting in a reliable standard that may be called upon at any time. 
-
-We used synthetic microscopy data to benchmark the performance of our annotation strategy. Each synthetic dataset depicts a simulated culture of cells distributed roughly uniformly in space (\nameref{S6_Fig} A). Cells in this culture contain zero, one, or two copies of a gene encoding an RFP-tagged clonal marker (\nameref{S6_Fig} B). Our simulation procedure ensures that cells tend to remain proximal to their clonal siblings (\nameref{S6_Fig} C), thus forming synthetic clones with tunable size and spatial heterogeneity (\nameref{S6_Fig} D,E). We generated synthetic measurements by randomly sampling fluorescence levels in a dosage-depend manner (\nameref{S7_Fig} A-C). We varied the similarity of fluorescence levels across clones using an ambiguity parameter, $\sigma_{\alpha}$, that modulates the spread of the distributions used to generate fluorescence levels (\nameref{S7_Fig} D-F). 
-
-Using this schema as a template, we generated a large synthetic dataset, annotated each set of measurements, and compared the assigned labels with their true values. We used the mean absolute error as a comparison metric because it provides a stable measure of accuracy for multiclass classification problems in which the labels are intrinsically ordered \cite{Gaudette2009}. In other words, it penalizes egregious misclassifications more severely than mild ones.
-
-Annotation performance is very strong for all cases in which $\sigma_{\alpha} \leq 0.3$ (Fig \ref{fig5}). Unsurprisingly, performance suffers as the difficulty of the classification problem is increased. The same trends are evident when performance is graded strictly on accuracy (\nameref{S8_Fig}). As cells on the periphery of each clone were not excluded from these analyses, the observed metrics provide a lower bound on the performance that may be anticipated in practice.
-
-\begin{figure}[t]
-\centering
-\includegraphics[scale=1.0]{figure_5}
-\caption{\textbf{Synthetic benchmarking of automated annotation performance.}
-Each pixel reflects the mean MAE across 50 replicates. Clone size reflects the mean number of cells per clone. Performance improves with increasing clone size and worsens with increasing fluorescence ambiguity.}
-\label{fig5}
-\end{figure}
-
-Performance improved with increasing clone size. We suspected this was caused by larger clones offering additional spatial context to inform the identify of each cell. We verified our assertion by re-evaluating performance relative to a variant of our annotation algorithm that neglects spatial context (\nameref{S4_Fig} G). As expected, the variant's performance exhibited no dependence on clone size (\nameref{S9_Fig} A). Comparing the two strategies confirmed that spatial context confers the most benefit when clones are large (\nameref{S9_Fig} B). Inclusion of spatial context also becomes increasingly advantageous as the fluorescence ambiguity is increased, even for smaller clones. Thus, spatial context adds progressively more value as the classification task becomes more difficult.
-
-This observation may be rationalized from a statistical perspective. Each cell is classified by maximizing the probability that the assigned label is correct. We compute these probabilities using the estimated expression level of each cell. Neglecting spatial context, this estimate is limited to a single sample and is therefore highly sensitive to both measurement and biological noise. Incorporating spatial context expands the sample size and thereby reduces the standard error of the estimated fluorescence level. The strategy is thus generally well suited to scenarios in which fluorescence intensities correlate across large clones, and closely parallels computer vision methods that exploit spatial contiguity to segment image features with ill-defined borders \cite{Nguyen2012}. Because increased measurement precision comes at the expense of spatial resolution, we expect strong performance when measurements are aggregated across relatively large clones, but failure to detect small, heterogeneous clones. These expectations are consistent with the observed results. They are also conveniently aligned with the anticipated properties of real data, as experiments typically attempt to mitigate edge effects by driving early recombination events to generate large clones.
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CONCLUSION
-
-\section*{Conclusion}
-
-We used synthetic data to survey the performance of our annotation strategy across a much broader range of conditions than would have otherwise been possible with manually labeled data. This included conditions well beyond those of practical use. In particular, experiments designed to compare gene expression levels across clones would likely seek to avoid generating small clones with ambiguous clonal marker expression. Synthetic data provided a means to survey these edge cases and establish a lower bound on annotation performance. The strong performance observed across the remaining conditions bolsters our confidence that our annotation strategy is well suited to the images it is likely to encounter.
-
-In each of our examples, clones were distinguished by ternary segregation of clonal marker fluorescence levels. Modern mosaic analysis techniques continue to deploy ternary labeling \cite{Gambis2011,Dourlen2013}, but also frequently opt for binary labeling of mutant versus non-mutant clones \cite{Fisher2017,Wu2007,Zhou2016} and dichromic labeling of twin-spots \cite{Heffern2009,Yu2010}. Our annotation scheme readily adapts to each of these scenarios provided that the number of anticipated labels is adjusted accordingly. In the case of dichromic labeling, binary classification would be performed separately for each color channel before merging the assigned labels. Extending the same logic to combinatorial pairs of colors suggests that our framework may also be compatible with multicolor labeling schemes used to simultaneously trace many clonal lineages over time \cite{Denes2013,Hadjieconomou2011,Hampel2011}. Our framework is thus well suited to many different mosaic analysis platforms deployed in imaginal discs.
-
-In principle, the framework described here should also be applicable to a wide variety of other tissues \cite{Neufeld1998,Tworoger1999} and model organisms \cite{Collins2010,Munoz-Jimenez2017,Wang2007} in which mosaics are studied. In practice, application to alternate contexts would require modifying some stages of the analysis. Most notably, image segmentation is strongly context dependent and any attempts to develop a universally successful strategy are likely to prove futile \cite{Meijering2012}. For this reason, we implemented a modular design in which each stage of analysis may be applied separately. For example, a user could perform their own segmentation before using our bleedthrough correction and clone annotation tools. By offering modular functionalities we hope to extend the utility of our software to the wider community of developmental biologists. Furthermore, the open-source nature of our framework supports continued development of more advanced features as various demands arise. Our synthetic benchmarking platform could then be used to objectively confirm the benefit conferred by any future developments.
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% SUPPLEMENT
 
 \section*{Supporting information}
@@ -615,7 +611,7 @@ Each pixel reflects the average across 50 replicates. Clone size reflects the me
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%% ACKNOWLEDGEMENTS
 
 \section*{Acknowledgments}
-Cras egestas velit mauris, eu mollis turpis pellentesque sit amet. Interdum et malesuada fames ac ante ipsum primis in faucibus. Nam id pretium nisi. Sed ac quam id nisi malesuada congue. Sed interdum aliquet augue, at pellentesque quam rhoncus vitae.
+We thank ...
 
 \nolinenumbers
 
