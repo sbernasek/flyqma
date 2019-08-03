@@ -132,8 +132,8 @@
 
 
 % Remove comment for double spacing
-%\usepackage{setspace} 
-%\doublespacing
+\usepackage{setspace} 
+\doublespacing
 
 % Text layout
 \raggedright
@@ -187,29 +187,30 @@
 % Title must be 250 characters or less.
 \begin{flushleft}
 {\Large
-\textbf\newline{Automated analysis of mosaic imaginal discs in \textit{Drosophila}} % Please use "sentence case" for title and headings (capitalize only the first word in a title (or heading), the first word in a subtitle (or subheading), and any proper nouns).
+\textbf\newline{Fly-QMA: Automated analysis of mosaic imaginal discs in \textit{Drosophila}} % Please use "sentence case" for title and headings (capitalize only the first word in a title (or heading), the first word in a subtitle (or subheading), and any proper nouns).
 }
 \newline
 % Insert author names, affiliations and corresponding author email (do not include titles, positions, or degrees).
 \\
 Sebastian Bernasek\textsuperscript{1,2},
-Nicol\'as Pel\'aez\textsuperscript{3,\ddag},
+Nicol\'as Pel\'aez\textsuperscript{3,\#},
 Richard Carthew\textsuperscript{2,3,4},
 Neda Bagheri\textsuperscript{1,2,5*}, and
 Lu\'is Amaral\textsuperscript{1,2,5,6*}
 \\
 \bigskip
-\textbf{1} Department of Chemical and Biological Engineering, Northwestern University, Evanston, IL, USA
+
+\textsuperscript{1} Department of Chemical and Biological Engineering, Northwestern University, Evanston, IL, USA
 \\
-\textbf{2} NSF-Simons Center for Quantitative Biology, Northwestern University, Evanston, IL, USA
+\textsuperscript{2} NSF-Simons Center for Quantitative Biology, Northwestern University, Evanston, IL, USA
 \\
-\textbf{3} Department of Molecular Biosciences, Northwestern University, Evanston, IL, USA
+\textsuperscript{3} Department of Molecular Biosciences, Northwestern University, Evanston, IL, USA
 \\
-\textbf{4} Department of Biochemistry and Molecular Genetics, Northwestern University, Evanston, IL, USA
+\textsuperscript{4} Department of Biochemistry and Molecular Genetics, Northwestern University, Evanston, IL, USA
 \\
-\textbf{5} Northwestern Institute on Complex Systems, Northwestern University, Evanston, IL, USA
+\textsuperscript{5} Northwestern Institute on Complex Systems, Northwestern University, Evanston, IL, USA
 \\
-\textbf{6} Department of Physics and Astronomy, Northwestern University, Evanston, IL, USA
+\textsuperscript{6} Department of Physics and Astronomy, Northwestern University, Evanston, IL, USA
 \\
 \bigskip
 
@@ -217,18 +218,27 @@ Lu\'is Amaral\textsuperscript{1,2,5,6*}
 % 
 
 % Current address notes
-\ddag Current Address: Division of Biology and Biological Engineering, California Institute of Technology, Pasadena, CA, USA % change symbol to "\textcurrency a" if more than one current address note
+\textsuperscript{\#} Current Address: Division of Biology and Biological Engineering, California Institute of Technology, Pasadena, CA, USA. Howard Hughes Medical Institute. 
+\\
+\bigskip
+
+% change symbol to "\textcurrency a" if more than one current address note
 % \textcurrency b Insert second current address 
 % \textcurrency c Insert third current address
 
 % Use the asterisk to denote corresponding authorship and provide email address in note below.
-* Corresponding authors may be reached via n-bagheri@northwestern.edu and amaral@northwestern.edu.
+* Corresponding author \\
+E-mail: n-bagheri@northwestern.edu (NB) or amaral@northwestern.edu (LANA) \\
 
 
 \end{flushleft}
+
+\pagebreak
+
+
 % Please keep the abstract below 300 words
 \section*{Abstract}
-Mosaic analysis provides a means to probe developmental processes in situ by generating loss-of-function mutants within otherwise wildtype tissues. Combining these techniques with quantitative microscopy enables researchers to rigorously compare gene expression across the resultant clones. However, visual inspection of mosaic tissues remains common in the literature because quantification demands considerable labor and computational expertise. Practitioners must segment cell walls or cell nuclei and annotate the clones before their data are suitable for analysis. Here, we introduce a computational framework that automates each of these tasks for confocal microscopy images of \textit{Drosophila} imaginal discs. The framework includes an unsupervised annotation algorithm that incorporates spatial context to inform the genetic identity of each cell. We use a combination of real and synthetic validation data to survey the performance of the annotation algorithm across a broad range of conditions. By contributing our framework to the open-source ecosystem, we aim to contribute to the current move toward automated quantitative analysis among developmental biologists.
+Mosaic analysis provides a means to probe developmental processes in situ by generating loss-of-function mutants within otherwise wildtype tissues. Combining these techniques with quantitative microscopy enables researchers to rigorously compare RNA or protein expression across the resultant clones. However, visual inspection of mosaic tissues remains common in the literature because quantification demands considerable labor and computational expertise. Practitioners must segment cell membranes or cell nuclei from a tissue and annotate the clones before their data are suitable for analysis. Here, we introduce Fly-QMA, a computational framework that automates each of these tasks for confocal microscopy images of \textit{Drosophila} imaginal discs. The framework includes an unsupervised annotation algorithm that incorporates spatial context to inform the genetic identity of each cell. We use a combination of real and synthetic validation data to survey the performance of the annotation algorithm across a broad range of conditions. By contributing our framework to the open-source software ecosystem, we aim to contribute to the current move toward automated quantitative analysis among developmental biologists.
 
 
 % Please keep the Author Summary between 150 and 200 words
@@ -247,9 +257,9 @@ Biologists use mosaic tissues to compare the behavior of genetically distinct ce
 \section*{Introduction}
 Quantification will be essential as biologists study increasingly complex facets of organismal development \cite{Oates2009}. Unfortunately, qualitative analysis remains common because it is often difficult to measure cellular processes in their native context. Modern fluorescent probes and microscopy techniques make such measurements possible \cite{Muzzey2009a,Stelzer2014,Truong2011}, but the ensuing image analysis demands specialized skills that fall beyond the expertise of most experimentalists. Automated analysis strategies have addressed similar challenges in cytometry \cite{Aghaeepour2013,Chen2015,Pyne2009}, genomics and transcriptomics \cite{Bernstein2008,Hellemans2007,Langmead2012,Trapnell2009}, and other subdisciplines of biology \cite{Costes2004,Kelley2015}. Image analysis has proven particularly amenable to automation, with several computer vision tools having gained traction among biologists \cite{Carpenter2006,Paintdakhi2016,Schindelin2012,Sommer2011}. These platforms are popular because they increase productivity, improve the consistency and sensitivity of measurements, and obviate the need for specialized computational proficiency \cite{Jug2014,Sbalzarini2016,Schindelin2015}. Designing similar tools to help biologists probe and measure developmental processes in vivo will further transform studies of embryogenesis and development into quantitative endeavors.
 
-Developmental biologists study how the expression and function of individual genes coordinate the emergence of adult phenotypes. They often ask how cells respond when a specific gene is perturbed during a particular stage of development. Cell response may be characterized by changes in morphology, or by changes in the expression of other genes (Fig \ref{fig1}A). Experimental efforts to answer this question were historically stifled by the difficulty of isolating perturbations to a single developmental context, as the most interesting perturbation targets often confer pleiotropic function across several stages of development \cite{IanSimpson2002,Parody1993,Shilo1991}. 
+Developmental biologists study how the expression and function of individual genes coordinate the emergence of adult phenotypes. They often ask how cells respond when a specific gene, RNA, or protein is perturbed during a particular stage of development. Cell response may be characterized by changes in morphology, or by changes in the expression of other genes (Fig \ref{fig1}A). Experimental efforts to answer this question were historically stifled by the difficulty of isolating perturbations to a single developmental context, as the most interesting perturbation targets often confer pleiotropic function across several stages of development and can trigger early embryonic lethality \cite{IanSimpson2002,Parody1993,Shilo1991}. 
 
-Mosaic analysis addressed this challenge in \textit{Drosophila} by limiting perturbations to a subset of cells within the imaginal discs of the larva \cite{Xu1993,Xu2012}. The technique yields a heterogeneous tissue comprised of genetically distinct patches of cells that are clonally related. Cells within each clone are genetically identical. Clone formation is restricted to the imaginal discs by using disc-specific gene promoters to drive trans-chromosomal recombination events \cite{Newsome2000,Theodosiou1998}. The timing of these events determines the number and size of the resultant clones \cite{Struhl1993}. Perturbations are applied by engineering the dosage of a target gene to differ across clones (Fig \ref{fig1}B), resulting in clones whose cells are either homozygous mutant ($-$/$-$), heterozygous wildtype (+/$-$), or homozygous wildtype (+/+) for the particular gene. Labeling these clones with fluorescent markers enables direct comparison of cells subject to control or perturbation conditions (Fig \ref{fig2}A). Additional reporters may be used to monitor differences in gene expression or morphology across clones (Fig \ref{fig2}B). Variants of this strategy led to seminal discoveries in neural patterning \cite{Halfar2001,Tomlinson2001,Yang2001}, morphogenesis \cite{Huang2005,Thompson2006}, and remain popular today \cite{Atkins2019,Enomoto2018,Germani2018}.
+Mosaic analysis addressed this challenge in \textit{Drosophila} by limiting perturbations to a subset of cells within the imaginal discs of the larva \cite{Xu1993,Xu2012}. The technique yields a heterogeneous tissue comprised of genetically distinct patches of cells that are clonally related. Aside from rare de novo mutations, cells within each clone are genetically identical. Clone formation may be restricted to specific developing organs by using disc-specific gene promoters to drive trans-chromosomal recombination events in the corresponding imaginal discs \cite{Newsome2000,Theodosiou1998}. The timing of these events determines the number and size of the resultant clones \cite{Struhl1993}. Perturbations are applied by engineering the dosage of a target gene to differ across clones (Fig \ref{fig1}B), resulting in clones whose cells are either homozygous mutant ($-$/$-$), heterozygous wildtype (+/$-$), or homozygous wildtype (+/+) for the particular gene. Labeling these clones with the presence or absence of fluorescent markers enables direct comparison of cells subject to control or perturbation conditions, while maintaining otherwise equivalent developmental and physiological histories between the two cell populations (Fig \ref{fig2}A). Additional reporters may be used to monitor differences in RNA or protein expression, morphology, or cell fate choice across clones (Fig \ref{fig2}B). Variants of this strategy led to seminal discoveries in both neural patterning \cite{Halfar2001,Tomlinson2001,Yang2001} and morphogenesis \cite{Huang2005,Thompson2006}, and remain popular today \cite{Atkins2019,Enomoto2018,Germani2018}.
 
 \begin{figure}[!h]
 \centering
@@ -261,13 +271,13 @@ Experimental framework using mitotic clones to test whether or not regulatory in
 
 Quantitative microscopy techniques are well suited to measuring differences in cell behavior across clones. One reporter (a clonal marker) labels the clones, while others quantitatively report properties of their constituent cells, such as the expression level of a gene product of interest (Fig \ref{fig2}C). The former then defines the stratification under which the latter are compared. We call this strategy Quantitative Mosaic Analysis (QMA) because it replaces subjective visual comparison with a rigorous statistical alternative. Although a few recent studies have deployed this approach \cite{Dai2017,Bernasek2018,Ghiglione2018,Li2018}, qualitative visual comparison remains pervasive in the literature.
 
-We suspect the adoption of QMA has been hindered by demand for specialized computational skills or, in their stead, extensive manual labor. Researchers must first draw or detect boundaries around individual nuclei in a procedure known as segmentation (Fig \ref{fig2}D). Averaging the pixel intensities within each boundary then yields a fluorescence intensity measurement for each reporter in each identified nucleus (Fig \ref{fig2}E). The measurements should then be corrected to account for any fluorescence bleedthrough between reporter channels (Fig \ref{fig2}F). Correction often requires single-reporter calibration experiments to quantify the crosstalk, followed by complex calculations to remedy the data \cite{Bacia2012,Elangovan2003}. Researchers must then label, or annotate, each identified nucleus as mutant, heterozygous, or homozygous for the clonal marker. Annotation is typically achieved through visual inspection (Fig \ref{fig2}G). Cells carrying zero, one, or two copies of the clonal marker should exhibit low, medium, or high average levels of fluorescence, respectively. However, both measurement and biological noise introduce the possibility that some cells’ measured fluorescence levels may not reliably reflect their genetic identity. Annotation must therefore also consider the spatial context surrounding each nucleus. For instance, a nucleus whose neighbors express high levels of the clonal marker is likely to be homozygous for the clonal marker, even if its individual fluorescence level is comparable to that of heterozygous cells (Fig \ref{fig2}G, white arrows). With many biological replicates containing thousands of cells each, annotation can quickly become insurmountably tedious. The corrected and labeled measurements are then curated for statistical comparison by excluding those on the border of each clone, and limiting their scope to particular regions of the image field (Fig \ref{fig2}H). Combined, all of these tasks ultimately burden researchers and raise the barrier for adoption of QMA. 
+We suspect the adoption of QMA has been hindered by demand for specialized computational skills or, in their stead, extensive manual labor. Researchers must first draw or detect boundaries around individual nuclei in a procedure known as segmentation (Fig \ref{fig2}D). Averaging the pixel intensities within each boundary then yields a fluorescence intensity measurement for each reporter in each identified nucleus (Fig \ref{fig2}E). The measurements should then be corrected to account for any fluorescence bleedthrough between reporter channels (Fig \ref{fig2}F). Correction often requires single-reporter calibration experiments to quantify any potential crosstalk between different fluorophores, followed by complex calculations to remedy the data \cite{Bacia2012,Elangovan2003}. Researchers must then label, or annotate, each identified nucleus as mutant, heterozygous, or homozygous for the clonal marker. Annotation is typically achieved through visual inspection (Fig \ref{fig2}G). Cells carrying zero, one, or two copies of the clonal marker should exhibit low, medium, or high average levels of fluorescence, respectively. However, both measurement and biological noise introduce the possibility that some cells’ measured fluorescence levels may not reliably reflect their genetic identity. Annotation must therefore also consider the spatial context surrounding each nucleus. For instance, a nucleus whose neighbors express high levels of the clonal marker is likely to be homozygous for the clonal marker, even if its individual fluorescence level is comparable to that of heterozygous cells (Fig \ref{fig2}G, white arrows). Spatial context is particularly informative in developing tissues where cell migration is minimal, such as the fly imaginal discs. With many biological replicates containing thousands of cells each, annotation can quickly become insurmountably tedious. The corrected and labeled measurements are then curated for statistical comparison by excluding those on the border of each clone, and limiting their scope to particular regions of the image field (Fig \ref{fig2}H). Combined, all of these tasks ultimately burden researchers and raise the barrier for adoption of QMA. 
 
 \begin{figure}[!h]
 \centering
 \includegraphics[width=1.0\columnwidth]{./figure_2}
 \caption{\textbf{Conventional versus quantitative mosaic analysis.}
-(A,B) Conventional analysis of a mosaic eye imaginal disc. (A) Clones are identified by visual comparison of clonal marker fluorescence among nuclei. (B) Regions labeled homozygous mutant ($-$/$-$) or homozygous wildtype (+/+) for the clonal marker are compared with those labeled heterozygous wildyype (+/$-$) to assess whether reporter expression differs across clones. Fluorescence bleed-through is arbitrarily diagnosed. (C-H) Quantitative mosaic analysis. Panels depict a magnified view of the region enclosed by red rectangles in panels A and B. (C) Raw confocal image of the nuclear stain, clonal marker, and reporter of interest. (D) Segmentation identifies distinct nuclei. (E) Reporter expression is quantified by averaging the pixel intensities within each segment. Numbers reflect measured values. (F) Measurements may be corrected to mitigate fluorescence bleedthrough. (G) Individual nuclei are labeled homozygous mutant, heterozygous, or homozygous wildtype for the clonal marker. White arrows mark nuclei with ambiguous fluorescence levels. (H) Reporter levels are compared across clones to determine whether the perturbation affects reporter expression. Yellow region marks excluded clone borders. Comparison may exclude clone borders (yellow regions) and focus on a particular region of the image field (black arrows). In the eye imaginal disc, comparison is often limited to a narrow window near the MF (orange arrow).}
+(A,B) Conventional analysis of a mosaic eye imaginal disc. (A) Clones are identified by visual comparison of clonal marker fluorescence among nuclei. (B) Regions labeled homozygous mutant ($-$/$-$) or homozygous wildtype (+/+) for the clonal marker are compared with those labeled heterozygous wildtype (+/$-$) to assess whether reporter expression differs across clones. Fluorescence bleed-through is arbitrarily diagnosed. (C-H) Quantitative mosaic analysis. Panels depict a magnified view of the region enclosed by red rectangles in panels A and B. (C) Raw confocal image of the nuclear stain, clonal marker, and reporter of interest. (D) Segmentation identifies distinct nuclei. (E) Reporter expression is quantified by averaging the pixel intensities within each segment. Numbers reflect measured values. (F) Measurements may be corrected to mitigate fluorescence bleedthrough. (G) Individual nuclei are labeled homozygous mutant, heterozygous, or homozygous wildtype for the clonal marker. White arrows mark nuclei with ambiguous fluorescence levels. (H) Reporter levels are compared across clones to determine whether the perturbation affects reporter expression. Yellow region marks excluded clone borders. Comparison may exclude clone borders (yellow regions) and focus on a particular region of the image field (black arrows). In the eye imaginal disc, comparison is often limited to a narrow window near the MF (orange arrow).}
 \label{fig2}
 \end{figure}
 
@@ -283,7 +293,7 @@ Here, we introduce Fly-QMA, an open-source framework for automated QMA of \texti
 \subsection*{Quantification of nuclear fluorescence levels}
 \label{ch:segmentation}
 
-We implemented a segmentation strategy based upon a standard watershed approach \cite{VanderWalt2014}. Briefly, we construct a foreground mask by Otsu thresholding the nuclear stain image following a series of smoothing and contrast-limited adaptive histogram equalization operations \cite{NobuyukiOtsu1979,VanderWalt2014}. We then apply a Euclidean distance transform to the foreground mask, identify the local maxima, and use them as seeds for watershed segmentation. When applied to the microscopy data, few visible spots in the nuclear stain were neglected, and the vast majority of segments outlined individual nuclei (\nameref{S1_Fig} C).
+We implemented a segmentation strategy based upon a standard watershed approach \cite{VanderWalt2014}. Briefly, we construct a foreground mask by Otsu thresholding the nuclear stain or nuclear label image following a series of smoothing and contrast-limited adaptive histogram equalization operations \cite{NobuyukiOtsu1979,VanderWalt2014}. We then apply a Euclidean distance transform to the foreground mask, identify the local maxima, and use them as seeds for watershed segmentation. When applied to the microscopy data, few visible spots in the nuclear stain were neglected, and the vast majority of segments outlined individual nuclei (\nameref{S1_Fig} C).
 
 This approach is flexible and should perform adequately in many scenarios. However, we acknowledge that no individual strategy can address all microscopy data because segmentation is strongly context dependent. All subsequent stages of analysis were therefore designed to be compatible with any data that conform to our standardized file structure. This modular arrangement grants users the freedom to use one of the many other available segmentation platforms \cite{Bugarski2014}, including FlyEye Silhouette \cite{Pelaez2015a}, before applying the remaining functionalities of our framework. Regardless of how nuclear contours are identified, averaging the pixel intensities within them yields fluorescence intensity measurements for each reporter in each identified nucleus. We next sought to ensure that these measurements were suitable for comparison across clones.
 
@@ -291,7 +301,7 @@ This approach is flexible and should perform adequately in many scenarios. Howev
 \subsection*{Bleedthrough correction}
 \label{ch:correction}
 
-Despite efforts to select non-overlapping reporter bandwidths and excite them sequentially, it is not uncommon for reporters excited at one wavelength to emit some fluorescence in another channel (Fig \ref{fig2}B, yellow lines) \cite{Bacia2012,Zinchuk2007}. The end result is a positive correlation, or crosstalk, between the measured fluorescence intensities of two or more reporters. Exogenous correlations are problematic given that the purpose of the experiment is to detect changes in reporter levels with respect to the clonal marker.
+Despite efforts to select non-overlapping reporter bandwidths and excite them sequentially, it is not uncommon for reporters excited at one wavelength to emit some fluorescence in the spectrum collected for another channel (Fig \ref{fig2}B, yellow lines) \cite{Bacia2012,Zinchuk2007}. The end result is a positive correlation, or crosstalk, between the measured fluorescence intensities of two or more reporters. Exogenous correlations between the measured fluorescence intensities of the clonal marker and the reporter of interest are problematic given that the purpose of the experiment is to detect changes in reporter levels with respect to the clonal marker.
 
 In our microscopy data, individual clones were distinguished by their low, medium, or high expression levels of an RFP-tagged clonal marker (Fig \ref{fig3}A). These images should not have shown any detectable difference in GFP levels across clones because all cells carried an equivalent dosage of the control reporter (\nameref{S1_Fig} A). However, the images visibly suffered from bleedthrough between the RFP and GFP channels (Fig \ref{fig3}A,B). Bleedthrough was similarly evident when we compared measured GFP levels across labeled clones. Nuclei labeled mutant, heterozygous, or homozygous for the clonal marker had low, medium, and high expression levels of the control reporter, respectively (Fig \ref{fig3}C, black boxes). The data were therefore ripe for systematic correction.
 
@@ -330,7 +340,7 @@ We estimate these parameters by characterizing their impact on background pixels
 \subsection*{Automated annotation of clones}
 \label{ch:annotation}
 
-Our annotation strategy seeks to label each identified cell as homozygous mutant, heterozygous wildtype, or homozygous wildtype for the clonal marker. Variation within each clone precludes accurate classification of a cell's genotype solely on the basis of its individual expression level. However, clonal lineages are unlikely to exist in isolation because recombination events are typically timed to generate large clones. Our strategy therefore integrates both clonal marker expression and spatial context to identify clusters of cells with locally homogeneous expression behavior, then maps each cluster to one of the possible labels. This unsupervised approach lends itself to automated annotation because the clusters are inferred directly from the data without any guidance from the user.
+Our annotation strategy seeks to label each identified cell as homozygous mutant, heterozygous wildtype, or homozygous wildtype for the clonal marker. Variation within each clone precludes accurate classification of a cell's genotype solely on the basis of its individual expression level. However, in tissues where cell migration is minimal, clonal lineages are unlikely to exist in isolation because recombination events are typically timed to generate large clones. Our strategy therefore integrates both clonal marker expression and spatial context to identify clusters of cells with locally homogeneous expression behavior, then maps each cluster to one of the possible labels. This unsupervised approach lends itself to automated annotation because the clusters are inferred directly from the data without any guidance from the user.
 
 We first train a statistical model to estimate the probability that a given measurement came from a cell carrying zero, one, or two copies of the clonal marker (\nameref{S3_Fig} A). This entails fitting a weighted mixture of three or more bivariate lognormal distributions (components) to a two dimensional set of observations (\nameref{S3_Fig} B,C). The first dimension corresponds to the clonal marker fluorescence level measured within each cell. The second dimension describes the local average expression level within the region surrounding each cell. We evaluate the latter by estimating a neighborhood radius from the decay of the radial correlation of the expression levels, then averaging the expression levels of all cells within that radius (\nameref{S3_Fig} D). The second dimension therefore measures the spatial context in which a cell resides. We balance model fidelity against overfitting by using the Bayesian information criterion to determine the optimal number of model components (\nameref{S3_Fig} E). We then cluster the components into three groups on the basis of their mean values (\nameref{S3_Fig} F), effectively mapping each component to one of the three possible gene dosages. The model may be trained using observations derived from a single image, or with a collection of observations derived from multiple images. Once trained, the model is able to predict the conditional probability that an individual observation belongs to one of the model's components, given its measured expression level.
 
@@ -408,7 +418,7 @@ This observation may be rationalized from a statistical perspective. Each cell i
 
 \section*{Conclusion}
 
-We used synthetic data to survey the performance of our annotation strategy across a much broader range of conditions than would have otherwise been possible with manually labeled data. This included conditions well beyond those of practical use. In particular, experiments designed to compare gene expression levels across clones would likely seek to avoid generating small clones with ambiguous clonal marker expression. Synthetic data provided a means to survey these edge cases and establish a lower bound on annotation performance. The strong performance observed across the remaining conditions bolsters our confidence that our annotation strategy is well suited to the images it is likely to encounter.
+We used synthetic data to survey the performance of our annotation strategy across a much broader range of conditions than would have otherwise been possible with manually labeled data. This included conditions well beyond those of practical use. In particular, experiments designed to compare gene expression levels across clones would likely seek to avoid generating small clones with ambiguous clonal marker expression. Beyond complicating the annotation task, small clones are also exposed to diffusion-mediated signals from adjacent clones that can mask the effect of mutations. Cells located near the clone boundaries are often excluded for the same reason, as quantification is typically most reliable in cells surrounded by similar neighbors. Synthetic data provided a means to survey these edge cases and establish a lower bound on annotation performance. The strong performance observed across the remaining conditions bolsters our confidence that our annotation strategy is well suited to the images it is likely to encounter.
 
 In each of our examples, clones were distinguished by ternary segregation of clonal marker fluorescence levels. Modern mosaic analysis techniques continue to deploy ternary labeling \cite{Gambis2011,Dourlen2013}, but also frequently opt for binary labeling of mutant versus non-mutant clones \cite{Fisher2017,Wu2007,Zhou2016} and dichromic labeling of twin-spots \cite{Heffern2009,Yu2010}. Our annotation scheme readily adapts to each of these scenarios provided that the number of anticipated labels is adjusted accordingly. In the case of dichromic labeling, binary classification would be performed separately for each color channel before merging the assigned labels. Extending the same logic to combinatorial pairs of colors suggests that our framework may also be compatible with multicolor labeling schemes used to simultaneously trace many clonal lineages over time \cite{Denes2013,Hadjieconomou2011,Hampel2011}. Our framework is thus well suited to many different mosaic analysis platforms deployed in imaginal discs.
 
@@ -566,6 +576,8 @@ To annotate each set of measurements, the mixture model given by Eq~\ref{eq:biva
 We have distributed the automated mosaic analysis framework as an open-source python package available at https://github.com/sebastianbernasek/clones. We also intend to incorporate its core features into future versions of \textit{FlyEye Silhouette}, our open-source platform for quantitative analysis of the larval eye. The code used to generate synthetic microscopy data is also freely available at https://github.com/sebastianbernasek/growth. All segmented and annotated eye discs are accessible via our data repository (https://doi.org/10.21985/N2F207). These include a series of Jupyter notebooks that enable complete reproduction of all figures and analysis presented in this manuscript.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% SUPPLEMENT
+\singlespacing
+
 
 \section*{Supporting information}
 
@@ -611,7 +623,7 @@ Each pixel reflects the average across 50 replicates. Clone size reflects the me
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%% ACKNOWLEDGEMENTS
 
 \section*{Acknowledgments}
-We thank ...
+We thank the Howard Hughes Medical Institute for funding Nicol\'as Pel\'aez though the International Student Fellows program and the Hanna H. Gray Fellowship.
 
 \nolinenumbers
 
