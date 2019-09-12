@@ -1,0 +1,195 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>flyqma.annotation.labelers &#8212; flyqma v0.1-beta documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for flyqma.annotation.labelers</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<div class="viewcode-block" id="AttributeLabeler"><a class="viewcode-back" href="../../../modules/annotation.html#flyqma.annotation.labelers.AttributeLabeler">[docs]</a><span class="k">class</span> <span class="nc">AttributeLabeler</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Assigns label to cell measurement data based on an existing attribute.</span>
+
+<span class="sd">    Attributes:</span>
+
+<span class="sd">        label (str) - name of label field to be added</span>
+
+<span class="sd">        attribute (str) - existing cell attribute used to determine labels</span>
+
+<span class="sd">        labeler (vectorized func) - callable that maps attribute values to labels</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">attribute</span><span class="p">,</span> <span class="n">labels</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Instantiate labeler.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            label (str) - name of label attribute to be added</span>
+
+<span class="sd">            attribute (str) - existing cell attribute used to determine labels</span>
+
+<span class="sd">            labels (dict) - {attribute value: label value} pairs</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># store label and attribute field names</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">label</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attribute</span> <span class="o">=</span> <span class="n">attribute</span>
+
+        <span class="c1"># vectorize labeling function</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">labeler</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vectorize</span><span class="p">(</span><span class="n">labels</span><span class="o">.</span><span class="n">get</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Assign labels by adding &lt;label&gt; field to cell measurement data.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">           data (pd.DataFrame) - cells measurement data with &lt;attribute&gt; field</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">assign_labels</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+<div class="viewcode-block" id="AttributeLabeler.assign_labels"><a class="viewcode-back" href="../../../modules/annotation.html#flyqma.annotation.labelers.AttributeLabeler.assign_labels">[docs]</a>    <span class="k">def</span> <span class="nf">assign_labels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Assign labels by adding &lt;label&gt; field to cell measurement data.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            data (pd.DataFrame) - cells measurement data with &lt;attribute&gt; field</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">labeler</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">attribute</span><span class="p">])</span></div></div>
+
+
+<div class="viewcode-block" id="CelltypeLabeler"><a class="viewcode-back" href="../../../modules/annotation.html#flyqma.annotation.labelers.CelltypeLabeler">[docs]</a><span class="k">class</span> <span class="nc">CelltypeLabeler</span><span class="p">(</span><span class="n">AttributeLabeler</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Assigns &lt;celltype&gt; to cell measurement data based on &lt;genotype&gt; attribute.</span>
+
+<span class="sd">    Attributes:</span>
+
+<span class="sd">        label (str) - name of label field to be added</span>
+
+<span class="sd">        attribute (str) - existing cell attribute used to determine labels</span>
+
+<span class="sd">        labeler (vectorized func) - callable that maps attribute values to labels</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;celltype&#39;</span><span class="p">,</span> <span class="n">attribute</span><span class="o">=</span><span class="s1">&#39;genotype&#39;</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Instantiate celltype labeler.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            label (str) - name of label attribute to be added</span>
+
+<span class="sd">            attribute (str) - existing cell attribute used to determine labels</span>
+
+<span class="sd">            labels (dict) - {genotype value: label} pairs</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># use default genotype labels</span>
+        <span class="k">if</span> <span class="n">labels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">labels</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span><span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span><span class="s1">&#39;none&#39;</span><span class="p">}</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">attribute</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../../index.html">
+    <img class="logo" src="../../../_static/img/flyqma_logo.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">INSTALLATION</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../start.html">GETTING STARTED</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../documentation.html">DOCUMENTATION</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usage.html">EXAMPLE USAGE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contact.html">CONTACT</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Sebastian Bernasek.
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

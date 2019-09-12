@@ -8,7 +8,7 @@
 Bleedthrough Module
 ===================
 
-``clones.bleedthrough`` provides methods for managing fluorescence bleedthrough between color channels.
+``flyqma.bleedthrough`` provides methods for managing fluorescence bleedthrough between color channels.
 
 
 Background Extraction
@@ -16,14 +16,14 @@ Background Extraction
 
 Extract the background pixels from a segmented image.
 
-.. automodule:: clones.bleedthrough.background
+.. automodule:: flyqma.bleedthrough.background
    :members:
 
 
 Linear Models
 -------------
 
-.. automodule:: clones.bleedthrough.models
+.. automodule:: flyqma.bleedthrough.models
    :members:
 
 
@@ -32,6 +32,6 @@ Bleedthrough Correction
 
 Correction for fluorescence bleedthrough.
 
-.. automodule:: clones.bleedthrough.correction
+.. automodule:: flyqma.bleedthrough.correction
    :members:
 

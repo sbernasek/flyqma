@@ -8,7 +8,7 @@
 Measurement Module
 ==================
 
-``clones.measurement`` provides tools for measuring protein expression by quantifying fluorescent reporter intensity in confocal images of developing *Drosophila* eyes.
+``flyqma.measurement`` provides tools for measuring protein expression by quantifying fluorescent reporter intensity in confocal images of developing *Drosophila* eyes.
 
 
 Image Segmentation
@@ -16,7 +16,7 @@ Image Segmentation
 
 Tools for detecting cells.
 
-.. automodule:: clones.measurement.segmentation
+.. automodule:: flyqma.measurement.segmentation
    :members:
 
 
@@ -26,6 +26,6 @@ Expression Measurement
 Tools for measuring the properties of detected cells.
 
 
-.. automodule:: clones.measurement.measure
+.. automodule:: flyqma.measurement.measure
    :members:
 

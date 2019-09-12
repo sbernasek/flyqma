@@ -4,16 +4,16 @@
    :alt: nulogo
    :target: https://amaral.northwestern.edu/
 
-=============
-FlyEye Clones
-=============
+=======
+Fly-QMA
+=======
 
 .. image:: graphics/header-01.png
    :width: 100%
    :align: center
    :alt: header
 
-**FlyEye Clones** is part of the **NU FlyEye** platform for studying gene expression in the developing *Drosophila* eye. The clones package enables quantitative comparisons of expression between distinct clonal subpopulations within the eye epithelium.
+**Fly-QMA** is part of the **NU FlyEye** platform for studying gene expression in the developing *Drosophila* eye. The Fly-QMA package enables quantitative mosaic analysis (QMA) - that is, it helps compare expression levels between distinct clonal subpopulations within the eye epithelium.
 
 Given confocal microscopy data, the package facilitates:
 
@@ -29,8 +29,7 @@ Given confocal microscopy data, the package facilitates:
 
   - **Comparison.** Compare expression levels between subpopulations
 
-
-The initial release is limited to basic tools required to replicate `our study <https://github.com/sebastianbernasek/pnt_yan_ratio>`_ of Pnt and Yan expression during retinal patterning in *Drosophila*. We intend to expand this functionality in later releases.
+To see Fly-QMA in action, check out `our study <https://github.com/sebastianbernasek/pnt_yan_ratio>`_ of Pnt and Yan expression during retinal patterning in *Drosophila*.
 
 
 .. toctree::

@@ -8,11 +8,11 @@
 Annotation Module
 =================
 
-``clones.annotation`` provides several tools for assigning labels to individual cell measurements.
+``flyqma.annotation`` provides several tools for assigning labels to individual cell measurements.
 
 
-.. automodule:: clones
-.. automodule:: clones.annotation
+.. automodule:: flyqma
+.. automodule:: flyqma.annotation
 
 
 Measurement Labeling
@@ -20,7 +20,7 @@ Measurement Labeling
 
 General tools for assigning labels to cell measurements.
 
-.. automodule:: clones.annotation.labelers
+.. automodule:: flyqma.annotation.labelers
    :members:
 
 
@@ -29,7 +29,7 @@ Individual Cell Classifiers
 
 Tools for classifying individual cell measurements.
 
-.. automodule:: clones.annotation.classifiers
+.. automodule:: flyqma.annotation
    :members:
 
 
@@ -38,7 +38,7 @@ Genotype Annotation
 
 Tools for automated cell genotype classification.
 
-.. automodule:: clones.annotation.genotype
+.. automodule:: flyqma.annotation
    :members:
 
 
@@ -47,7 +47,7 @@ Concurrency Labeling
 
 Tools for labeling cell measurements based on spatio-temporal concurrency.
 
-.. automodule:: clones.annotation.concurrency
+.. automodule:: flyqma.annotation
    :members:
 
 

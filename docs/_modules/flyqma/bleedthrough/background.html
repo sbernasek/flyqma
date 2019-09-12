@@ -1,0 +1,249 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>flyqma.bleedthrough.background &#8212; flyqma v0.1-beta documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for flyqma.bleedthrough.background</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">scipy.ndimage</span> <span class="k">import</span> <span class="n">binary_dilation</span><span class="p">,</span> <span class="n">generate_binary_structure</span>
+<span class="kn">from</span> <span class="nn">matplotlib.gridspec</span> <span class="k">import</span> <span class="n">GridSpec</span>
+
+<span class="kn">from</span> <span class="nn">..visualization.masking</span> <span class="k">import</span> <span class="n">Mask</span>
+
+
+<div class="viewcode-block" id="BackgroundExtraction"><a class="viewcode-back" href="../../../modules/bleedthrough.html#flyqma.bleedthrough.background.BackgroundExtraction">[docs]</a><span class="k">class</span> <span class="nc">BackgroundExtraction</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Object for extracting image background pixels.</span>
+
+<span class="sd">    Attributes:</span>
+
+<span class="sd">        layer (Layer) - layer RGB image</span>
+
+<span class="sd">        bg_mask (np.ndarray[bool]) - background mask, True where background</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer</span><span class="p">,</span> <span class="n">niters</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Instantiate background extraction.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            layer (Layer) - layer RGB image</span>
+
+<span class="sd">            niters (int) - number of binary foreground dilations</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># store layer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layer</span> <span class="o">=</span> <span class="n">layer</span>
+
+        <span class="c1"># build background mask</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bg_mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_background_mask</span><span class="p">(</span><span class="n">niters</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BackgroundExtraction.build_background_mask"><a class="viewcode-back" href="../../../modules/bleedthrough.html#flyqma.bleedthrough.background.BackgroundExtraction.build_background_mask">[docs]</a>    <span class="k">def</span> <span class="nf">build_background_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">niters</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Construct background mask by dilating foregound.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            niters (int) - number of binary dilations</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            bg_mask (np.ndarray[bool]) - background mask, True where background</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># re-run image preprocessing to obtain foreground threshold</span>
+        <span class="n">seg_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">][</span><span class="s1">&#39;segmentation_kw&#39;</span><span class="p">]</span>
+        <span class="n">preprocessing_kws</span> <span class="o">=</span> <span class="n">seg_params</span><span class="p">[</span><span class="s1">&#39;preprocessing_kws&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">preprocessing_kws</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">bg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layer</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;bg&#39;</span><span class="p">])</span>
+            <span class="n">_</span> <span class="o">=</span> <span class="n">bg</span><span class="o">.</span><span class="n">preprocess</span><span class="p">(</span><span class="o">**</span><span class="n">preprocessing_kws</span><span class="p">)</span>
+            <span class="n">bg</span><span class="o">.</span><span class="n">set_otsu_mask</span><span class="p">()</span>
+            <span class="n">bg_mask</span> <span class="o">=</span> <span class="n">bg</span><span class="o">.</span><span class="n">mask</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">bg_mask</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layer</span><span class="o">.</span><span class="n">labels</span><span class="o">!=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># dilate foreground</span>
+        <span class="n">bg_mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dilate_foreground</span><span class="p">(</span><span class="n">bg</span><span class="o">.</span><span class="n">mask</span><span class="p">,</span> <span class="n">niters</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">bg_mask</span></div>
+
+<div class="viewcode-block" id="BackgroundExtraction.dilate_foreground"><a class="viewcode-back" href="../../../modules/bleedthrough.html#flyqma.bleedthrough.background.BackgroundExtraction.dilate_foreground">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">dilate_foreground</span><span class="p">(</span><span class="n">foreground</span><span class="p">,</span> <span class="n">niters</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Apply binary dilation to foreground mask. &quot;&quot;&quot;</span>
+        <span class="n">struct</span> <span class="o">=</span> <span class="n">generate_binary_structure</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">fg_mask</span> <span class="o">=</span> <span class="n">binary_dilation</span><span class="p">(</span><span class="n">foreground</span><span class="p">,</span> <span class="n">struct</span><span class="p">,</span> <span class="n">niters</span><span class="p">)</span>
+        <span class="n">bg_mask</span> <span class="o">=</span> <span class="o">~</span><span class="n">fg_mask</span>
+        <span class="k">return</span> <span class="n">bg_mask</span></div>
+
+<div class="viewcode-block" id="BackgroundExtraction.isolate_pixels"><a class="viewcode-back" href="../../../modules/bleedthrough.html#flyqma.bleedthrough.background.BackgroundExtraction.isolate_pixels">[docs]</a>    <span class="k">def</span> <span class="nf">isolate_pixels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Isolate pixels in image background.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            channel (int) - color channel to be extracted</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">           px (np.ma.masked_array) - background masked pixel intensities</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">px</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span><span class="o">.</span><span class="n">im</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">(</span><span class="n">px</span><span class="p">,</span> <span class="o">~</span><span class="bp">self</span><span class="o">.</span><span class="n">bg_mask</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BackgroundExtraction.extract_pixels"><a class="viewcode-back" href="../../../modules/bleedthrough.html#flyqma.bleedthrough.background.BackgroundExtraction.extract_pixels">[docs]</a>    <span class="k">def</span> <span class="nf">extract_pixels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extract pixels from image background.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            channel (int) - color channel to be extracted</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            px (np.ndarray[float]) - 1D array of background pixel intensities</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">bg_px</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">isolate_pixels</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">bg_px</span><span class="p">[</span><span class="o">~</span><span class="n">bg_px</span><span class="o">.</span><span class="n">mask</span><span class="p">]</span><span class="o">.</span><span class="n">data</span></div>
+
+<div class="viewcode-block" id="BackgroundExtraction.plot_foreground_mask"><a class="viewcode-back" href="../../../modules/bleedthrough.html#flyqma.bleedthrough.background.BackgroundExtraction.plot_foreground_mask">[docs]</a>    <span class="k">def</span> <span class="nf">plot_foreground_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">invert</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">)):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plot foreground mask.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            invert (bool) - if True, mask background rather than foreground</span>
+
+<span class="sd">            ax (matplotlib.axes.AxesSubplot) - if None, create figure</span>
+
+<span class="sd">            figsize (tuple) - figure size</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            figure</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
+
+        <span class="c1"># extract and visualize red/green channels</span>
+        <span class="n">rg</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layer</span><span class="o">.</span><span class="n">im</span><span class="p">)</span>
+        <span class="n">rg</span><span class="p">[:,:,</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">rg</span><span class="p">)</span>
+
+        <span class="c1"># add foreground mask</span>
+        <span class="k">if</span> <span class="n">invert</span><span class="p">:</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">Mask</span><span class="p">(</span><span class="o">~</span><span class="bp">self</span><span class="o">.</span><span class="n">bg_mask</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">Mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bg_mask</span><span class="p">)</span>
+
+        <span class="n">mask</span><span class="o">.</span><span class="n">add_contourf</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">hatches</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;//&#39;</span><span class="p">])</span>
+        <span class="n">mask</span><span class="o">.</span><span class="n">add_contour</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">fig</span></div></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../../index.html">
+    <img class="logo" src="../../../_static/img/flyqma_logo.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">INSTALLATION</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../start.html">GETTING STARTED</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../documentation.html">DOCUMENTATION</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usage.html">EXAMPLE USAGE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contact.html">CONTACT</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Sebastian Bernasek.
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
