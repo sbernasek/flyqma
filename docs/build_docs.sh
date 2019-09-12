@@ -1,6 +1,6 @@
 #!/bin/sh
 
-workon clones;
+workon clones ;
 sphinx-build -a source ./ ;
 git add . ;
 git commit -m "updated docs" ;
