@@ -93,7 +93,7 @@ html_theme = 'alabaster'
 html_theme_options = {
 
     # logo
-    'logo': '_static/img/clones_logo.png',
+    'logo': 'clones_logo.png',
     #'logo_name': False,
     #'logo_text_align': 'center',
 
