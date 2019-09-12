@@ -1,11 +1,10 @@
 notebooks/figures/.ipynb_checkpoints/
 *.pdf
-*.png
 *.hdf
 *.npy
 build/
 doctrees/
-clones.egg-info/
+flyqma.egg-info/
 *.pyc
 notebooks/.ipynb_checkpoints/*
 docs/source/.doctrees/
