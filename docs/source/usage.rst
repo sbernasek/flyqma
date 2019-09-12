@@ -7,7 +7,7 @@
 Example Usage
 =============
 
-**FlyEye Clones** provides a wide range of functionality for measuring and analyzing gene expression in eye clones. A brief introduction to some basic operations is provided below. For detailed usage instructions please see the :ref:`documentation <documentation>`.
+**Fly-QMA** provides a wide range of functionality for measuring and analyzing gene expression in eye clones. A brief introduction to some basic operations is provided below. For detailed usage instructions please see the :ref:`documentation <documentation>`.
 
 
 Loading image data
@@ -17,7 +17,7 @@ Load an experiment from a directory containing subdirectories of ``.tif`` files:
 
 .. code-block:: python
 
-   >>> from clones.data import experiments
+   >>> from flyqma.data import experiments
    >>> path = './data'
    >>> experiment = experiments.Experiment(path)
 
@@ -57,7 +57,7 @@ Perform bleedthrough correction:
 
 .. code-block:: python
 
-   >>> from clones.bleedthrough.correction import LayerCorrection
+   >>> from flyqma.bleedthrough.correction import LayerCorrection
    >>> correction = LayerCorrection(layer, niters=50)
    >>> correction.show_correction()
    >>> correction.save()
@@ -68,11 +68,11 @@ Perform bleedthrough correction:
 Cell Selection GUI
 ------------------
 
-The clones package includes a matplot-lib based GUI for selecting a particular region of interest within an image layer. The interface consists of a grid of images in which rows correspond to layers and columns correspond to each of the available fluorescence channels. To launch the GUI for an individual image stack:
+The Fly-QMA package includes a matplot-lib based GUI for selecting a particular region of interest within an image layer. The interface consists of a grid of images in which rows correspond to layers and columns correspond to each of the available fluorescence channels. To launch the GUI for an individual image stack:
 
 .. code-block:: python
 
-   >>> from clones.selection.gui import GUI
+   >>> from flyqma.selection.gui import GUI
 
    >>> # load a stack, including its image
    >>> stack = experiment.load_stack(stack_ind, full=True)

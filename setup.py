@@ -19,15 +19,15 @@ class install(_install):
                      msg="Running post install task")
 
 setup(
-    name='clones',
+    name='flyqma',
     version='0.1.0',
     author='Sebastian Bernasek',
     author_email='sebastian@u.northwestern.com',
     packages=find_packages(exclude=('tests',)),
     scripts=[],
-    url='https://github.com/sebastianbernasek/clones',
+    url='https://github.com/sebastianbernasek/flyqma',
     license='MIT',
-    description='Quantitative analysis of clonal subpopulations in the Drosophila eye.',
+    description='Quantitative mosaic analysis of clonal subpopulations in the Drosophila eye.',
     long_description=open('README.md').read(),
     install_requires=[
         "tifffile >= 0.15.0",

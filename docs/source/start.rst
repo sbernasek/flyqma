@@ -10,7 +10,7 @@
 Getting Started
 ===============
 
-The fastest way to familiarize yourself with **FlyEye Clones** is to start with a working example. Feel free to use the data from `our study <https://github.com/sebastianbernasek/pnt_yan_ratio>`_ of Pnt and Yan expression during eye development.
+The fastest way to familiarize yourself with **Fly-QMA** is to start with a working example. Feel free to use the data from `our study <https://github.com/sebastianbernasek/pnt_yan_ratio>`_ of Pnt and Yan expression during eye development.
 
 We recommend reading the sections below before working with your own microscopy data.
 
@@ -21,11 +21,11 @@ We recommend reading the sections below before working with your own microscopy 
 Data Format
 -----------
 
-**FlyEye Clones** requires one or more 2-D cross-sectional images of each eye disc. These images may be supplied in 3-D ``.tif`` format, but individual layers must be spaced far enough apart to avoid capturing the same cells twice. Regulary spacing between layers is not required. To analyze full 3-D RGB image stacks, please see our accompanying package **FlyEye Analysis**.
+**Fly-QMA** requires one or more 2-D cross-sectional images of each eye disc. These images may be supplied in 3-D ``.tif`` format, but individual layers must be spaced far enough apart to avoid capturing the same cells twice. Regulary spacing between layers is not required. To analyze full 3-D RGB image stacks, please see our accompanying package **FlyEye Analysis**.
 
 
 .. warning::
-   **FlyEye Clones** prioritizes high-throughput data collection by circumventing the time-intensive process of manually labeling individual cell contours. Because cells often span several adjacent layers in a confocal z-stack, and image segmentation is performed on a layer-by-layer basis, users must supply non-overlapping cross-sectional images of the eye field in order to avoid making duplicate measurements of the same cell. Alternatively, overlapping layers may be manually excluded using the included :ref:`cell selection tool <gui>`.
+   **Fly-QMA** prioritizes high-throughput data collection by circumventing the time-intensive process of manually labeling individual cell contours. Because cells often span several adjacent layers in a confocal z-stack, and image segmentation is performed on a layer-by-layer basis, users must supply non-overlapping cross-sectional images of the eye field in order to avoid making duplicate measurements of the same cell. Alternatively, overlapping layers may be manually excluded using the included :ref:`cell selection tool <gui>`.
 
 
 Data Management
@@ -64,7 +64,7 @@ Loading Data
 
 All measurements and analyses are performed in place. This means that new subdirectories and files are added to a stack directory each time a new segmentation, measurement, annotation, bleedthrough correction, or cell selection is saved. Saving one of these operations will overwrite any existing files of the same type.
 
-To begin using **FlyEye Clones**, create an ``Experiment`` instance by passing the ``/experiment`` path to the object constructor:
+To begin using **Fly-QMA**, create an ``Experiment`` instance by passing the ``/experiment`` path to the object constructor:
 
 .. code-block:: python
 
