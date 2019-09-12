@@ -23,7 +23,7 @@ if '..' not in sys.path:
 
 # -- Project information -----------------------------------------------------
 
-project = 'clones'
+project = 'flyqma'
 copyright = '2018, Sebastian Bernasek'
 author = 'Sebastian Bernasek'
 
@@ -93,7 +93,7 @@ html_theme = 'alabaster'
 html_theme_options = {
 
     # logo
-    'logo': 'img/clones_logo.png',
+    'logo': 'img/flyqma_logo.png',
     #'logo_name': False,
     #'logo_text_align': 'center',
 
@@ -128,7 +128,7 @@ html_static_path = ['_static']
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'clonesdoc'
+htmlhelp_basename = 'flyqmadoc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -155,7 +155,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'clones.tex', 'clones Documentation',
+    (master_doc, 'flyqma.tex', 'flyqma Documentation',
      'Sebastian Bernasek', 'manual'),
 ]
 
@@ -165,7 +165,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'clones', 'clones Documentation',
+    (master_doc, 'flyqma', 'flyqma Documentation',
      [author], 1)
 ]
 
@@ -176,8 +176,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'clones', 'clones Documentation',
-     author, 'clones', 'One line description of project.',
+    (master_doc, 'flyqma', 'flyqma Documentation',
+     author, 'flyqma', 'One line description of project.',
      'Miscellaneous'),
 ]
 

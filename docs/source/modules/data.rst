@@ -8,7 +8,7 @@
 Data Module
 ===========
 
-``clones.data`` provides three levels of organization for managing cell measurement data:
+``flyqma.data`` provides three levels of organization for managing cell measurement data:
 
   1. ``Layer``: a 2D RGB cross section of an eye disc
 
@@ -22,7 +22,7 @@ Layers
 
 Layers are 2D RGB cross sections of an eye disc.
 
-.. automodule:: clones.data.layers
+.. automodule:: flyqma.data.layers
    :members:
 
 
@@ -31,7 +31,7 @@ Stacks
 
 Stacks are sets of layers obtained from the same eye disc.
 
-.. automodule:: clones.data.stacks
+.. automodule:: flyqma.data.stacks
    :members:
 
 
@@ -40,6 +40,6 @@ Experiments
 
 Experiments are collections of stacks obtained under similar conditions.
 
-.. automodule:: clones.data.experiments
+.. automodule:: flyqma.data.experiments
    :members:
 

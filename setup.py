@@ -9,7 +9,7 @@ def _post_install(dir):
     """ Install pomegranate without dependencies (due to networkx conflict) """
     prefix = [sys.executable, '-m']
     cmd = "pip install --user pomegranate==0.10.0 --no-deps".split()
-    call(prefix+cmd, cwd=os.path.join(dir, 'clones'))
+    call(prefix+cmd, cwd=os.path.join(dir, 'flyqma'))
 
 
 class install(_install):

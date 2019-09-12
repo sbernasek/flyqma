@@ -8,7 +8,7 @@
 Selection Module
 ================
 
-``clones.selection`` provides a matplotlib-based GUI for manually curating cell measurement data.
+``flyqma.selection`` provides a matplotlib-based GUI for manually curating cell measurement data.
 
 
 User Interface
@@ -16,7 +16,7 @@ User Interface
 
 Tools for constructing a layer and stack selection GUI.
 
-.. automodule:: clones.selection.interface
+.. automodule:: flyqma.selection.interface
    :members:
 
 
@@ -25,7 +25,7 @@ Event Handling
 
 Tools for managing GUI event-handling.
 
-.. automodule:: clones.selection.gui
+.. automodule:: flyqma.selection.gui
    :members:
 
 
