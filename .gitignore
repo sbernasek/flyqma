@@ -2,6 +2,7 @@ notebooks/figures/.ipynb_checkpoints/
 *.pdf
 *.hdf
 *.npy
+manuscript/
 build/
 doctrees/
 flyqma.egg-info/
@@ -15,6 +16,5 @@ notebooks/development/
 *.lof
 *.lot
 *.out
-*.gz
 *.toc
 
