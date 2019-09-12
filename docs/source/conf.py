@@ -93,7 +93,7 @@ html_theme = 'alabaster'
 html_theme_options = {
 
     # logo
-    'logo': 'graphics/flyqma_logo.png',
+    'logo': 'graphics/clones_logo.png',
     'logo_name': True,
     #'logo_text_align': 'center',
 
