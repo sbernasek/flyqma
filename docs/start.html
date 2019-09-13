@@ -37,18 +37,14 @@
   <a class="reference external image-reference" href="https://amaral.northwestern.edu/"><img alt="nulogo" class="align-right" src="_images/Northwestern_purple_RGB.png" style="width: 30%;" /></a>
 <div class="section" id="getting-started">
 <span id="start"></span><h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
-<p>The fastest way to familiarize yourself with <strong>Fly-QMA</strong> is to start with a working example. Feel free to use the data from <a class="reference external" href="https://github.com/sebastianbernasek/pnt_yan_ratio">our study</a> of Pnt and Yan expression during eye development.</p>
-<p>We recommend reading the sections below before working with your own microscopy data.</p>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">The initial release of the <strong>NU FlyEye</strong> platform only supports three-channel RGB microscopy data. The available reporter colors are thus nominally limited to red, green, and blue. One of these reporter colors must be reserved for a nuclear marker in order to facilitate segmentation. This leaves at most two reporter colors available for measuring target gene expression in any one experiment.</p>
-</div>
+<p>The fastest way to familiarize yourself with <strong>Fly-QMA</strong> is to start with a working example. We recommend starting with the <a class="reference external" href="https://github.com/sebastianbernasek/flyqma/tutorial.ipynb">FlyQMA Tutorial</a>.</p>
+<p>Additionally, we suggest reading the sections below before working with your own microscopy data.</p>
 <div class="section" id="data-format">
 <h2>Data Format<a class="headerlink" href="#data-format" title="Permalink to this headline">¶</a></h2>
-<p><strong>Fly-QMA</strong> requires one or more 2-D cross-sectional images of each eye disc. These images may be supplied in 3-D <code class="docutils literal notranslate"><span class="pre">.tif</span></code> format, but individual layers must be spaced far enough apart to avoid capturing the same cells twice. Regulary spacing between layers is not required. To analyze full 3-D RGB image stacks, please see our accompanying package <strong>FlyEye Analysis</strong>.</p>
+<p><strong>Fly-QMA</strong> requires one or more 2-D cross-sectional images of each eye disc. These images may be supplied in 3-D <code class="docutils literal notranslate"><span class="pre">.tif</span></code> format, but individual layers must be spaced far enough apart to avoid measuring the same cells twice. Regulary spacing between layers is not required. In the event that some layers do overlap, the region of interest <a class="reference internal" href="modules/selection.html#selection-docs"><span class="std std-ref">Selection GUI</span></a> may be used to exclude duplicate or overlapping layers.</p>
 <div class="admonition warning">
 <p class="first admonition-title">Warning</p>
-<p class="last"><strong>Fly-QMA</strong> prioritizes high-throughput data collection by circumventing the time-intensive process of manually labeling individual cell contours. Because cells often span several adjacent layers in a confocal z-stack, and image segmentation is performed on a layer-by-layer basis, users must supply non-overlapping cross-sectional images of the eye field in order to avoid making duplicate measurements of the same cell. Alternatively, overlapping layers may be manually excluded using the included <a class="reference internal" href="usage.html#gui"><span class="std std-ref">cell selection tool</span></a>.</p>
+<p class="last"><strong>Fly-QMA</strong> prioritizes high-throughput data collection by circumventing the time-intensive process of manually labeling individual cell contours. Because cells often span several adjacent layers in a confocal z-stack, and image segmentation is performed on a layer-by-layer basis, users must supply non-overlapping cross-sectional images of the eye field in order to avoid making duplicate measurements of the same cell. Alternatively, overlapping layers may be manually excluded using the included <a class="reference internal" href="modules/selection.html#selection-docs"><span class="std std-ref">Selection GUI</span></a>.</p>
 </div>
 </div>
 <div class="section" id="data-management">
@@ -61,11 +57,11 @@
 └── ... N     <span class="c1"># Nth stack directory</span>
 </pre></div>
 </div>
-<p>Each stack directory should contain a single <code class="docutils literal notranslate"><span class="pre">.tif</span></code> file depicting a <em>Drosophila</em> eye disc that has been marked with fluorescent reporters, dissected, and imaged:</p>
+<p>Each stack directory should contain a single <code class="docutils literal notranslate"><span class="pre">.tif</span></code> file depicting a <em>Drosophila</em> imaginal disc that has been marked with fluorescent reporters, dissected, and imaged:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>experiment
 │
 ├── <span class="m">0</span>
-│   └── <span class="m">0</span>.tif   <span class="c1"># 3D RGB image</span>
+│   └── <span class="m">0</span>.tif   <span class="c1"># 3D image stack</span>
 │
 ├── <span class="m">1</span>
 │   └── <span class="m">1</span>.tif
@@ -74,11 +70,11 @@
         └── N.tif
 </pre></div>
 </div>
-<p>Images may be regularly-spaced 3D z-stacks or irregularly-spaced 3D collections of one or more layers. The current implementation is limited to RGB color format. Extension to higher dimensionality would not be difficult should additional fluorescence channels become necessary.</p>
+<p>Images may be regularly-spaced 3D z-stacks or irregularly-spaced 3D collections of one or more layers.</p>
 </div>
 <div class="section" id="loading-data">
 <h2>Loading Data<a class="headerlink" href="#loading-data" title="Permalink to this headline">¶</a></h2>
-<p>All measurements and analyses are performed in place. This means that new subdirectories and files are added to a stack directory each time a new segmentation, measurement, annotation, bleedthrough correction, or cell selection is saved. Saving one of these operations will overwrite any existing files of the same type.</p>
+<p>All measurements and analyses are performed in place. This means that new subdirectories and files are added to a stack directory each time a new segmentation, measurement, annotation, bleedthrough correction, or region of interest selection is saved. Saving one of these operations will overwrite any existing files of the same type.</p>
 <p>To begin using <strong>Fly-QMA</strong>, create an <code class="docutils literal notranslate"><span class="pre">Experiment</span></code> instance by passing the <code class="docutils literal notranslate"><span class="pre">/experiment</span></code> path to the object constructor:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">experiment</span> <span class="o">=</span> <span class="n">Experiment</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s1">&#39;/experiment&#39;</span><span class="p">)</span>
 </pre></div>
@@ -92,17 +88,17 @@
   <span class="n">stack</span><span class="o">.</span><span class="n">do_stuff</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">experiment.load_stack()</span></code> method includes a <code class="docutils literal notranslate"><span class="pre">full</span></code> keyword argument that may be set to False in order to skip loading the stack’s <code class="docutils literal notranslate"><span class="pre">.tif</span></code> file into memory. This offers some performance benefit when only saved measurement data are needed. Of course, loading the image data is necessary if any segmentation, measurement, cell selectiom, or bleedthrough correction operations are to be performed.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">experiment.load_stack()</span></code> method includes a <code class="docutils literal notranslate"><span class="pre">full</span></code> keyword argument that may be set to False in order to skip loading the stack’s <code class="docutils literal notranslate"><span class="pre">.tif</span></code> file into memory. This offers some performance benefit when only saved measurement data are needed. Of course, loading the image data is necessary if any segmentation, measurement, region of interest selection, or bleedthrough correction operations are to be performed.</p>
 <p>To begin analyzing an image stack, layers must be added to the corresponding stack directory. The <code class="docutils literal notranslate"><span class="pre">Stack.initialize()</span></code> method creates a <code class="docutils literal notranslate"><span class="pre">layers</span></code> subdirectory containing an additional subdirectory for each layer in the 3D image stack. A stack metadata file is similarly added to the stack directory at this time, resulting in:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>experiment
 │
 ├── <span class="m">0</span>                   <span class="c1"># First stack directory (individual eye disc)</span>
-│   ├── <span class="m">0</span>.tif           <span class="c1"># 3D RGB image</span>
+│   ├── <span class="m">0</span>.tif           <span class="c1"># 3D image stack</span>
 │   ├── metadata.json   <span class="c1"># stack metadata (number of layers, image bit depth, etc.)</span>
 │   └── layers
-│       ├── <span class="m">0</span>           <span class="c1"># first layer</span>
+│       ├── <span class="m">0</span>           <span class="c1"># first layer directory</span>
 │       ├── <span class="m">1</span>
-│       └── ... M       <span class="c1"># Mth layer</span>
+│       └── ... M       <span class="c1"># Mth layer directory</span>
 │
 ├── <span class="m">1</span>
 └── ... N
@@ -121,19 +117,22 @@
 <div class="section" id="measuring-expression">
 <h2>Measuring Expression<a class="headerlink" href="#measuring-expression" title="Permalink to this headline">¶</a></h2>
 <p>For a given layer, segmentation and expression quantification are performed by calling the <code class="docutils literal notranslate"><span class="pre">layer.segment</span></code> method.
-See the <code class="docutils literal notranslate"><span class="pre">layer.segment</span></code> documentation for an overview of customizable image preprocessing, seed detection, or segmentation parameters. Upon completion, the results may be saved by calling <code class="docutils literal notranslate"><span class="pre">layer.save()</span></code>. This saves the segmentation parameters within a layer metadata file and creates a <code class="docutils literal notranslate"><span class="pre">segmentation</span></code> subdirectory containing a segment labels mask and the corresponding raw expression measurement data:</p>
+See the <code class="docutils literal notranslate"><span class="pre">flyqma.measurement</span></code> <a class="reference internal" href="modules/measurement.html#measurement-docs"><span class="std std-ref">documentation</span></a> for an overview of customizable image preprocessing, seed detection, or segmentation parameters. Measurements for each contour are generated automatically.</p>
+<p>Upon completion, the segmentation results and corresponding measurements may be saved by calling <code class="docutils literal notranslate"><span class="pre">layer.save()</span></code>. This saves the segmentation parameters within a layer metadata file and creates a <code class="docutils literal notranslate"><span class="pre">segmentation</span></code> subdirectory containing a segment labels mask. It also creates a <code class="docutils literal notranslate"><span class="pre">measurements</span></code> subdirectory containing the corresponding raw expression measurement data as well as a copy subject to all subsequent processing operations. The raw measurements will remain the same until a new segmentation is executed and saved, while the processed measurements are updated each time a new operation is applied and saved.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>experiment
 │
 ├── <span class="m">0</span>                   <span class="c1"># First stack directory (individual eye disc)</span>
-│   ├── <span class="m">0</span>.tif           <span class="c1"># 3D RGB image</span>
+│   ├── <span class="m">0</span>.tif           <span class="c1"># 3D image</span>
 │   ├── metadata.json   <span class="c1"># stack metadata (number of layers, image bit depth, etc.)</span>
 │   └── layers
 │       ├── <span class="m">0</span>
 │       │   ├── metadata.json          <span class="c1"># layer metadata (background channel, parameter values, etc.)</span>
-│       │   └── segmentation
-│       │       ├── labels.npy         <span class="c1"># segment labels mask (np.ndarray[int])</span>
+│       │   ├── segmentation
+│       │   │   ├── labels.npy         <span class="c1"># segment labels mask (np.ndarray[int])</span>
+│       │   │   └── segmentation.png   <span class="c1"># layer image overlayed with segment contours (optional)</span>
+│       │   └── measurements
 │       │       ├── measurements.hdf   <span class="c1"># raw expression measurements</span>
-│       │       └── segmentation.png   <span class="c1"># layer image overlayed with segment contours (optional)</span>
+│       │       └── processed.hdf      <span class="c1"># processed expression measurements</span>
 │       ├── <span class="m">1</span>
 │       └── ... M
 ├── <span class="m">1</span>
@@ -148,10 +147,10 @@ See the <code class="docutils literal notranslate"><span class="pre">layer.segme
 <div><ul class="simple">
 <li>Annotation: automated assignment of cell types to each contour</li>
 <li>Bleedthrough correction: correction for fluorescence bleedthrough between reporters</li>
-<li>Cell selection: manual exclusion of layers or regions of layers from the dataset</li>
+<li>Region of interest selection: manual exclusion of layers or regions of layers from the dataset</li>
 </ul>
 </div></blockquote>
-<p>The objects that perform these operations all behave in a similar manner. They are manually defined for each disc (see Jupyter notebooks for examples), but may then be saved for repeated use. When saved, each object creates its own subdirectory within the corresponding layer directory:</p>
+<p>The objects that perform these operations all behave in a similar manner. They are manually defined for each disc (see the Tutorial), but may then be saved for repeated use. When saved, each object creates its own subdirectory within the corresponding layer directory:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>experiment
 │
 ├── <span class="m">0</span>
@@ -161,6 +160,8 @@ See the <code class="docutils literal notranslate"><span class="pre">layer.segme
 │       ├── <span class="m">0</span>
 │       │   ├── metadata.json
 │       │   ├── segmentation
+│       │   │   └── ...
+│       │   ├── measurements
 │       │   │   └── ...
 │       │   ├── annotation
 │       │   │   └── ...
@@ -174,18 +175,29 @@ See the <code class="docutils literal notranslate"><span class="pre">layer.segme
 └── ... N
 </pre></div>
 </div>
-<p>The added subdirectories include all the files and metadata necessary to load and execute the data processing operations performed by the respective object. Saved operations are automatically applied to the raw measurement data each time a layer is loaded. Under this setup, only raw measurements are ever stored long term. Processed measurements are only accessible via the <code class="docutils literal notranslate"><span class="pre">layer.data</span></code> attribute when a layer exists in local memory. They may be aggregated across layers via <code class="docutils literal notranslate"><span class="pre">stack.aggregate_measurements()</span></code> and across all stacks in an experiment via <code class="docutils literal notranslate"><span class="pre">experiment.aggregate_measurements()</span></code>.</p>
-<p>Note that cell-based classifiers are fit to an entire stack, rather than to each of its individual layers. Consequently, these classifiers are stored in their own subdirectory below the stack header:</p>
+<p>The added subdirectories include all the files and metadata necessary to load and execute the data processing operations performed by the respective object. Saved operations are automatically applied to the raw measurement data each time a layer is loaded. Processed measurements are accessible via the <code class="docutils literal notranslate"><span class="pre">layer.data</span></code> attribute when a layer exists in local memory. They may also be aggregated across layers via <code class="docutils literal notranslate"><span class="pre">stack.aggregate_measurements()</span></code> and across all stacks in an experiment via <code class="docutils literal notranslate"><span class="pre">experiment.aggregate_measurements()</span></code>.</p>
+<p>Note that annotation models may also be fit to an entire stack, rather than to each of its individual layers. Consequently, these annotation models are stored in their own <code class="docutils literal notranslate"><span class="pre">annotation</span></code> subdirectory below the stack header. If a model selection procedure is used, all of the trained models are similarly saved within a <code class="docutils literal notranslate"><span class="pre">models</span></code> subdirectory.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>experiment
 │
 ├── <span class="m">0</span>
 │   ├── <span class="m">0</span>.tif
 │   ├── metadata.json
 │   ├── layers
-│   └── cell_classifier
-│       ├── parameters.json
-│       ├── values.npy
-│       └── classifier.pdf
+│   └── annotation                     <span class="c1"># stack annotator directory</span>
+│       │
+│       ├── annotation.json            <span class="c1"># annotation parameters</span>
+│       │
+│       ├── classifier                 <span class="c1"># selected model directory</span>
+│       │   ├── parameters.json        <span class="c1"># selected model parameters</span>
+│       │   ├── model.pkl              <span class="c1"># pickled mixture model</span>
+│       │   └── values.npy             <span class="c1"># samples used to fit mixture model</span>
+│       │
+│       └── models                     <span class="c1"># model selection directory</span>
+│           ├── parameters.json        <span class="c1"># model selection parameters</span>
+│           ├── values.npy             <span class="c1"># values used for model selection</span>
+│           ├── classifier_0
+│           ├── classifier_1
+│           └── ... classifier_M       <span class="c1"># Mth mixture model directory</span>
 ├── <span class="m">1</span>
 └── ... N
 </pre></div>

@@ -109,8 +109,14 @@
                         <span class="n">alpha</span><span class="o">=</span><span class="mi">70</span><span class="p">,</span>
                         <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Plot boundary of &lt;label_by&gt; groups with &lt;label&gt; on &lt;ax&gt;. &quot;&quot;&quot;</span>
-        <span class="n">boundaries</span> <span class="o">=</span> <span class="n">CloneBoundaries</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">label_by</span><span class="o">=</span><span class="n">label_by</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">)</span>
-        <span class="n">boundaries</span><span class="o">.</span><span class="n">plot_boundary</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+        <span class="c1"># add labels to ephemeral copy of graph data</span>
+        <span class="n">graph</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">graph</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">label_by</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">label_by</span><span class="p">]</span>
+
+        <span class="c1"># plot clone boundaries</span>
+        <span class="n">bounds</span> <span class="o">=</span> <span class="n">CloneBoundaries</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">label_by</span><span class="o">=</span><span class="n">label_by</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">)</span>
+        <span class="n">bounds</span><span class="o">.</span><span class="n">plot_boundary</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="LayerVisualization.plot_boundaries"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.layers.LayerVisualization.plot_boundaries">[docs]</a>    <span class="k">def</span> <span class="nf">plot_boundaries</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span>
                         <span class="n">label_by</span><span class="o">=</span><span class="s1">&#39;genotype&#39;</span><span class="p">,</span>
@@ -118,8 +124,14 @@
                         <span class="n">alpha</span><span class="o">=</span><span class="mi">70</span><span class="p">,</span>
                         <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Plot boundaries of all &lt;label_by&gt; groups on &lt;ax&gt;. &quot;&quot;&quot;</span>
-        <span class="n">boundaries</span> <span class="o">=</span> <span class="n">CloneBoundaries</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">label_by</span><span class="o">=</span><span class="n">label_by</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">)</span>
-        <span class="n">boundaries</span><span class="o">.</span><span class="n">plot_boundaries</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+        <span class="c1"># add labels to ephemeral copy of graph data</span>
+        <span class="n">graph</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">graph</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">label_by</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">label_by</span><span class="p">]</span>
+
+        <span class="c1"># plot clone boundaries</span>
+        <span class="n">bounds</span> <span class="o">=</span> <span class="n">CloneBoundaries</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">label_by</span><span class="o">=</span><span class="n">label_by</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">)</span>
+        <span class="n">bounds</span><span class="o">.</span><span class="n">plot_boundaries</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_build_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span>
                    <span class="n">interior_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -538,7 +550,10 @@
 
         <span class="c1"># load inclusion; defaults to True</span>
         <span class="k">if</span> <span class="s1">&#39;selection&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">subdirs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">load_inclusion</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">listdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subdirs</span><span class="p">[</span><span class="s1">&#39;selection&#39;</span><span class="p">]))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">include</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">load_inclusion</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">include</span> <span class="o">=</span> <span class="kc">True</span>
 

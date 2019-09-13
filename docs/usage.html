@@ -17,7 +17,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Contact Us" href="contact.html" />
-    <link rel="prev" title="Selection Module" href="modules/selection.html" />
+    <link rel="prev" title="Analysis Module" href="modules/analysis.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -37,7 +37,7 @@
   <a class="reference external image-reference" href="https://amaral.northwestern.edu/"><img alt="nulogo" class="align-right" src="_images/Northwestern_purple_RGB.png" style="width: 30%;" /></a>
 <div class="section" id="example-usage">
 <h1>Example Usage<a class="headerlink" href="#example-usage" title="Permalink to this headline">¶</a></h1>
-<p><strong>Fly-QMA</strong> provides a wide range of functionality for measuring and analyzing gene expression in eye clones. A brief introduction to some basic operations is provided below. For detailed usage instructions please see the <a class="reference internal" href="documentation.html#documentation"><span class="std std-ref">documentation</span></a>.</p>
+<p><strong>Fly-QMA</strong> provides a wide range of functionality for measuring and analyzing reporter fluorescence in mosaic imaginal discs. A brief introduction to some basic operations is provided below. For detailed usage instructions please see the <a class="reference internal" href="documentation.html#documentation"><span class="std std-ref">documentation</span></a>.</p>
 <div class="section" id="loading-image-data">
 <h2>Loading image data<a class="headerlink" href="#loading-image-data" title="Permalink to this headline">¶</a></h2>
 <p>Load an experiment from a directory containing subdirectories of <code class="docutils literal notranslate"><span class="pre">.tif</span></code> files:</p>
@@ -57,26 +57,8 @@
 </pre></div>
 </div>
 </div>
-<div class="section" id="measuring-expression">
-<h2>Measuring expression<a class="headerlink" href="#measuring-expression" title="Permalink to this headline">¶</a></h2>
-<p>Segment an image layer, measure the segment properties, and save the results:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">layer</span><span class="o">.</span><span class="n">segment</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">layer</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="bleedthrough-correction">
-<h2>Bleedthrough Correction<a class="headerlink" href="#bleedthrough-correction" title="Permalink to this headline">¶</a></h2>
-<p>Perform bleedthrough correction:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">flyqma.bleedthrough.correction</span> <span class="kn">import</span> <span class="n">LayerCorrection</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">correction</span> <span class="o">=</span> <span class="n">LayerCorrection</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">niters</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">correction</span><span class="o">.</span><span class="n">show_correction</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">correction</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="section" id="cell-selection-gui">
-<span id="gui"></span><h2>Cell Selection GUI<a class="headerlink" href="#cell-selection-gui" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="region-of-interest-selection-gui">
+<span id="gui"></span><h2>Region of Interest Selection GUI<a class="headerlink" href="#region-of-interest-selection-gui" title="Permalink to this headline">¶</a></h2>
 <p>The Fly-QMA package includes a matplot-lib based GUI for selecting a particular region of interest within an image layer. The interface consists of a grid of images in which rows correspond to layers and columns correspond to each of the available fluorescence channels. To launch the GUI for an individual image stack:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">flyqma.selection.gui</span> <span class="kn">import</span> <span class="n">GUI</span>
 
@@ -90,7 +72,7 @@
 <span class="gp">&gt;&gt;&gt; </span><span class="n">gui</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>Regions of a layer are selected by drawing a selection boundary that encloses them. A selection boundary is defined by a series of sequentially-added points. Click on a layer image to add a point to that layer’s selection boundary. Points may be added to any of a layer’s fluorescence channels, and will automatically appear withing all other fluorescence channels for that layer. The most recently added point appears as a large red dot, while all other points appear as small yellow dots. Once three or more dots are present in an image layer, the current selection boundary is displayed with a yellow line. Once completed, a given layer might look like:</p>
+<p>Regions of interest are selected by drawing a selection boundary that encloses them. A selection boundary is defined by a series of sequentially-added points. Click on a layer image to add a point to that layer’s selection boundary. Points may be added to any of a layer’s fluorescence channels, and will automatically appear withing all other fluorescence channels for that layer. The most recently added point appears as a large red dot, while all other points appear as small yellow dots. Once three or more dots are present in an image layer, the current selection boundary is displayed with a yellow line. Once completed, a given layer might look like:</p>
 <div class="figure align-center" id="id1">
 <img alt="selection boundary" src="_images/example_path.jpg" style="width: 383.0px; height: 128.0px;" />
 <p class="caption"><span class="caption-text"><strong>Example:</strong> Selection boundary for a layer</span></p>
@@ -113,10 +95,31 @@ D: mark layer as duplicate
 <img alt="example gui" src="_images/example_gui.jpg" style="width: 383.0px; height: 503.0px;" />
 <p class="caption"><span class="caption-text"><strong>Example:</strong> A completed selection</span></p>
 </div>
+<p>See the selection <a class="reference internal" href="modules/selection.html#selection-docs"><span class="std std-ref">documentation</span></a> for additional details.</p>
+</div>
+<div class="section" id="measuring-expression">
+<h2>Measuring expression<a class="headerlink" href="#measuring-expression" title="Permalink to this headline">¶</a></h2>
+<p>Segment an image layer, measure the segment properties, and save the results:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">layer</span><span class="o">.</span><span class="n">segment</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">layer</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>See the measurement <a class="reference internal" href="modules/measurement.html#measurement-docs"><span class="std std-ref">documentation</span></a> for additional details and parameters needed to customize the segmentation routine to suit your data.</p>
+</div>
+<div class="section" id="bleedthrough-correction">
+<h2>Bleedthrough Correction<a class="headerlink" href="#bleedthrough-correction" title="Permalink to this headline">¶</a></h2>
+<p>Perform bleedthrough correction:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">flyqma.bleedthrough.correction</span> <span class="kn">import</span> <span class="n">LayerCorrection</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">correction</span> <span class="o">=</span> <span class="n">LayerCorrection</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">correction</span><span class="o">.</span><span class="n">show_correction</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">correction</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>See the bleedthrough correction <span class="xref std std-ref">documentation</span> for additional details and a complete list of available parameters.</p>
 </div>
 <div class="section" id="data-aggregation">
 <h2>Data Aggregation<a class="headerlink" href="#data-aggregation" title="Permalink to this headline">¶</a></h2>
-<p>Aggregate all measurement data for an experiment:</p>
+<p>Aggregate all measurement data from an experiment:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">experiment</span><span class="o">.</span><span class="n">aggregate_measurements</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -124,7 +127,7 @@ D: mark layer as duplicate
 </div>
 <div class="section" id="additional-examples">
 <h2>Additional Examples<a class="headerlink" href="#additional-examples" title="Permalink to this headline">¶</a></h2>
-<p>For detailed usage examples, please refer to the <a class="reference external" href="https://github.com/sebastianbernasek/pnt_yan_ratio">code</a> used to generate the figures in our manuscript.</p>
+<p>For real usage examples, please refer to the <a class="reference external" href="https://github.com/sebastianbernasek/flyqma_ms">FlyQMA manuscript</a> and the <a class="reference external" href="https://github.com/sebastianbernasek/pnt_yan_ratio">our study</a> of Pnt and Yan expression in the developing eye.</p>
 </div>
 </div>
 
@@ -156,9 +159,9 @@ D: mark layer as duplicate
 <li class="toctree-l1"><a class="reference internal" href="documentation.html">DOCUMENTATION</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">EXAMPLE USAGE</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#loading-image-data">Loading image data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#region-of-interest-selection-gui">Region of Interest Selection GUI</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#measuring-expression">Measuring expression</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#bleedthrough-correction">Bleedthrough Correction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#cell-selection-gui">Cell Selection GUI</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#data-aggregation">Data Aggregation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#additional-examples">Additional Examples</a></li>
 </ul>
@@ -170,7 +173,7 @@ D: mark layer as duplicate
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="modules/selection.html" title="previous chapter">Selection Module</a></li>
+      <li>Previous: <a href="modules/analysis.html" title="previous chapter">Analysis Module</a></li>
       <li>Next: <a href="contact.html" title="next chapter">Contact Us</a></li>
   </ul></li>
 </ul>

@@ -17,7 +17,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Bleedthrough Module" href="bleedthrough.html" />
-    <link rel="prev" title="Measurement Module" href="measurement.html" />
+    <link rel="prev" title="Selection Module" href="selection.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -37,56 +37,23 @@
   <a class="reference external image-reference" href="https://amaral.northwestern.edu/"><img alt="nulogo" class="align-right" src="../_images/Northwestern_purple_RGB1.png" style="width: 30%;" /></a>
 <div class="section" id="annotation-module">
 <h1>Annotation Module<a class="headerlink" href="#annotation-module" title="Permalink to this headline">¶</a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">flyqma.annotation</span></code> provides several tools for assigning labels to individual cell measurements.</p>
-<span class="target" id="module-flyqma"></span><span class="target" id="module-flyqma.annotation"></span><div class="section" id="measurement-labeling">
-<h2>Measurement Labeling<a class="headerlink" href="#measurement-labeling" title="Permalink to this headline">¶</a></h2>
-<p>General tools for assigning labels to cell measurements.</p>
-<span class="target" id="module-flyqma.annotation.labelers"></span><dl class="class">
-<dt id="flyqma.annotation.labelers.AttributeLabeler">
-<em class="property">class </em><code class="descclassname">flyqma.annotation.labelers.</code><code class="descname">AttributeLabeler</code><span class="sig-paren">(</span><em>label</em>, <em>attribute</em>, <em>labels</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/labelers.html#AttributeLabeler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.labelers.AttributeLabeler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Assigns label to cell measurement data based on an existing attribute.</p>
-<p>Attributes:</p>
-<blockquote>
-<div><p>label (str) - name of label field to be added</p>
-<p>attribute (str) - existing cell attribute used to determine labels</p>
-<p>labeler (vectorized func) - callable that maps attribute values to labels</p>
-</div></blockquote>
-<dl class="method">
-<dt id="flyqma.annotation.labelers.AttributeLabeler.assign_labels">
-<code class="descname">assign_labels</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/labelers.html#AttributeLabeler.assign_labels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.labelers.AttributeLabeler.assign_labels" title="Permalink to this definition">¶</a></dt>
-<dd><p>Assign labels by adding &lt;label&gt; field to cell measurement data.</p>
-<p>Args:</p>
-<blockquote>
-<div>data (pd.DataFrame) - cells measurement data with &lt;attribute&gt; field</div></blockquote>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="flyqma.annotation.labelers.CelltypeLabeler">
-<em class="property">class </em><code class="descclassname">flyqma.annotation.labelers.</code><code class="descname">CelltypeLabeler</code><span class="sig-paren">(</span><em>label='celltype'</em>, <em>attribute='genotype'</em>, <em>labels=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/labelers.html#CelltypeLabeler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.labelers.CelltypeLabeler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Assigns &lt;celltype&gt; to cell measurement data based on &lt;genotype&gt; attribute.</p>
-<p>Attributes:</p>
-<blockquote>
-<div><p>label (str) - name of label field to be added</p>
-<p>attribute (str) - existing cell attribute used to determine labels</p>
-<p>labeler (vectorized func) - callable that maps attribute values to labels</p>
-</div></blockquote>
-</dd></dl>
-
-</div>
-<div class="section" id="individual-cell-classifiers">
-<h2>Individual Cell Classifiers<a class="headerlink" href="#individual-cell-classifiers" title="Permalink to this headline">¶</a></h2>
-<p>Tools for classifying individual cell measurements.</p>
+<p><code class="docutils literal notranslate"><span class="pre">flyqma.annotation</span></code> provides several tools for labeling distinct subpopulations of cells within an image. Subpopulations are identified on the basis of their clonal marker expression level using a novel unsupervised classification strategy. Please see the Fly-QMA manuscript for a detailed description of the annotation strategy and its various parameters.</p>
+<span class="target" id="module-flyqma"></span><span class="target" id="module-flyqma.annotation"></span><div class="section" id="mixture-models">
+<h2>Mixture Models<a class="headerlink" href="#mixture-models" title="Permalink to this headline">¶</a></h2>
+<p>Tools for fitting univariate and bivariate gaussian mixture models.</p>
+<span class="target" id="module-flyqma.annotation.mixtures"></span></div>
+<div class="section" id="model-selection">
+<h2>Model Selection<a class="headerlink" href="#model-selection" title="Permalink to this headline">¶</a></h2>
+<p>Tools for statistical model selection.</p>
 <span class="target" id="module-flyqma.annotation"></span></div>
-<div class="section" id="genotype-annotation">
-<h2>Genotype Annotation<a class="headerlink" href="#genotype-annotation" title="Permalink to this headline">¶</a></h2>
-<p>Tools for automated cell genotype classification.</p>
-<span class="target" id="module-flyqma.annotation"></span></div>
-<div class="section" id="concurrency-labeling">
-<h2>Concurrency Labeling<a class="headerlink" href="#concurrency-labeling" title="Permalink to this headline">¶</a></h2>
-<p>Tools for labeling cell measurements based on spatio-temporal concurrency.</p>
-<span class="target" id="module-flyqma.annotation"></span></div>
+<div class="section" id="label-assignment">
+<h2>Label Assignment<a class="headerlink" href="#label-assignment" title="Permalink to this headline">¶</a></h2>
+<p>Tools for unsupervised classification of cell measurements.</p>
+<span class="target" id="module-flyqma.annotation.classification"></span></div>
+<div class="section" id="spatial-analysis">
+<h2>Spatial Analysis<a class="headerlink" href="#spatial-analysis" title="Permalink to this headline">¶</a></h2>
+<p>Tools for analyzing the 2D spatial arrangement of cells.</p>
+<span class="target" id="module-flyqma.annotation.spatial"></span></div>
 </div>
 
 
@@ -116,10 +83,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../start.html">GETTING STARTED</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../documentation.html">DOCUMENTATION</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="data.html">Data Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="measurement.html">Measure Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="measurement.html">Measurement Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="selection.html">Selection Module</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Annotation Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="bleedthrough.html">Bleedthrough Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="selection.html">Selection Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="analysis.html">Analysis Module</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../usage.html">EXAMPLE USAGE</a></li>
@@ -131,7 +99,7 @@
 <ul>
   <li><a href="../index.html">Documentation overview</a><ul>
   <li><a href="../documentation.html">Documentation</a><ul>
-      <li>Previous: <a href="measurement.html" title="previous chapter">Measurement Module</a></li>
+      <li>Previous: <a href="selection.html" title="previous chapter">Selection Module</a></li>
       <li>Next: <a href="bleedthrough.html" title="next chapter">Bleedthrough Module</a></li>
   </ul></li>
   </ul></li>

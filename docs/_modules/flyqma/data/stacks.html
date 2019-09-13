@@ -234,6 +234,11 @@
         <span class="sd">&quot;&quot;&quot; Number of color channels in stack. &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;colordepth&#39;</span><span class="p">]</span>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">selector_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Path to model selection object. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">annotator_path</span><span class="p">,</span> <span class="s1">&#39;models&#39;</span><span class="p">)</span>
+
 <div class="viewcode-block" id="Stack.get_included_layers"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.stacks.Stack.get_included_layers">[docs]</a>    <span class="k">def</span> <span class="nf">get_included_layers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Returns indices of included layers. &quot;&quot;&quot;</span>
         <span class="n">layers</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">load_layer</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">graph</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">depth</span><span class="p">)]</span>

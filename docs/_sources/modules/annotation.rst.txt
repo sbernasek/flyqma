@@ -8,51 +8,44 @@
 Annotation Module
 =================
 
-``flyqma.annotation`` provides several tools for assigning labels to individual cell measurements.
+``flyqma.annotation`` provides several tools for labeling distinct subpopulations of cells within an image. Subpopulations are identified on the basis of their clonal marker expression level using a novel unsupervised classification strategy. Please see the Fly-QMA manuscript for a detailed description of the annotation strategy and its various parameters.
 
 
 .. automodule:: flyqma
 .. automodule:: flyqma.annotation
 
 
-Measurement Labeling
---------------------
+Mixture Models
+--------------
 
-General tools for assigning labels to cell measurements.
+Tools for fitting univariate and bivariate gaussian mixture models.
 
-.. automodule:: flyqma.annotation.labelers
+.. automodule:: flyqma.annotation.mixtures
    :members:
 
 
-Individual Cell Classifiers
----------------------------
+Model Selection
+---------------
 
-Tools for classifying individual cell measurements.
+Tools for statistical model selection.
 
 .. automodule:: flyqma.annotation
    :members:
 
 
-Genotype Annotation
--------------------
+Label Assignment
+----------------
 
-Tools for automated cell genotype classification.
+Tools for unsupervised classification of cell measurements.
 
-.. automodule:: flyqma.annotation
+.. automodule:: flyqma.annotation.classification
    :members:
 
 
-Concurrency Labeling
---------------------
+Spatial Analysis
+----------------
 
-Tools for labeling cell measurements based on spatio-temporal concurrency.
+Tools for analyzing the 2D spatial arrangement of cells.
 
-.. automodule:: flyqma.annotation
+.. automodule:: flyqma.annotation.spatial
    :members:
-
-
-
-
-
-
-

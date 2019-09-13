@@ -40,14 +40,153 @@
 <p><code class="docutils literal notranslate"><span class="pre">flyqma.data</span></code> provides three levels of organization for managing cell measurement data:</p>
 <blockquote>
 <div><ol class="arabic simple">
-<li><code class="docutils literal notranslate"><span class="pre">Layer</span></code>: a 2D RGB cross section of an eye disc</li>
+<li><code class="docutils literal notranslate"><span class="pre">Layer</span></code>: a 2D cross sectional image of an eye disc</li>
 <li><code class="docutils literal notranslate"><span class="pre">Stack</span></code>: a set of layers obtained from the same eye disc</li>
 <li><code class="docutils literal notranslate"><span class="pre">Experiment</span></code>: a collection of eye discs obtained under similar conditions</li>
 </ol>
 </div></blockquote>
+<div class="section" id="images">
+<h2>Images<a class="headerlink" href="#images" title="Permalink to this headline">¶</a></h2>
+<p>Images are 2D arrays of pixel intensities recorded within one or more fluorescence channels.</p>
+<span class="target" id="module-flyqma.data.images"></span><dl class="class">
+<dt id="flyqma.data.images.ImageMultichromatic">
+<em class="property">class </em><code class="descclassname">flyqma.data.images.</code><code class="descname">ImageMultichromatic</code><span class="sig-paren">(</span><em>im</em>, <em>labels=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/images.html#ImageMultichromatic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.images.ImageMultichromatic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Object represents a multichromatic image.</p>
+<p>Attributes:</p>
+<blockquote>
+<div>im (np.ndarray[float]) - 2D array of pixel values in WHC format</div></blockquote>
+<p>Inherited attributes:</p>
+<blockquote>
+<div><p>shape (array like) - image dimensions</p>
+<p>mask (np.ndarray[bool]) - image mask</p>
+<p>labels (np.ndarray[int]) - segment ID mask</p>
+</div></blockquote>
+<dl class="method">
+<dt id="flyqma.data.images.ImageMultichromatic.get_channel">
+<code class="descname">get_channel</code><span class="sig-paren">(</span><em>channel</em>, <em>copy=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/images.html#ImageMultichromatic.get_channel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.images.ImageMultichromatic.get_channel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns monochrome image of specified color channel.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>channel (int) - desired channel</p>
+<p>copy (bool) - if True, instantiate from image copy</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div>image (ImageScalar) - monochrome image</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.images.ImageMultichromatic.to_RGB">
+<code class="descname">to_RGB</code><span class="sig-paren">(</span><em>channels_dict=None</em>, <em>copy=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/images.html#ImageMultichromatic.to_RGB"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.images.ImageMultichromatic.to_RGB" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns RGB image of specified color channels.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>channels_dict (dict) - RGB channels keyed by channel index</p>
+<p>copy (bool) - if True, instantiate from image copy</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div>image (ImageMultichromatic) - RGB image</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="flyqma.data.images.ImageScalar">
+<em class="property">class </em><code class="descclassname">flyqma.data.images.</code><code class="descname">ImageScalar</code><span class="sig-paren">(</span><em>im</em>, <em>labels=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/images.html#ImageScalar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.images.ImageScalar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Object represents a monochrome image.</p>
+<p>Attributes:</p>
+<blockquote>
+<div><p>im (np.ndarray[float]) - 2D array of pixel values</p>
+<p>shape (array like) - image dimensions</p>
+<p>mask (np.ndarray[bool]) - image mask</p>
+<p>labels (np.ndarray[int]) - segment ID mask</p>
+</div></blockquote>
+<dl class="method">
+<dt id="flyqma.data.images.ImageScalar.add_contour">
+<code class="descname">add_contour</code><span class="sig-paren">(</span><em>ax</em>, <em>mask</em>, <em>lw=1</em>, <em>color='r'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/images.html#ImageScalar.add_contour"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.images.ImageScalar.add_contour" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds border of specified contour.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.images.ImageScalar.add_contours">
+<code class="descname">add_contours</code><span class="sig-paren">(</span><em>ax</em>, <em>lw=1</em>, <em>color='r'</em>, <em>rasterized=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/images.html#ImageScalar.add_contours"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.images.ImageScalar.add_contours" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds borders of all contours.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.images.ImageScalar.clahe">
+<code class="descname">clahe</code><span class="sig-paren">(</span><em>factor=8</em>, <em>clip_limit=0.01</em>, <em>nbins=256</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/images.html#ImageScalar.clahe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.images.ImageScalar.clahe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run CLAHE on reflection-padded image.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>factor (float or int) - number of segments per dimension</p>
+<p>clip_limit (float) - clip limit for CLAHE</p>
+<p>nbins (int) - number of grey-scale bins for histogram</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.images.ImageScalar.gaussian_filter">
+<code class="descname">gaussian_filter</code><span class="sig-paren">(</span><em>sigma=(1.0</em>, <em>1.0)</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/images.html#ImageScalar.gaussian_filter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.images.ImageScalar.gaussian_filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply 2D gaussian filter.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.images.ImageScalar.median_filter">
+<code class="descname">median_filter</code><span class="sig-paren">(</span><em>radius=0</em>, <em>structure_dim=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/images.html#ImageScalar.median_filter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.images.ImageScalar.median_filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply 2D median filter.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.images.ImageScalar.preprocess">
+<code class="descname">preprocess</code><span class="sig-paren">(</span><em>median_radius=2</em>, <em>gaussian_sigma=(2</em>, <em>2)</em>, <em>clip_limit=0.03</em>, <em>clip_factor=20</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/images.html#ImageScalar.preprocess"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.images.ImageScalar.preprocess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Preprocess image.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>median_radius (int) - median filter size, px</p>
+<p>gaussian_sigma (tuple) - gaussian filter size, px std dev</p>
+<p>clip_limit (float) - CLAHE clip limit</p>
+<p>clip_factor (int) - CLAHE clip factor</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.images.ImageScalar.set_mean_mask">
+<code class="descname">set_mean_mask</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/images.html#ImageScalar.set_mean_mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.images.ImageScalar.set_mean_mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mask values below mean.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.images.ImageScalar.set_otsu_mask">
+<code class="descname">set_otsu_mask</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/images.html#ImageScalar.set_otsu_mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.images.ImageScalar.set_otsu_mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mask values below otsu threahold.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.images.ImageScalar.show">
+<code class="descname">show</code><span class="sig-paren">(</span><em>segments=True</em>, <em>cmap=None</em>, <em>vmin=0</em>, <em>vmax=1</em>, <em>figsize=(10</em>, <em>10)</em>, <em>ax=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/images.html#ImageScalar.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.images.ImageScalar.show" title="Permalink to this definition">¶</a></dt>
+<dd><p>Render image.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>segments (bool) - if True, include cell segment contours</p>
+<p>cmap (matplotlib.colors.ColorMap or str) - colormap or RGB channel</p>
+<p>vmin, vmax (float) - bounds for color scale</p>
+<p>figsize (tuple) - figure size</p>
+<p>ax (matplotlib.axes.AxesSubplot) - if None, create axis</p>
+<p>kwargs: keyword arguments for add_contours</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div>fig (matplotlib.figures.Figure)</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+</div>
 <div class="section" id="layers">
 <h2>Layers<a class="headerlink" href="#layers" title="Permalink to this headline">¶</a></h2>
-<p>Layers are 2D RGB cross sections of an eye disc.</p>
+<p>Layers are 2D cross sectional images of an eye disc.</p>
 <span class="target" id="module-flyqma.data.layers"></span><dl class="class">
 <dt id="flyqma.data.layers.Layer">
 <em class="property">class </em><code class="descclassname">flyqma.data.layers.</code><code class="descname">Layer</code><span class="sig-paren">(</span><em>path</em>, <em>im=None</em>, <em>annotator=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer" title="Permalink to this definition">¶</a></dt>
@@ -525,6 +664,12 @@
 </div></blockquote>
 </dd></dl>
 
+<dl class="attribute">
+<dt id="flyqma.data.stacks.Stack.selector_path">
+<code class="descname">selector_path</code><a class="headerlink" href="#flyqma.data.stacks.Stack.selector_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path to model selection object.</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="flyqma.data.stacks.Stack.train_annotator">
 <code class="descname">train_annotator</code><span class="sig-paren">(</span><em>attribute</em>, <em>save=False</em>, <em>logratio=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/stacks.html#Stack.train_annotator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.stacks.Stack.train_annotator" title="Permalink to this definition">¶</a></dt>
@@ -637,6 +782,96 @@
 </dd></dl>
 
 </div>
+<div class="section" id="silhouette-interface">
+<h2>Silhouette Interface<a class="headerlink" href="#silhouette-interface" title="Permalink to this headline">¶</a></h2>
+<p>Fly-QMA provides several tools for seemlessly exchanging data with NU FlyEye Silhouette.</p>
+<span class="target" id="module-flyqma.data.silhouette"></span><dl class="class">
+<dt id="flyqma.data.silhouette.SilhouetteIO">
+<em class="property">class </em><code class="descclassname">flyqma.data.silhouette.</code><code class="descname">SilhouetteIO</code><a class="reference internal" href="../_modules/flyqma/data/silhouette.html#SilhouetteIO"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.silhouette.SilhouetteIO" title="Permalink to this definition">¶</a></dt>
+<dd><p>Methods for converting a stack to Silhouette readable format.</p>
+<p>The Silhouette container includes a FEED file:</p>
+<p>FEED.json</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;orientation&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;flip_about_xy&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span> <span class="s2">&quot;flip_about_yz&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">},</span>
+<span class="s2">&quot;layer_ids&quot;</span><span class="p">:</span> <span class="p">[</span> <span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">2.</span><span class="o">..</span> <span class="p">],</span>
+<span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="n">param_name</span><span class="p">:</span> <span class="n">param_value</span> <span class="o">...</span> <span class="p">}</span> <span class="p">}</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="flyqma.data.silhouette.SilhouetteIO.load_silhouette_labels">
+<code class="descname">load_silhouette_labels</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/silhouette.html#SilhouetteIO.load_silhouette_labels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.silhouette.SilhouetteIO.load_silhouette_labels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load manually assigned labels from file.</p>
+<p>Returns:</p>
+<blockquote>
+<div>labels (pd.Series) - labels keyed by (layer_id, segment_id)</div></blockquote>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="flyqma.data.silhouette.SilhouetteIO.silhouette_path">
+<code class="descname">silhouette_path</code><a class="headerlink" href="#flyqma.data.silhouette.SilhouetteIO.silhouette_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path to Silhouette directory.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.silhouette.SilhouetteIO.write_silhouette">
+<code class="descname">write_silhouette</code><span class="sig-paren">(</span><em>dst=None</em>, <em>include_image=True</em>, <em>channel_dict=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/silhouette.html#SilhouetteIO.write_silhouette"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.silhouette.SilhouetteIO.write_silhouette" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write silhouette file.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>dst (str) - destination directory</p>
+<p>include_image (bool) - save RGB image of each layer</p>
+<p>channel_dict (dict) - RGB channel names, keyed by channel index. If none provided, defaults to the first three channels in RGB order.</p>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="flyqma.data.silhouette.SilhouetteLayerIO">
+<em class="property">class </em><code class="descclassname">flyqma.data.silhouette.</code><code class="descname">SilhouetteLayerIO</code><a class="reference internal" href="../_modules/flyqma/data/silhouette.html#SilhouetteLayerIO"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.silhouette.SilhouetteLayerIO" title="Permalink to this definition">¶</a></dt>
+<dd><p>Methods for converting a layer to Silhouette readable format.</p>
+<p>A layer file is structured as follows:</p>
+<p>LAYER_ID.json :</p>
+<blockquote>
+<div><p>{
+“id”: LAYER_ID
+“imageFilename”: “LAYER_ID.png”
+“contours”: [ … contours … ]</p>
+<blockquote>
+<div>{“centroid”: [CONTOUR_CENTROID_X, CONTOUR_CENTROID_Y],
+“color_avg”: {“b”: X, “g”: X, “r”: X},
+“color_std”: {“b”: X, “g”: X, “r”: X},
+“id”: CONTOUR_ID,
+“pixel_count”: CONTOUR_AREA,
+“points”: [[x1, y1], [x2, y2] … ]}</div></blockquote>
+<p>}</p>
+</div></blockquote>
+<dl class="method">
+<dt id="flyqma.data.silhouette.SilhouetteLayerIO.build_contours">
+<code class="descname">build_contours</code><span class="sig-paren">(</span><em>channel_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/silhouette.html#SilhouetteLayerIO.build_contours"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.silhouette.SilhouetteLayerIO.build_contours" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert dataframe to a list of contours (Silhouette format).</p>
+<p>Args:</p>
+<blockquote>
+<div>channel_dict (dict) - RGB channel names, keyed by channel index</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div>contours (list) - list of contour dictionaries</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.silhouette.SilhouetteLayerIO.write_silhouette">
+<code class="descname">write_silhouette</code><span class="sig-paren">(</span><em>dst</em>, <em>include_image=True</em>, <em>channel_dict=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/silhouette.html#SilhouetteLayerIO.write_silhouette"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.silhouette.SilhouetteLayerIO.write_silhouette" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write silhouette compatible JSON to target directory.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>dst (str) - destination directory</p>
+<p>include_image (bool) - save layer image as png</p>
+<p>channel_dict (dict) - RGB channel names, keyed by channel index. If none provided, defaults to the first three channels in RGB order.</p>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+</div>
 </div>
 
 
@@ -666,10 +901,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../start.html">GETTING STARTED</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../documentation.html">DOCUMENTATION</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Data Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="measurement.html">Measure Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="measurement.html">Measurement Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="selection.html">Selection Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="annotation.html">Annotation Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="bleedthrough.html">Bleedthrough Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="selection.html">Selection Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="analysis.html">Analysis Module</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../usage.html">EXAMPLE USAGE</a></li>

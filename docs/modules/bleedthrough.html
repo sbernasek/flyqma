@@ -16,7 +16,7 @@
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Selection Module" href="selection.html" />
+    <link rel="next" title="Analysis Module" href="analysis.html" />
     <link rel="prev" title="Annotation Module" href="annotation.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
@@ -37,10 +37,10 @@
   <a class="reference external image-reference" href="https://amaral.northwestern.edu/"><img alt="nulogo" class="align-right" src="../_images/Northwestern_purple_RGB1.png" style="width: 30%;" /></a>
 <div class="section" id="bleedthrough-module">
 <h1>Bleedthrough Module<a class="headerlink" href="#bleedthrough-module" title="Permalink to this headline">¶</a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">flyqma.bleedthrough</span></code> provides methods for managing fluorescence bleedthrough between color channels.</p>
+<p><code class="docutils literal notranslate"><span class="pre">flyqma.bleedthrough</span></code> provides methods for correcting for spectral bleedthrough between fluorescent reporter channels.</p>
 <div class="section" id="background-extraction">
 <h2>Background Extraction<a class="headerlink" href="#background-extraction" title="Permalink to this headline">¶</a></h2>
-<p>Extract the background pixels from a segmented image.</p>
+<p>Tools for extracting the background pixels from a segmented image.</p>
 <span class="target" id="module-flyqma.bleedthrough.background"></span><dl class="class">
 <dt id="flyqma.bleedthrough.background.BackgroundExtraction">
 <em class="property">class </em><code class="descclassname">flyqma.bleedthrough.background.</code><code class="descname">BackgroundExtraction</code><span class="sig-paren">(</span><em>layer</em>, <em>niters=10</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/bleedthrough/background.html#BackgroundExtraction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.bleedthrough.background.BackgroundExtraction" title="Permalink to this definition">¶</a></dt>
@@ -110,9 +110,29 @@
 </dd></dl>
 
 </div>
-<div class="section" id="module-flyqma.bleedthrough.models">
-<span id="linear-models"></span><h2>Linear Models<a class="headerlink" href="#module-flyqma.bleedthrough.models" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
+<div class="section" id="resampling">
+<h2>Resampling<a class="headerlink" href="#resampling" title="Permalink to this headline">¶</a></h2>
+<p>Tools for resampling a set of pixel intensities.</p>
+<span class="target" id="module-flyqma.bleedthrough.resampling"></span><dl class="function">
+<dt id="flyqma.bleedthrough.resampling.resample_uniformly">
+<code class="descclassname">flyqma.bleedthrough.resampling.</code><code class="descname">resample_uniformly</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>size=None</em>, <em>cutoff=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/bleedthrough/resampling.html#resample_uniformly"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.bleedthrough.resampling.resample_uniformly" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resample X and Y uniformly in X.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>x, y (np.ndarray[float]) - original samples</p>
+<p>size (int) - number of uniform samples</p>
+<p>cutoff (int) - upper bound for samples (quantile, 0 to 100)</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div>x, y (np.ndarray[float]) - resampled s.t. x is uniformly distributed</div></blockquote>
+</dd></dl>
+
+</div>
+<div class="section" id="bleedthrough-coefficient-characterization">
+<h2>Bleedthrough Coefficient Characterization<a class="headerlink" href="#bleedthrough-coefficient-characterization" title="Permalink to this headline">¶</a></h2>
+<p>Tools for characterizing bleedthrough coefficients.</p>
+<span class="target" id="module-flyqma.bleedthrough.models"></span><dl class="class">
 <dt id="flyqma.bleedthrough.models.GLM">
 <em class="property">class </em><code class="descclassname">flyqma.bleedthrough.models.</code><code class="descname">GLM</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>**fit_kw</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/bleedthrough/models.html#GLM"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.bleedthrough.models.GLM" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generalized linear model with gamma distributed residuals and an identity link function fit to X and Y data.</p>
@@ -170,7 +190,7 @@
 </div>
 <div class="section" id="bleedthrough-correction">
 <h2>Bleedthrough Correction<a class="headerlink" href="#bleedthrough-correction" title="Permalink to this headline">¶</a></h2>
-<p>Correction for fluorescence bleedthrough.</p>
+<p>Tools for correcting measurements subject to bleedthrough.</p>
 <span class="target" id="module-flyqma.bleedthrough.correction"></span><dl class="class">
 <dt id="flyqma.bleedthrough.correction.Correction">
 <em class="property">class </em><code class="descclassname">flyqma.bleedthrough.correction.</code><code class="descname">Correction</code><span class="sig-paren">(</span><em>xt</em>, <em>yt</em>, <em>bg_x</em>, <em>bg_y</em>, <em>remove_zeros=False</em>, <em>resample=True</em>, <em>resample_size=None</em>, <em>resample_cutoff=None</em>, <em>store_pixels=True</em>, <em>**fit_kw</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/bleedthrough/correction.html#Correction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.bleedthrough.correction.Correction" title="Permalink to this definition">¶</a></dt>
@@ -265,6 +285,60 @@
 </dd></dl>
 
 </div>
+<div class="section" id="visualization">
+<h2>Visualization<a class="headerlink" href="#visualization" title="Permalink to this headline">¶</a></h2>
+<p>Tools for visualizing the bleedthrough correction procedure.</p>
+<span class="target" id="module-flyqma.bleedthrough.visualization"></span><dl class="class">
+<dt id="flyqma.bleedthrough.visualization.CorrectionVisualization">
+<em class="property">class </em><code class="descclassname">flyqma.bleedthrough.visualization.</code><code class="descname">CorrectionVisualization</code><a class="reference internal" href="../_modules/flyqma/bleedthrough/visualization.html#CorrectionVisualization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.bleedthrough.visualization.CorrectionVisualization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Methods for visualizing correction procedure.</p>
+<dl class="method">
+<dt id="flyqma.bleedthrough.visualization.CorrectionVisualization.show_correction">
+<code class="descname">show_correction</code><span class="sig-paren">(</span><em>figsize=(6</em>, <em>2)</em>, <em>selected_only=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/bleedthrough/visualization.html#CorrectionVisualization.show_correction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.bleedthrough.visualization.CorrectionVisualization.show_correction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Show cell measurements before and after correction.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>figsize (tuple) - figure size</p>
+<p>selected_only (bool) - if True, exclude cells outside selection bounds</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.bleedthrough.visualization.CorrectionVisualization.show_fit">
+<code class="descname">show_fit</code><span class="sig-paren">(</span><em>mode='box'</em>, <em>bin_size=0.05</em>, <em>figsize=(3</em>, <em>2)</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/bleedthrough/visualization.html#CorrectionVisualization.show_fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.bleedthrough.visualization.CorrectionVisualization.show_fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot fit to background pixels using sns.boxplot .</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.bleedthrough.visualization.CorrectionVisualization.show_resampling">
+<code class="descname">show_resampling</code><span class="sig-paren">(</span><em>xbins=None</em>, <em>ybins=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/bleedthrough/visualization.html#CorrectionVisualization.show_resampling"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.bleedthrough.visualization.CorrectionVisualization.show_resampling" title="Permalink to this definition">¶</a></dt>
+<dd><p>Visualize resampling procedure.</p>
+<p>Returns:</p>
+<blockquote>
+<div>figures (tuple)</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="flyqma.bleedthrough.visualization.LayerCorrectionVisualization">
+<em class="property">class </em><code class="descclassname">flyqma.bleedthrough.visualization.</code><code class="descname">LayerCorrectionVisualization</code><a class="reference internal" href="../_modules/flyqma/bleedthrough/visualization.html#LayerCorrectionVisualization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.bleedthrough.visualization.LayerCorrectionVisualization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Methods for visualizing layer correction procedure.</p>
+<dl class="method">
+<dt id="flyqma.bleedthrough.visualization.LayerCorrectionVisualization.show_background_extraction">
+<code class="descname">show_background_extraction</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/bleedthrough/visualization.html#LayerCorrectionVisualization.show_background_extraction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.bleedthrough.visualization.LayerCorrectionVisualization.show_background_extraction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Visualize background extraction procedure.</p>
+<p>Keyword arguments:</p>
+<blockquote>
+<div>invert (bool) - if True, mask background rather than foreground</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div>figure</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+</div>
 </div>
 
 
@@ -294,10 +368,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../start.html">GETTING STARTED</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../documentation.html">DOCUMENTATION</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="data.html">Data Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="measurement.html">Measure Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="measurement.html">Measurement Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="selection.html">Selection Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="annotation.html">Annotation Module</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Bleedthrough Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="selection.html">Selection Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="analysis.html">Analysis Module</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../usage.html">EXAMPLE USAGE</a></li>
@@ -310,7 +385,7 @@
   <li><a href="../index.html">Documentation overview</a><ul>
   <li><a href="../documentation.html">Documentation</a><ul>
       <li>Previous: <a href="annotation.html" title="previous chapter">Annotation Module</a></li>
-      <li>Next: <a href="selection.html" title="next chapter">Selection Module</a></li>
+      <li>Next: <a href="analysis.html" title="next chapter">Analysis Module</a></li>
   </ul></li>
   </ul></li>
 </ul>

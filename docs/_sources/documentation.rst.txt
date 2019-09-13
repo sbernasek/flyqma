@@ -15,7 +15,8 @@ Documentation
    :maxdepth: 1
 
    Data Module <modules/data>
-   Measure Module <modules/measurement>
+   Measurement Module <modules/measurement>
+   Selection Module <modules/selection>
    Annotation Module <modules/annotation>
    Bleedthrough Module <modules/bleedthrough>
-   Selection Module <modules/selection>
+   Analysis Module <modules/analysis>

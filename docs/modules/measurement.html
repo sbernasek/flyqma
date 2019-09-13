@@ -16,7 +16,7 @@
     <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Annotation Module" href="annotation.html" />
+    <link rel="next" title="Selection Module" href="selection.html" />
     <link rel="prev" title="Data Module" href="data.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
@@ -36,11 +36,11 @@
             
   <a class="reference external image-reference" href="https://amaral.northwestern.edu/"><img alt="nulogo" class="align-right" src="../_images/Northwestern_purple_RGB1.png" style="width: 30%;" /></a>
 <div class="section" id="measurement-module">
-<h1>Measurement Module<a class="headerlink" href="#measurement-module" title="Permalink to this headline">¶</a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">flyqma.measurement</span></code> provides tools for measuring protein expression by quantifying fluorescent reporter intensity in confocal images of developing <em>Drosophila</em> eyes.</p>
+<span id="measurement-docs"></span><h1>Measurement Module<a class="headerlink" href="#measurement-module" title="Permalink to this headline">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">flyqma.measurement</span></code> provides tools for quantifying reporter fluorescence intensity within individual cell nuclei.</p>
 <div class="section" id="image-segmentation">
 <h2>Image Segmentation<a class="headerlink" href="#image-segmentation" title="Permalink to this headline">¶</a></h2>
-<p>Tools for detecting cells.</p>
+<p>Tools for detecting individual cell nuclei.</p>
 <span class="target" id="module-flyqma.measurement.segmentation"></span><dl class="class">
 <dt id="flyqma.measurement.segmentation.Segmentation">
 <em class="property">class </em><code class="descclassname">flyqma.measurement.segmentation.</code><code class="descname">Segmentation</code><span class="sig-paren">(</span><em>image</em>, <em>seed_kws={}</em>, <em>seg_kws={}</em>, <em>exclude_edges=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/measurement/segmentation.html#Segmentation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.measurement.segmentation.Segmentation" title="Permalink to this definition">¶</a></dt>
@@ -160,7 +160,7 @@
 </div>
 <div class="section" id="expression-measurement">
 <h2>Expression Measurement<a class="headerlink" href="#expression-measurement" title="Permalink to this headline">¶</a></h2>
-<p>Tools for measuring the properties of detected cells.</p>
+<p>Tools for measuring the properties of detected cell nuclei.</p>
 <span class="target" id="module-flyqma.measurement.measure"></span><dl class="class">
 <dt id="flyqma.measurement.measure.Measurements">
 <em class="property">class </em><code class="descclassname">flyqma.measurement.measure.</code><code class="descname">Measurements</code><span class="sig-paren">(</span><em>im</em>, <em>labels</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/measurement/measure.html#Measurements"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.measurement.measure.Measurements" title="Permalink to this definition">¶</a></dt>
@@ -263,10 +263,11 @@ segment_ids (np.ndarray[int]) - ordered segment IDs</p>
 <li class="toctree-l1"><a class="reference internal" href="../start.html">GETTING STARTED</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../documentation.html">DOCUMENTATION</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="data.html">Data Module</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Measure Module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Measurement Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="selection.html">Selection Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="annotation.html">Annotation Module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="bleedthrough.html">Bleedthrough Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="selection.html">Selection Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="analysis.html">Analysis Module</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../usage.html">EXAMPLE USAGE</a></li>
@@ -279,7 +280,7 @@ segment_ids (np.ndarray[int]) - ordered segment IDs</p>
   <li><a href="../index.html">Documentation overview</a><ul>
   <li><a href="../documentation.html">Documentation</a><ul>
       <li>Previous: <a href="data.html" title="previous chapter">Data Module</a></li>
-      <li>Next: <a href="annotation.html" title="next chapter">Annotation Module</a></li>
+      <li>Next: <a href="selection.html" title="next chapter">Selection Module</a></li>
   </ul></li>
   </ul></li>
 </ul>

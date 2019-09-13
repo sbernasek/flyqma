@@ -1,0 +1,382 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>flyqma.data.images &#8212; flyqma v0.1-beta documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for flyqma.data.images</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">scipy.ndimage</span> <span class="k">import</span> <span class="n">iterate_structure</span><span class="p">,</span> <span class="n">generate_binary_structure</span>
+<span class="kn">from</span> <span class="nn">scipy.ndimage</span> <span class="k">import</span> <span class="n">gaussian_filter</span><span class="p">,</span> <span class="n">median_filter</span>
+<span class="kn">from</span> <span class="nn">skimage.filters</span> <span class="k">import</span> <span class="n">threshold_otsu</span>
+<span class="kn">from</span> <span class="nn">skimage.exposure</span> <span class="k">import</span> <span class="n">equalize_adapthist</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+
+<div class="viewcode-block" id="ImageScalar"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.images.ImageScalar">[docs]</a><span class="k">class</span> <span class="nc">ImageScalar</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Object represents a monochrome image.</span>
+
+<span class="sd">    Attributes:</span>
+
+<span class="sd">        im (np.ndarray[float]) - 2D array of pixel values</span>
+
+<span class="sd">        shape (array like) - image dimensions</span>
+
+<span class="sd">        mask (np.ndarray[bool]) - image mask</span>
+
+<span class="sd">        labels (np.ndarray[int]) - segment ID mask</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">im</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Instantiate scalar image.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            im (np.ndarray[float]) - 2D array of pixel values</span>
+
+<span class="sd">           labels (np.ndarray[int]) - segment ID mask</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">im</span> <span class="o">=</span> <span class="n">im</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">im</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="n">labels</span>
+
+<div class="viewcode-block" id="ImageScalar.show"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.images.ImageScalar.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+             <span class="n">segments</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+             <span class="n">cmap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+             <span class="n">vmin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+             <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>
+             <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+             <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Render image.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            segments (bool) - if True, include cell segment contours</span>
+
+<span class="sd">            cmap (matplotlib.colors.ColorMap or str) - colormap or RGB channel</span>
+
+<span class="sd">            vmin, vmax (float) - bounds for color scale</span>
+
+<span class="sd">            figsize (tuple) - figure size</span>
+
+<span class="sd">            ax (matplotlib.axes.AxesSubplot) - if None, create axis</span>
+
+<span class="sd">            kwargs: keyword arguments for add_contours</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            fig (matplotlib.figures.Figure)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">)</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gcf</span><span class="p">()</span>
+
+        <span class="c1"># show image in RGB format</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">cmap</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="n">ind</span> <span class="o">=</span> <span class="s1">&#39;rgb&#39;</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">cmap</span><span class="p">)</span>
+            <span class="n">im</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">3</span><span class="p">))</span>
+            <span class="n">im</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">ind</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">im</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">im</span><span class="p">)</span>
+
+        <span class="c1"># otherwise use specified colormap</span>
+        <span class="k">elif</span> <span class="n">cmap</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">im</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="n">vmax</span><span class="p">)</span>
+
+        <span class="c1"># otherwise show raw image</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">im</span><span class="p">)</span>
+
+        <span class="c1"># add segment labels</span>
+        <span class="k">if</span> <span class="n">segments</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_contours</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># remove axis</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">fig</span></div>
+
+<div class="viewcode-block" id="ImageScalar.add_contour"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.images.ImageScalar.add_contour">[docs]</a>    <span class="k">def</span> <span class="nf">add_contour</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Adds border of specified contour. &quot;&quot;&quot;</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">contour</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">],</span> <span class="n">linewidths</span><span class="o">=</span><span class="p">[</span><span class="n">lw</span><span class="p">],</span> <span class="n">colors</span><span class="o">=</span><span class="p">[</span><span class="n">color</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="ImageScalar.add_contours"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.images.ImageScalar.add_contours">[docs]</a>    <span class="k">def</span> <span class="nf">add_contours</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">rasterized</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Adds borders of all contours. &quot;&quot;&quot;</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="n">ctr</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">contour</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">],</span> <span class="n">linewidths</span><span class="o">=</span><span class="p">[</span><span class="n">lw</span><span class="p">],</span> <span class="n">colors</span><span class="o">=</span><span class="p">[</span><span class="n">color</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">rasterized</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">ctr</span><span class="o">.</span><span class="n">collections</span><span class="p">:</span>
+                <span class="n">c</span><span class="o">.</span><span class="n">set_rasterized</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ImageScalar.gaussian_filter"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.images.ImageScalar.gaussian_filter">[docs]</a>    <span class="k">def</span> <span class="nf">gaussian_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="p">(</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)):</span>
+        <span class="sd">&quot;&quot;&quot; Apply 2D gaussian filter. &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">im</span> <span class="o">=</span> <span class="n">gaussian_filter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">im</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ImageScalar.median_filter"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.images.ImageScalar.median_filter">[docs]</a>    <span class="k">def</span> <span class="nf">median_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">structure_dim</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Apply 2D median filter. &quot;&quot;&quot;</span>
+        <span class="n">struct</span> <span class="o">=</span> <span class="n">iterate_structure</span><span class="p">(</span><span class="n">generate_binary_structure</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">structure_dim</span><span class="p">),</span> <span class="n">radius</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">im</span> <span class="o">=</span> <span class="n">median_filter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">im</span><span class="p">,</span> <span class="n">footprint</span><span class="o">=</span><span class="n">struct</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ImageScalar.set_mean_mask"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.images.ImageScalar.set_mean_mask">[docs]</a>    <span class="k">def</span> <span class="nf">set_mean_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Mask values below mean. &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">im</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">im</span><span class="o">&gt;=</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">im</span><span class="p">)]</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="ImageScalar.set_otsu_mask"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.images.ImageScalar.set_otsu_mask">[docs]</a>    <span class="k">def</span> <span class="nf">set_otsu_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Mask values below otsu threahold. &quot;&quot;&quot;</span>
+        <span class="n">threshold</span> <span class="o">=</span> <span class="n">threshold_otsu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">im</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">im</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">im</span><span class="o">&gt;=</span><span class="n">threshold</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="ImageScalar.clahe"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.images.ImageScalar.clahe">[docs]</a>    <span class="k">def</span> <span class="nf">clahe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">factor</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">clip_limit</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">nbins</span><span class="o">=</span><span class="mi">256</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run CLAHE on reflection-padded image.</span>
+
+<span class="sd">        Args:</span>
+
+
+<span class="sd">            factor (float or int) - number of segments per dimension</span>
+
+<span class="sd">            clip_limit (float) - clip limit for CLAHE</span>
+
+<span class="sd">            nbins (int) - number of grey-scale bins for histogram</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># set kernel size as fraction of image size</span>
+        <span class="n">kernel_size</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">s</span><span class="o">/</span><span class="n">factor</span><span class="p">))</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">im</span><span class="o">.</span><span class="n">shape</span><span class="p">]</span>
+
+        <span class="c1"># pad image with reflection about boundaries (circumvents artefacts)</span>
+        <span class="n">im_padded</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">im</span><span class="p">,</span> <span class="p">[(</span><span class="n">x</span><span class="p">,)</span><span class="o">*</span><span class="mi">2</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">kernel_size</span><span class="p">],</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;reflect&#39;</span><span class="p">)</span>
+
+        <span class="c1"># apply CLAHE</span>
+        <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
+            <span class="n">im_equalized</span> <span class="o">=</span> <span class="n">equalize_adapthist</span><span class="p">(</span><span class="n">im_padded</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="n">kernel_size</span><span class="p">,</span> <span class="n">clip_limit</span><span class="o">=</span><span class="n">clip_limit</span><span class="p">,</span> <span class="n">nbins</span><span class="o">=</span><span class="n">nbins</span><span class="p">)</span>
+
+        <span class="c1"># crop image</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">im</span> <span class="o">=</span> <span class="n">im_equalized</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="o">-</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">kernel_size</span><span class="p">)]</span></div>
+
+<div class="viewcode-block" id="ImageScalar.preprocess"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.images.ImageScalar.preprocess">[docs]</a>    <span class="k">def</span> <span class="nf">preprocess</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                   <span class="n">median_radius</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                   <span class="n">gaussian_sigma</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+                   <span class="n">clip_limit</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span>
+                   <span class="n">clip_factor</span><span class="o">=</span><span class="mi">20</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Preprocess image.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            median_radius (int) - median filter size, px</span>
+
+<span class="sd">            gaussian_sigma (tuple) - gaussian filter size, px std dev</span>
+
+<span class="sd">            clip_limit (float) - CLAHE clip limit</span>
+
+<span class="sd">            clip_factor (int) - CLAHE clip factor</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">median_filter</span><span class="p">(</span><span class="n">radius</span><span class="o">=</span><span class="n">median_radius</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gaussian_filter</span><span class="p">(</span><span class="n">sigma</span><span class="o">=</span><span class="n">gaussian_sigma</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clahe</span><span class="p">(</span><span class="n">clip_limit</span><span class="o">=</span><span class="n">clip_limit</span><span class="p">,</span> <span class="n">factor</span><span class="o">=</span><span class="n">clip_factor</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="ImageMultichromatic"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.images.ImageMultichromatic">[docs]</a><span class="k">class</span> <span class="nc">ImageMultichromatic</span><span class="p">(</span><span class="n">ImageScalar</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Object represents a multichromatic image.</span>
+
+<span class="sd">    Attributes:</span>
+
+<span class="sd">        im (np.ndarray[float]) - 2D array of pixel values in WHC format</span>
+
+<span class="sd">    Inherited attributes:</span>
+
+<span class="sd">        shape (array like) - image dimensions</span>
+
+<span class="sd">        mask (np.ndarray[bool]) - image mask</span>
+
+<span class="sd">        labels (np.ndarray[int]) - segment ID mask</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">im</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Instantiate RGB image.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            im (np.ndarray[float]) - 2D array of pixel values</span>
+
+<span class="sd">           labels (np.ndarray[int]) - segment ID mask</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="n">labels</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ImageMultichromatic.get_channel"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.images.ImageMultichromatic.get_channel">[docs]</a>    <span class="k">def</span> <span class="nf">get_channel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns monochrome image of specified color channel.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            channel (int) - desired channel</span>
+
+<span class="sd">            copy (bool) - if True, instantiate from image copy</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            image (ImageScalar) - monochrome image</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;ch&#39;</span> <span class="ow">in</span> <span class="n">channel</span><span class="p">:</span>
+                <span class="n">channel</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">channel</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;ch&#39;</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">copy</span><span class="p">:</span>
+            <span class="n">monochrome</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">im</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">channel</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">monochrome</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">im</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">channel</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">ImageScalar</span><span class="p">(</span><span class="n">monochrome</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ImageMultichromatic.to_RGB"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.images.ImageMultichromatic.to_RGB">[docs]</a>    <span class="k">def</span> <span class="nf">to_RGB</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channels_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns RGB image of specified color channels.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            channels_dict (dict) - RGB channels keyed by channel index</span>
+
+<span class="sd">            copy (bool) - if True, instantiate from image copy</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            image (ImageMultichromatic) - RGB image</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># default to first three channels as R, G, and B</span>
+        <span class="k">if</span> <span class="n">channels_dict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">channels_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="s1">&#39;rgb&#39;</span><span class="p">))</span>
+
+        <span class="c1"># copy image</span>
+        <span class="k">if</span> <span class="n">copy</span><span class="p">:</span>
+            <span class="n">im</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">im</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">im</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">im</span>
+
+        <span class="c1"># concatenate channels</span>
+        <span class="n">lookup</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span> <span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">channels_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="n">channels</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">channel</span> <span class="ow">in</span> <span class="s1">&#39;rgb&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">channel</span> <span class="ow">in</span> <span class="n">lookup</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">idx</span> <span class="o">=</span> <span class="n">lookup</span><span class="p">[</span><span class="n">channel</span><span class="p">]</span>
+                <span class="n">channels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">im</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">idx</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">channels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">im</span><span class="p">[:,:,</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="n">rgb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">channels</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">ImageMultichromatic</span><span class="p">(</span><span class="n">rgb</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../../index.html">
+    <img class="logo" src="../../../_static/graphics/logo.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">INSTALLATION</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../start.html">GETTING STARTED</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../documentation.html">DOCUMENTATION</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usage.html">EXAMPLE USAGE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contact.html">CONTACT</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Sebastian Bernasek.
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
