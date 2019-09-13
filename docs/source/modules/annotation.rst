@@ -10,8 +10,6 @@ Annotation Module
 
 ``flyqma.annotation`` provides several tools for labeling distinct subpopulations of cells within an image. Subpopulations are identified on the basis of their clonal marker expression level using a novel unsupervised classification strategy. Please see the Fly-QMA manuscript for a detailed description of the annotation strategy and its various parameters.
 
-
-.. automodule:: flyqma
 .. automodule:: flyqma.annotation
 
 
