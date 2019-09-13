@@ -50,6 +50,8 @@
 
 <span class="sd">        path (str) - layer path</span>
 
+<span class="sd">        layer (flyqma.Layer) - layer instance</span>
+
 <span class="sd">        axes (array like) - axes for blue/red/green color channels</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -65,6 +67,8 @@
 <span class="sd">            axes (array like) - axes for blue/red/green color channels</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">layer</span> <span class="o">=</span> <span class="n">layer</span>
 
         <span class="c1"># set selection path</span>
         <span class="n">layer</span><span class="o">.</span><span class="n">make_subdir</span><span class="p">(</span><span class="s1">&#39;selection&#39;</span><span class="p">)</span>
@@ -165,6 +169,8 @@
 
 <span class="sd">        path (str) - layer path</span>
 
+<span class="sd">        layer (flyqma.Layer) - layer instance</span>
+
 <span class="sd">        axes (array like) - axes for blue/red/green color channels</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -236,7 +242,11 @@
         <span class="n">md</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">include</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">include</span><span class="p">,</span>
                   <span class="n">duplicate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">duplicate</span><span class="p">,</span>
                   <span class="n">exemplar</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">exemplar</span><span class="p">)</span>
-        <span class="n">io</span><span class="o">.</span><span class="n">write_json</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;md.json&#39;</span><span class="p">),</span> <span class="n">md</span><span class="p">)</span></div>
+        <span class="n">io</span><span class="o">.</span><span class="n">write_json</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;md.json&#39;</span><span class="p">),</span> <span class="n">md</span><span class="p">)</span>
+
+        <span class="c1"># update measurements</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layer</span><span class="o">.</span><span class="n">apply_selection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layer</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layer</span><span class="o">.</span><span class="n">save_processed_data</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="LayerInterface.clear"><a class="viewcode-back" href="../../../modules/selection.html#flyqma.selection.interface.LayerInterface.clear">[docs]</a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Clear all points from layer selection bounds. &quot;&quot;&quot;</span>
