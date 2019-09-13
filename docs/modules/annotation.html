@@ -269,6 +269,257 @@
 <div class="section" id="mixture-models">
 <h2>Mixture Models<a class="headerlink" href="#mixture-models" title="Permalink to this headline">¶</a></h2>
 <p>Tools for fitting univariate and bivariate gaussian mixture models.</p>
+<span class="target" id="module-flyqma.annotation.mixtures.univariate"></span><dl class="class">
+<dt id="flyqma.annotation.mixtures.univariate.MixtureProperties">
+<em class="property">class </em><code class="descclassname">flyqma.annotation.mixtures.univariate.</code><code class="descname">MixtureProperties</code><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/univariate.html#MixtureProperties"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.MixtureProperties" title="Permalink to this definition">¶</a></dt>
+<dd><p>Properties for guassian mixture models.</p>
+<dl class="attribute">
+<dt id="flyqma.annotation.mixtures.univariate.MixtureProperties.AIC">
+<code class="descname">AIC</code><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.MixtureProperties.AIC" title="Permalink to this definition">¶</a></dt>
+<dd><p>AIC score.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="flyqma.annotation.mixtures.univariate.MixtureProperties.BIC">
+<code class="descname">BIC</code><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.MixtureProperties.BIC" title="Permalink to this definition">¶</a></dt>
+<dd><p>BIC score.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="flyqma.annotation.mixtures.univariate.MixtureProperties.bounds">
+<code class="descname">bounds</code><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.MixtureProperties.bounds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Low and upper bounds of support.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="flyqma.annotation.mixtures.univariate.MixtureProperties.component_pdfs">
+<code class="descname">component_pdfs</code><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.MixtureProperties.component_pdfs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns stacked array of component PDFs.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="flyqma.annotation.mixtures.univariate.MixtureProperties.components">
+<code class="descname">components</code><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.MixtureProperties.components" title="Permalink to this definition">¶</a></dt>
+<dd><p>Individual model components.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="flyqma.annotation.mixtures.univariate.MixtureProperties.lbound">
+<code class="descname">lbound</code><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.MixtureProperties.lbound" title="Permalink to this definition">¶</a></dt>
+<dd><p>Lower bound of support.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="flyqma.annotation.mixtures.univariate.MixtureProperties.log_likelihood">
+<code class="descname">log_likelihood</code><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.MixtureProperties.log_likelihood" title="Permalink to this definition">¶</a></dt>
+<dd><p>Maximized log likelihood.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="flyqma.annotation.mixtures.univariate.MixtureProperties.means">
+<code class="descname">means</code><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.MixtureProperties.means" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mean value of each component.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="flyqma.annotation.mixtures.univariate.MixtureProperties.num_components">
+<code class="descname">num_components</code><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.MixtureProperties.num_components" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of model components.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="flyqma.annotation.mixtures.univariate.MixtureProperties.num_samples">
+<code class="descname">num_samples</code><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.MixtureProperties.num_samples" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of samples.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="flyqma.annotation.mixtures.univariate.MixtureProperties.pdf">
+<code class="descname">pdf</code><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.MixtureProperties.pdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gaussian Mixture PDF.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="flyqma.annotation.mixtures.univariate.MixtureProperties.scale_factor">
+<code class="descname">scale_factor</code><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.MixtureProperties.scale_factor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Scaling factor for log-transformed support.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="flyqma.annotation.mixtures.univariate.MixtureProperties.stds">
+<code class="descname">stds</code><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.MixtureProperties.stds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Standard deviation of each component.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="flyqma.annotation.mixtures.univariate.MixtureProperties.support">
+<code class="descname">support</code><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.MixtureProperties.support" title="Permalink to this definition">¶</a></dt>
+<dd><p>Distribution support.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="flyqma.annotation.mixtures.univariate.MixtureProperties.support_size">
+<code class="descname">support_size</code><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.MixtureProperties.support_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Size of support.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="flyqma.annotation.mixtures.univariate.MixtureProperties.ubound">
+<code class="descname">ubound</code><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.MixtureProperties.ubound" title="Permalink to this definition">¶</a></dt>
+<dd><p>Upper bound of support.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="flyqma.annotation.mixtures.univariate.UnivariateMixture">
+<em class="property">class </em><code class="descclassname">flyqma.annotation.mixtures.univariate.</code><code class="descname">UnivariateMixture</code><span class="sig-paren">(</span><em>*args</em>, <em>values=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/univariate.html#UnivariateMixture"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.UnivariateMixture" title="Permalink to this definition">¶</a></dt>
+<dd><p>Univariate Gaussian mixture model.</p>
+<p>Attributes:</p>
+<blockquote>
+<div>values (array like) - values to which model was fit</div></blockquote>
+<p>Inherited attributes:</p>
+<blockquote>
+<div>See sklearn.mixture.GaussianMixture</div></blockquote>
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.univariate.UnivariateMixture.estimate_required_samples">
+<code class="descname">estimate_required_samples</code><span class="sig-paren">(</span><em>SNR=5.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/univariate.html#UnivariateMixture.estimate_required_samples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.UnivariateMixture.estimate_required_samples" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns minimum number of averaged samples required to achieve the specified signal to noise (SNR) ratio.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="flyqma.annotation.mixtures.univariate.UnivariateMixture.from_logsample">
+<em class="property">classmethod </em><code class="descname">from_logsample</code><span class="sig-paren">(</span><em>sample</em>, <em>n=3</em>, <em>max_iter=10000</em>, <em>tol=1e-08</em>, <em>covariance_type='diag'</em>, <em>n_init=10</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/univariate.html#UnivariateMixture.from_logsample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.UnivariateMixture.from_logsample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instantiate from log-transformed sample.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="flyqma.annotation.mixtures.univariate.UnivariateMixture.from_parameters">
+<em class="property">classmethod </em><code class="descname">from_parameters</code><span class="sig-paren">(</span><em>mu</em>, <em>sigma</em>, <em>weights=None</em>, <em>values=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/univariate.html#UnivariateMixture.from_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.UnivariateMixture.from_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instantiate model from parameter vectors.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="flyqma.annotation.mixtures.univariate.UnivariateMixture.from_sample">
+<em class="property">classmethod </em><code class="descname">from_sample</code><span class="sig-paren">(</span><em>sample</em>, <em>n</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/univariate.html#UnivariateMixture.from_sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.UnivariateMixture.from_sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instantiate from log-normally distributed sample.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.univariate.UnivariateMixture.get_component_pdf">
+<code class="descname">get_component_pdf</code><span class="sig-paren">(</span><em>idx</em>, <em>weighted=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/univariate.html#UnivariateMixture.get_component_pdf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.UnivariateMixture.get_component_pdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns PDF for indexed component.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.univariate.UnivariateMixture.logsample">
+<code class="descname">logsample</code><span class="sig-paren">(</span><em>N</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/univariate.html#UnivariateMixture.logsample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.UnivariateMixture.logsample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns &lt;N&gt; samples of log-transformed variable.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.univariate.UnivariateMixture.multi_logsample">
+<code class="descname">multi_logsample</code><span class="sig-paren">(</span><em>N</em>, <em>m=10</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/univariate.html#UnivariateMixture.multi_logsample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.UnivariateMixture.multi_logsample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns &lt;N&gt; log-transformed samples as well as &lt;N&gt; log-transformed samples averaged over &lt;m&gt; other samples from the same component.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.univariate.UnivariateMixture.multi_sample">
+<code class="descname">multi_sample</code><span class="sig-paren">(</span><em>N</em>, <em>m=10</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/univariate.html#UnivariateMixture.multi_sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.UnivariateMixture.multi_sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns &lt;N&gt; samples as well as &lt;N&gt; samples averaged over &lt;m&gt; other samples from the same component.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.univariate.UnivariateMixture.sample">
+<code class="descname">sample</code><span class="sig-paren">(</span><em>N</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/univariate.html#UnivariateMixture.sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.UnivariateMixture.sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns &lt;N&gt; samples of variable.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.univariate.UnivariateMixture.sample_component">
+<code class="descname">sample_component</code><span class="sig-paren">(</span><em>component_idx</em>, <em>N</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/univariate.html#UnivariateMixture.sample_component"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.UnivariateMixture.sample_component" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns &lt;N&gt; log-transformed samples from indexed component.</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-flyqma.annotation.mixtures.bivariate"></span><dl class="class">
+<dt id="flyqma.annotation.mixtures.bivariate.BivariateMixture">
+<em class="property">class </em><code class="descclassname">flyqma.annotation.mixtures.bivariate.</code><code class="descname">BivariateMixture</code><span class="sig-paren">(</span><em>*args</em>, <em>values=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/bivariate.html#BivariateMixture"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.bivariate.BivariateMixture" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bivariate Gaussian mixture model.</p>
+<p>Inherited attributes:</p>
+<blockquote>
+<div><p>values (array like) - values to which model was fit</p>
+<p>See sklearn.mixture.GaussianMixture</p>
+</div></blockquote>
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.bivariate.BivariateMixture.get_marginal_mixture">
+<code class="descname">get_marginal_mixture</code><span class="sig-paren">(</span><em>margin</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/bivariate.html#BivariateMixture.get_marginal_mixture"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.bivariate.BivariateMixture.get_marginal_mixture" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns univariate mixture model for specified &lt;margin&gt;.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="flyqma.annotation.mixtures.bivariate.BivariateMixtureProperties">
+<em class="property">class </em><code class="descclassname">flyqma.annotation.mixtures.bivariate.</code><code class="descname">BivariateMixtureProperties</code><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/bivariate.html#BivariateMixtureProperties"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.bivariate.BivariateMixtureProperties" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extension properties for bivariate mixtures.</p>
+<dl class="attribute">
+<dt id="flyqma.annotation.mixtures.bivariate.BivariateMixtureProperties.extent">
+<code class="descname">extent</code><a class="headerlink" href="#flyqma.annotation.mixtures.bivariate.BivariateMixtureProperties.extent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extent for x and y axes.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="flyqma.annotation.mixtures.bivariate.BivariateMixtureProperties.supportx">
+<code class="descname">supportx</code><a class="headerlink" href="#flyqma.annotation.mixtures.bivariate.BivariateMixtureProperties.supportx" title="Permalink to this definition">¶</a></dt>
+<dd><p>Support for first dimension.</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-flyqma.annotation.mixtures.visualization"></span><dl class="class">
+<dt id="flyqma.annotation.mixtures.visualization.BivariateVisualization">
+<em class="property">class </em><code class="descclassname">flyqma.annotation.mixtures.visualization.</code><code class="descname">BivariateVisualization</code><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/visualization.html#BivariateVisualization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.visualization.BivariateVisualization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Visualization methods for bivariate mixture models.</p>
+<dl class="attribute">
+<dt id="flyqma.annotation.mixtures.visualization.BivariateVisualization.tick_positions">
+<code class="descname">tick_positions</code><a class="headerlink" href="#flyqma.annotation.mixtures.visualization.BivariateVisualization.tick_positions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tick positions.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.visualization.BivariateVisualization.visualize">
+<code class="descname">visualize</code><span class="sig-paren">(</span><em>size_ratio=4</em>, <em>figsize=(2</em>, <em>2)</em>, <em>contours=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/visualization.html#BivariateVisualization.visualize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.visualization.BivariateVisualization.visualize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Visualize joint and marginal distributions.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="flyqma.annotation.mixtures.visualization.MixtureVisualization">
+<em class="property">class </em><code class="descclassname">flyqma.annotation.mixtures.visualization.</code><code class="descname">MixtureVisualization</code><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/visualization.html#MixtureVisualization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.visualization.MixtureVisualization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Visualization methods for mixture models.</p>
+<dl class="attribute">
+<dt id="flyqma.annotation.mixtures.visualization.MixtureVisualization.summary">
+<code class="descname">summary</code><a class="headerlink" href="#flyqma.annotation.mixtures.visualization.MixtureVisualization.summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns text-based summary of mixture model.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="flyqma.annotation.mixtures.visualization.figure">
+<code class="descclassname">flyqma.annotation.mixtures.visualization.</code><code class="descname">figure</code><span class="sig-paren">(</span><em>func</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/visualization.html#figure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.visualization.figure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator for creating axis.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="flyqma.annotation.mixtures.visualization.surface_figure">
+<code class="descclassname">flyqma.annotation.mixtures.visualization.</code><code class="descname">surface_figure</code><span class="sig-paren">(</span><em>func</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/visualization.html#surface_figure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.visualization.surface_figure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator for creating joint axis.</p>
+</dd></dl>
+
 </div>
 <div class="section" id="model-selection">
 <h2>Model Selection<a class="headerlink" href="#model-selection" title="Permalink to this headline">¶</a></h2>
