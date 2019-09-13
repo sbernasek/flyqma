@@ -12,7 +12,7 @@ After downloading the `latest distribution <https://github.com/sebastianbernasek
 
 .. code-block:: bash
 
-   pip install flyqma-0.1.0.tar.gz
+   pip install flyqma-1.0.tar.gz
 
 
 Dependencies
