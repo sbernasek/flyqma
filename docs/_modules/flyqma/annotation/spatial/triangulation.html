@@ -1,0 +1,345 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>flyqma.annotation.spatial.triangulation &#8212; flyqma v0.1-beta documentation</title>
+    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for flyqma.annotation.spatial.triangulation</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">matplotlib.tri</span> <span class="k">import</span> <span class="n">Triangulation</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="k">import</span> <span class="n">ConvexHull</span>
+
+
+<div class="viewcode-block" id="LocalTriangulation"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.triangulation.LocalTriangulation">[docs]</a><span class="k">class</span> <span class="nc">LocalTriangulation</span><span class="p">(</span><span class="n">Triangulation</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Triangulation with edge distance filter.</span>
+
+<span class="sd">    Attributes:</span>
+
+<span class="sd">        edge_list (np.ndarray[int]) - (from, to) node pairs</span>
+
+<span class="sd">        edge_lengths (np.ndarray[float]) - euclidean length of each edge</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Instantiate triangulation.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            x, y (np.ndarray[float]) - spatial coordinates</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># call matplotlib.tri.Triangulation instantiation</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># compile edges</span>
+        <span class="n">edge_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compile_edge_list</span><span class="p">()</span>
+        <span class="n">edge_lengths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluate_edge_lengths</span><span class="p">(</span><span class="n">edge_list</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
+
+        <span class="c1"># store edges</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edge_list</span> <span class="o">=</span> <span class="n">edge_list</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">edge_lengths</span> <span class="o">=</span> <span class="n">edge_lengths</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Number of points. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">size</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">radii</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Radius. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">angles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Angle on [0, 2p] interval. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">hull</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Convex hull. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">ConvexHull</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">))</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">num_triangles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Number of triangles. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">triangles</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; All nodes. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">triangles</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">edges</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Filtered edges. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_outliers</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edge_list</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">edge_lengths</span><span class="p">)</span>
+        <span class="c1">#return self.filter_edges(self.nodes, self.edge_list, self.edge_lengths)</span>
+        <span class="c1">#return self.filter_hull(self.edge_list)</span>
+        <span class="c1">#return self.filter_longest_edge(self.edge_list, self.edge_lengths)</span>
+
+<div class="viewcode-block" id="LocalTriangulation.compile_edge_list"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.triangulation.LocalTriangulation.compile_edge_list">[docs]</a>    <span class="k">def</span> <span class="nf">compile_edge_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns list of (node_from, node_to) tuples. &quot;&quot;&quot;</span>
+        <span class="n">edges</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+            <span class="n">edges</span> <span class="o">+=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">triangles</span><span class="p">[:,</span> <span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">triangles</span><span class="p">[:,(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">%</span><span class="mi">3</span><span class="p">]))</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">edges</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LocalTriangulation.evaluate_edge_lengths"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.triangulation.LocalTriangulation.evaluate_edge_lengths">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">evaluate_edge_lengths</span><span class="p">(</span><span class="n">edge_list</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns 1D array of edge lengths. &quot;&quot;&quot;</span>
+        <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">edge_list</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">edge_list</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">dy</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LocalTriangulation.find_disconnected_nodes"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.triangulation.LocalTriangulation.find_disconnected_nodes">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">find_disconnected_nodes</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">edges</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns boolean array of nodes not included in edges. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">nodes</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">edges</span><span class="p">))]</span></div>
+
+<div class="viewcode-block" id="LocalTriangulation.find_first_edge"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.triangulation.LocalTriangulation.find_first_edge">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">find_first_edge</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns index of first edge containing &lt;node&gt;. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">edges</span><span class="o">==</span><span class="n">node</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">nonzero</span><span class="p">()[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="LocalTriangulation.filter_edges"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.triangulation.LocalTriangulation.filter_edges">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">filter_edges</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">edges</span><span class="p">,</span> <span class="n">lengths</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns all edges less than &lt;max_length&gt;, with at least one edge containing each node. &quot;&quot;&quot;</span>
+
+        <span class="c1"># sort edges</span>
+        <span class="n">sort_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span>
+        <span class="n">edges</span> <span class="o">=</span> <span class="n">edges</span><span class="p">[</span><span class="n">sort_indices</span><span class="p">]</span>
+        <span class="n">lengths</span> <span class="o">=</span> <span class="n">lengths</span><span class="p">[</span><span class="n">sort_indices</span><span class="p">]</span>
+
+        <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">lengths</span> <span class="o">&lt;=</span> <span class="n">max_length</span><span class="p">)</span>
+        <span class="n">rejected</span><span class="p">,</span> <span class="n">accepted</span> <span class="o">=</span> <span class="n">edges</span><span class="p">[</span><span class="o">~</span><span class="n">mask</span><span class="p">],</span> <span class="n">edges</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+
+        <span class="c1"># find disconnected nodes</span>
+        <span class="n">disconnected</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">find_disconnected_nodes</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">accepted</span><span class="p">)</span>
+
+        <span class="c1"># add shortest edge for each disconnected node</span>
+        <span class="k">if</span> <span class="n">disconnected</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vectorize</span><span class="p">(</span><span class="k">lambda</span> <span class="n">node</span><span class="p">:</span> <span class="bp">cls</span><span class="o">.</span><span class="n">find_first_edge</span><span class="p">(</span><span class="n">rejected</span><span class="p">,</span> <span class="n">node</span><span class="p">))</span>
+            <span class="n">connecting</span> <span class="o">=</span> <span class="n">rejected</span><span class="p">[</span><span class="n">f</span><span class="p">(</span><span class="n">disconnected</span><span class="p">)]</span>
+            <span class="n">accepted</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">accepted</span><span class="p">,</span> <span class="n">connecting</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">accepted</span></div>
+
+<div class="viewcode-block" id="LocalTriangulation.filter_outliers"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.triangulation.LocalTriangulation.filter_outliers">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">filter_outliers</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">edges</span><span class="p">,</span> <span class="n">lengths</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns all edges whose lengths are not outliers, with at least one edge containing each node.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># sort edges</span>
+        <span class="n">sort_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span>
+        <span class="n">edges</span> <span class="o">=</span> <span class="n">edges</span><span class="p">[</span><span class="n">sort_indices</span><span class="p">]</span>
+        <span class="n">lengths</span> <span class="o">=</span> <span class="n">lengths</span><span class="p">[</span><span class="n">sort_indices</span><span class="p">]</span>
+
+        <span class="n">mask</span> <span class="o">=</span> <span class="o">~</span><span class="bp">cls</span><span class="o">.</span><span class="n">is_outlier</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span>
+
+        <span class="n">rejected</span><span class="p">,</span> <span class="n">accepted</span> <span class="o">=</span> <span class="n">edges</span><span class="p">[</span><span class="o">~</span><span class="n">mask</span><span class="p">],</span> <span class="n">edges</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+
+        <span class="c1"># find disconnected nodes</span>
+        <span class="n">disconnected</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">find_disconnected_nodes</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="n">accepted</span><span class="p">)</span>
+
+        <span class="c1"># add shortest edge for each disconnected node</span>
+        <span class="k">if</span> <span class="n">disconnected</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vectorize</span><span class="p">(</span><span class="k">lambda</span> <span class="n">node</span><span class="p">:</span> <span class="bp">cls</span><span class="o">.</span><span class="n">find_first_edge</span><span class="p">(</span><span class="n">rejected</span><span class="p">,</span> <span class="n">node</span><span class="p">))</span>
+            <span class="n">connecting</span> <span class="o">=</span> <span class="n">rejected</span><span class="p">[</span><span class="n">f</span><span class="p">(</span><span class="n">disconnected</span><span class="p">)]</span>
+            <span class="n">accepted</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">accepted</span><span class="p">,</span> <span class="n">connecting</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">accepted</span></div>
+
+<div class="viewcode-block" id="LocalTriangulation.filter_hull"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.triangulation.LocalTriangulation.filter_hull">[docs]</a>    <span class="k">def</span> <span class="nf">filter_hull</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">edges</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns all edges not on the convex hull. &quot;&quot;&quot;</span>
+        <span class="n">hull_edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hull</span><span class="o">.</span><span class="n">simplices</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">on_hull</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">edges</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">hull_edges</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">edges</span><span class="p">[</span><span class="o">~</span><span class="n">on_hull</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="LocalTriangulation.filter_longest_edge"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.triangulation.LocalTriangulation.filter_longest_edge">[docs]</a>    <span class="k">def</span> <span class="nf">filter_longest_edge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">edges</span><span class="p">,</span> <span class="n">edge_lengths</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns all edges except the longest edge in each triangle. &quot;&quot;&quot;</span>
+        <span class="n">accepted_edges</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">tri</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_triangles</span><span class="p">):</span>
+            <span class="n">ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">edge_lengths</span><span class="p">[</span><span class="n">tri</span><span class="p">::</span><span class="bp">self</span><span class="o">.</span><span class="n">num_triangles</span><span class="p">])[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">accepted_edges</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">edges</span><span class="p">[</span><span class="n">tri</span><span class="p">::</span><span class="bp">self</span><span class="o">.</span><span class="n">num_triangles</span><span class="p">][</span><span class="n">ind</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">accepted_edges</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LocalTriangulation.is_outlier"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.triangulation.LocalTriangulation.is_outlier">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">is_outlier</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">3.</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a boolean array with True if points are outliers and False</span>
+<span class="sd">        otherwise.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            points (np.ndarray[float]) - 1-D array of observations</span>
+
+<span class="sd">            threshold (float) - Maximum modified z-score. Observations with a modified z-score (based on the median absolute deviation) greater are classified as outliers.</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            mask (np.ndarray[bool])</span>
+
+<span class="sd">        References:</span>
+
+<span class="sd">            Boris Iglewicz and David Hoaglin (1993), &quot;Volume 16: How to Detect and Handle Outliers&quot;, The ASQC Basic References in Quality Control:</span>
+<span class="sd">            Statistical Techniques, Edward F. Mykytka, Ph.D., Editor.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">points</span> <span class="o">=</span> <span class="n">points</span><span class="p">[:,</span><span class="kc">None</span><span class="p">]</span>
+        <span class="n">median</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">diff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">points</span> <span class="o">-</span> <span class="n">median</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">diff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">diff</span><span class="p">)</span>
+        <span class="n">med_abs_deviation</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">diff</span><span class="p">)</span>
+
+        <span class="n">modified_z_score</span> <span class="o">=</span> <span class="mf">0.6745</span> <span class="o">*</span> <span class="n">diff</span> <span class="o">/</span> <span class="n">med_abs_deviation</span>
+
+        <span class="c1"># exclude lower bound</span>
+        <span class="n">modified_z_score</span><span class="p">[</span><span class="n">points</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span><span class="o">&lt;</span><span class="n">median</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">return</span> <span class="n">modified_z_score</span> <span class="o">&gt;</span> <span class="n">threshold</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">edge_angles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Angular distance of each edge about origin. &quot;&quot;&quot;</span>
+        <span class="n">angles</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">angles</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">edge_list</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="n">angles</span><span class="p">[</span><span class="n">angles</span><span class="o">&gt;</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">-</span><span class="n">angles</span><span class="p">[</span><span class="n">angles</span><span class="o">&gt;</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">angles</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">edge_radii</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Minimum node radius in each edge. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">radii</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">edge_list</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">angle_threshold</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Predicted upper bound on edge angles. &quot;&quot;&quot;</span>
+        <span class="n">num_sigma</span> <span class="o">=</span> <span class="mf">1.</span>
+        <span class="k">return</span> <span class="p">(</span><span class="mi">3</span><span class="o">+</span><span class="mf">2.5</span><span class="o">*</span><span class="n">num_sigma</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">filter_by_angle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># exclude outer edges that span too wide an angle</span>
+        <span class="n">edge_radii</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edge_radii</span>
+        <span class="n">edge_angles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edge_angles</span>
+        <span class="n">outer_edge_mask</span> <span class="o">=</span> <span class="n">edge_radii</span> <span class="o">&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">edge_radii</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span>
+        <span class="n">wide_angle_mask</span> <span class="o">=</span> <span class="n">edge_angles</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">angle_threshold</span>
+        <span class="n">excluded_edge_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">outer_edge_mask</span><span class="p">,</span> <span class="n">wide_angle_mask</span><span class="p">)</span>
+
+        <span class="c1"># determine accepted/rejected edges</span>
+        <span class="n">rejected</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edge_list</span><span class="p">[</span><span class="n">excluded_edge_mask</span><span class="p">]</span>
+        <span class="n">accepted</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edge_list</span><span class="p">[</span><span class="o">~</span><span class="n">excluded_edge_mask</span><span class="p">]</span>
+
+        <span class="c1"># find disconnected nodes</span>
+        <span class="n">disconnected</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_disconnected_nodes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">,</span> <span class="n">accepted</span><span class="p">)</span>
+
+        <span class="c1"># sort rejected edges by length</span>
+        <span class="n">lengths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edge_lengths</span><span class="p">[</span><span class="n">excluded_edge_mask</span><span class="p">]</span>
+        <span class="n">sort_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span>
+        <span class="n">rejected</span> <span class="o">=</span> <span class="n">rejected</span><span class="p">[</span><span class="n">sort_indices</span><span class="p">]</span>
+
+        <span class="c1"># add shortest edge for each disconnected node</span>
+        <span class="k">if</span> <span class="n">disconnected</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vectorize</span><span class="p">(</span><span class="k">lambda</span> <span class="n">node</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_first_edge</span><span class="p">(</span><span class="n">rejected</span><span class="p">,</span> <span class="n">node</span><span class="p">))</span>
+            <span class="n">connecting</span> <span class="o">=</span> <span class="n">rejected</span><span class="p">[</span><span class="n">f</span><span class="p">(</span><span class="n">disconnected</span><span class="p">)]</span>
+            <span class="n">accepted</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">accepted</span><span class="p">,</span> <span class="n">connecting</span><span class="p">,</span> <span class="n">connecting</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+
+        <span class="k">return</span> <span class="n">accepted</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../../../index.html">
+    <img class="logo" src="../../../../_static/graphics/logo.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">INSTALLATION</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../start.html">GETTING STARTED</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../documentation.html">DOCUMENTATION</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../usage.html">EXAMPLE USAGE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../contact.html">CONTACT</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Sebastian Bernasek.
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

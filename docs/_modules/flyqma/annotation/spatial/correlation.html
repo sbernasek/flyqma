@@ -1,0 +1,419 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>flyqma.annotation.spatial.correlation &#8212; flyqma v0.1-beta documentation</title>
+    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for flyqma.annotation.spatial.correlation</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="k">import</span> <span class="n">binned_statistic</span>
+<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="k">import</span> <span class="n">curve_fit</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="kn">from</span> <span class="nn">...visualization</span> <span class="k">import</span> <span class="o">*</span>
+
+<span class="kn">from</span> <span class="nn">.timeseries</span> <span class="k">import</span> <span class="n">plot_mean</span><span class="p">,</span> <span class="n">plot_mean_interval</span>
+<span class="kn">from</span> <span class="nn">.timeseries</span> <span class="k">import</span> <span class="n">smooth</span>
+
+
+<span class="k">class</span> <span class="nc">CorrelationProperties</span><span class="p">:</span>
+
+    <span class="c1"># fraction of cells used to determine window size</span>
+    <span class="n">window_frac</span> <span class="o">=</span> <span class="mf">0.01</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">num_fluctuations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Number of pairwise fluctuations. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">d_ij</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ubound</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Upper bound on pairwise distances. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">d_ij</span><span class="p">,</span> <span class="mi">99</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">num_measurements</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Estimated number of measurements. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">d_ij</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">window</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Window size. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">num_measurements</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">window_frac</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">d_av</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Smoothed moving average distances. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">smooth</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">d_ij</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">C_av</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Smoothed moving average correlation. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">smooth</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">C_ij</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">characteristic_length</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Characteristic length over which correlations decay. &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">length</span> <span class="o">=</span> <span class="n">CharacteristicLength</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">characteristic_length</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">length</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">length</span>
+
+
+<div class="viewcode-block" id="CorrelationVisualization"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.correlation.CorrelationVisualization">[docs]</a><span class="k">class</span> <span class="nc">CorrelationVisualization</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Visualization methods for SpatialCorrelation. &quot;&quot;&quot;</span>
+
+    <span class="nd">@default_figure</span>
+    <span class="k">def</span> <span class="nf">histogram_distances</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Plot histogram of pairwise distances between measurements. &quot;&quot;&quot;</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">d_ij</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Num. pairs&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Separation distance&#39;</span><span class="p">)</span>
+
+    <span class="nd">@default_figure</span>
+    <span class="k">def</span> <span class="nf">histogram_fluctuations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Plot histogram of pairwise fluctuations between measurements. &quot;&quot;&quot;</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">C_ij</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Num. pairs&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Fluctuation&#39;</span><span class="p">)</span>
+
+    <span class="nd">@default_figure</span>
+    <span class="k">def</span> <span class="nf">visualize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                  <span class="n">null_model</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                  <span class="n">scatter</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                  <span class="n">confidence</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                  <span class="n">zero</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                  <span class="n">smooth</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                  <span class="n">ma_type</span><span class="o">=</span><span class="s1">&#39;sliding&#39;</span><span class="p">,</span>
+                  <span class="n">window_size</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+                  <span class="n">resolution</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+                  <span class="n">nbootstraps</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+                  <span class="n">color</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span>
+                  <span class="n">max_distance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plot pairwise normalized fluctuations versus pairwise distances.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            null_model (bool) - if True, shuffle d_ij vector</span>
+
+<span class="sd">            scatter (bool) - if True, show individual markers</span>
+
+<span class="sd">            confidence (bool) - if True, include confidence interval</span>
+
+<span class="sd">            zero (bool) - if True, include zero correlation line for reference</span>
+
+<span class="sd">            smooth (bool) - if True, apply smoothing to moving average</span>
+
+<span class="sd">            ma_type (str) - type of average used, either sliding, binned, or savgol</span>
+
+<span class="sd">            window_size (int) - size of window</span>
+
+<span class="sd">            resolution (int) - sampling interval</span>
+
+<span class="sd">            nbootstraps (int) - number of bootstrap samples for confidence interval</span>
+
+<span class="sd">            color (str) - color used for confidence interval</span>
+
+<span class="sd">            max_distance (float) - largest pairwise distance included</span>
+
+<span class="sd">            ax (mpl.axes.AxesSubplot) - if None, create figure</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            ax (mpl.axes.AxesSubplot)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">d_ij</span>
+        <span class="n">C</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">C_ij</span>
+
+        <span class="c1"># if null_model is True, randomly shuffle d_ij vector</span>
+        <span class="k">if</span> <span class="n">null_model</span><span class="p">:</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_fluctuations</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+            <span class="c1"># sort by distance</span>
+            <span class="n">ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>
+            <span class="n">C</span> <span class="o">=</span> <span class="n">C</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>
+
+        <span class="c1"># filter by max_distance</span>
+        <span class="k">if</span> <span class="n">max_distance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">max_distance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ubound</span>
+        <span class="n">ind</span> <span class="o">=</span> <span class="p">(</span><span class="n">d</span><span class="o">&lt;=</span><span class="n">max_distance</span><span class="p">)</span>
+        <span class="n">C</span> <span class="o">=</span> <span class="n">C</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>
+
+        <span class="c1"># get smoothing arguments</span>
+        <span class="n">ma_kw</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">ma_type</span><span class="o">=</span><span class="n">ma_type</span><span class="p">,</span> <span class="n">window_size</span><span class="o">=</span><span class="n">window_size</span><span class="p">,</span> <span class="n">resolution</span><span class="o">=</span><span class="n">resolution</span><span class="p">)</span>
+
+        <span class="c1"># plot moving average</span>
+        <span class="n">plot_mean</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">d</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">C</span><span class="p">,</span>
+                  <span class="n">line_color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+                  <span class="n">line_width</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                  <span class="n">line_alpha</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                  <span class="n">markersize</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                  <span class="n">smooth</span><span class="o">=</span><span class="n">smooth</span><span class="p">,</span>
+                  <span class="o">**</span><span class="n">ma_kw</span><span class="p">)</span>
+
+        <span class="c1"># plot confidence interval for moving average</span>
+        <span class="k">if</span> <span class="n">confidence</span><span class="p">:</span>
+            <span class="n">plot_mean_interval</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">d</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">C</span><span class="p">,</span>
+                               <span class="n">confidence</span><span class="o">=</span><span class="mi">95</span><span class="p">,</span>
+                               <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+                               <span class="n">alpha</span><span class="o">=</span><span class="mf">0.35</span><span class="p">,</span>
+                               <span class="n">nbootstraps</span><span class="o">=</span><span class="n">nbootstraps</span><span class="p">,</span>
+                               <span class="o">**</span><span class="n">ma_kw</span><span class="p">)</span>
+
+        <span class="c1"># plot markers</span>
+        <span class="k">if</span> <span class="n">scatter</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;grey&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># plot zero reference line</span>
+        <span class="k">if</span> <span class="n">zero</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_distance</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="s1">&#39;-r&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.25</span><span class="p">)</span>
+
+        <span class="c1"># format</span>
+        <span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.15</span><span class="p">,</span> <span class="mf">0.7</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span><span class="p">),</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">([</span><span class="o">-</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">,</span> <span class="o">.</span><span class="mi">6</span><span class="p">])</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_distance</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Pairwise distance&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Correlation&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SpatialCorrelation"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.correlation.SpatialCorrelation">[docs]</a><span class="k">class</span> <span class="nc">SpatialCorrelation</span><span class="p">(</span><span class="n">CorrelationProperties</span><span class="p">,</span> <span class="n">CorrelationVisualization</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Container for correlations between 1-D timeseries.</span>
+
+<span class="sd">    Attributes:</span>
+
+<span class="sd">        d_ij (np array) - pairwise separation distances between measurements</span>
+
+<span class="sd">        C_ij (np array) - normalized pairwise fluctuations between measurements</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d_ij</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">C_ij</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Instantiate container for correlations between 1-D timeseries.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            d_ij (np.ndarray) - pairwise separation distances</span>
+
+<span class="sd">            C_ij (np.ndarray) - normalized pairwise fluctuations</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">d_ij</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">d_ij</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">C_ij</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">C_ij</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">d_ij</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">d_ij</span> <span class="o">=</span> <span class="n">d_ij</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">C_ij</span> <span class="o">=</span> <span class="n">C_ij</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">correlation</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Concatenate current instance with a second SpatialCorrelation instance.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            correlation (SpatialCorrelation)</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            self (SpatialCorrelation) - updated correlations</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># concatenate distanced and fluctuations</span>
+        <span class="n">d_ij</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">d_ij</span><span class="p">,</span> <span class="n">correlation</span><span class="o">.</span><span class="n">d_ij</span><span class="p">))</span>
+        <span class="n">C_ij</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">C_ij</span><span class="p">,</span> <span class="n">correlation</span><span class="o">.</span><span class="n">C_ij</span><span class="p">))</span>
+
+        <span class="c1"># sort by distance</span>
+        <span class="n">ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">d_ij</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">d_ij</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">C_ij</span> <span class="o">=</span> <span class="n">C_ij</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="CharacteristicLength"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.correlation.CharacteristicLength">[docs]</a><span class="k">class</span> <span class="nc">CharacteristicLength</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class for determining the characteristic length over which correlations decay.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">correlation</span><span class="p">,</span> <span class="n">fraction_of_max</span><span class="o">=</span><span class="mf">0.01</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+
+<span class="sd">            correlation (SpatialCorrelation)</span>
+
+<span class="sd">            fraction_of_max (float) - fraction of peak correlation used to fit exponential decay</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">fraction_of_max</span> <span class="o">=</span> <span class="n">fraction_of_max</span>
+
+        <span class="c1"># extract correlation decay dynamics</span>
+        <span class="n">xmax</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract_decay</span><span class="p">(</span><span class="n">correlation</span><span class="p">,</span> <span class="n">fraction_of_max</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xmax</span> <span class="o">=</span> <span class="n">xmax</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">y</span>
+
+        <span class="c1"># fit exponential decay</span>
+        <span class="n">popt</span><span class="p">,</span> <span class="n">perr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_normed</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">popt</span> <span class="o">=</span> <span class="n">popt</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">perr</span> <span class="o">=</span> <span class="n">perr</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">x_normed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Distance vector normalized by maximum value. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">xmax</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">yp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Predicted correlation values. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x_normed</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">popt</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">characteristic_length</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Characteristic decay length. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">xmax</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">popt</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+<div class="viewcode-block" id="CharacteristicLength.extract_decay"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.correlation.CharacteristicLength.extract_decay">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">extract_decay</span><span class="p">(</span><span class="n">correlation</span><span class="p">,</span> <span class="n">fraction_of_max</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Extract decay. &quot;&quot;&quot;</span>
+
+        <span class="n">x</span> <span class="o">=</span> <span class="n">correlation</span><span class="o">.</span><span class="n">d_av</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">correlation</span><span class="o">.</span><span class="n">C_av</span>
+        <span class="n">ymin</span> <span class="o">=</span> <span class="n">fraction_of_max</span> <span class="o">*</span> <span class="n">y</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+        <span class="n">max_idx</span> <span class="o">=</span> <span class="p">(</span><span class="n">y</span> <span class="o">&lt;</span> <span class="n">ymin</span><span class="p">)</span><span class="o">.</span><span class="n">nonzero</span><span class="p">()[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">x</span><span class="p">[</span><span class="n">max_idx</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">max_idx</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">max_idx</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="CharacteristicLength.model"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.correlation.CharacteristicLength.model">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">model</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Exponential decay model. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">a</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">b</span><span class="o">*</span><span class="n">x</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CharacteristicLength.fit"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.correlation.CharacteristicLength.fit">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Fit exponential decay model to decay vectors. &quot;&quot;&quot;</span>
+        <span class="n">popt</span><span class="p">,</span> <span class="n">pcov</span> <span class="o">=</span> <span class="n">curve_fit</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">p0</span><span class="o">=</span><span class="p">(</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">))</span>
+        <span class="n">perr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">pcov</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">popt</span><span class="p">,</span> <span class="n">perr</span></div>
+
+<div class="viewcode-block" id="CharacteristicLength.plot_measured"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.correlation.CharacteristicLength.plot_measured">[docs]</a>    <span class="k">def</span> <span class="nf">plot_measured</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Plot measured correlation decay. &quot;&quot;&quot;</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Measured&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CharacteristicLength.plot_fit"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.correlation.CharacteristicLength.plot_fit">[docs]</a>    <span class="k">def</span> <span class="nf">plot_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Plot model fit. &quot;&quot;&quot;</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">yp</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Fit&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+    <span class="nd">@default_figure</span>
+    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Plot measured correlation decay alongside model fit. &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plot_measured</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plot_fit</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Correlation&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Distance&#39;</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../../../index.html">
+    <img class="logo" src="../../../../_static/graphics/logo.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">INSTALLATION</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../start.html">GETTING STARTED</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../documentation.html">DOCUMENTATION</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../usage.html">EXAMPLE USAGE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../contact.html">CONTACT</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Sebastian Bernasek.
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

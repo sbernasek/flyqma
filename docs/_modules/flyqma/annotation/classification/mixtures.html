@@ -1,0 +1,418 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>flyqma.annotation.classification.mixtures &#8212; flyqma v0.1-beta documentation</title>
+    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for flyqma.annotation.classification.mixtures</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="k">import</span> <span class="n">mkdir</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="kn">from</span> <span class="nn">...utilities</span> <span class="k">import</span> <span class="n">IO</span>
+<span class="kn">from</span> <span class="nn">..mixtures</span> <span class="k">import</span> <span class="n">UnivariateMixture</span><span class="p">,</span> <span class="n">BivariateMixture</span>
+
+<span class="kn">from</span> <span class="nn">.classifiers</span> <span class="k">import</span> <span class="n">Classifier</span><span class="p">,</span> <span class="n">ClassifierIO</span>
+<span class="kn">from</span> <span class="nn">.visualization</span> <span class="k">import</span> <span class="n">MixtureVisualization</span><span class="p">,</span> <span class="n">BivariateMixtureVisualization</span>
+
+
+<div class="viewcode-block" id="MixtureModelIO"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.classification.mixtures.MixtureModelIO">[docs]</a><span class="k">class</span> <span class="nc">MixtureModelIO</span><span class="p">(</span><span class="n">ClassifierIO</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Methods for saving and loading classifier objects.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="MixtureModelIO.save"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.classification.mixtures.MixtureModelIO.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dirpath</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">extension</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Save classifier to specified path.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            dirpath (str) - directory in which classifier is to be saved</span>
+
+<span class="sd">            data (bool) - if True, save training data</span>
+
+<span class="sd">            image (bool) - if True, save labeled histogram image</span>
+
+<span class="sd">            extension (str) - directory name extension</span>
+
+<span class="sd">            kwargs: keyword arguments for image rendering</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># instantiate Classifier</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="n">extension</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># save model</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;model.pkl&#39;</span><span class="p">),</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+                <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">path</span></div>
+
+<div class="viewcode-block" id="MixtureModelIO.load"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.classification.mixtures.MixtureModelIO.load">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load classifier from file.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            path (str) - path to classifier directory</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            classifier (Classifier derivative)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">io</span> <span class="o">=</span> <span class="n">IO</span><span class="p">()</span>
+
+        <span class="n">values_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;values.npy&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">exists</span><span class="p">(</span><span class="n">values_path</span><span class="p">):</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">read_npy</span><span class="p">(</span><span class="n">values_path</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">parameters</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">read_json</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;parameters.json&#39;</span><span class="p">))</span>
+
+        <span class="c1"># load model</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;model.pkl&#39;</span><span class="p">),</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="n">parameters</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="UnivariateMixtureClassifier"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.classification.mixtures.UnivariateMixtureClassifier">[docs]</a><span class="k">class</span> <span class="nc">UnivariateMixtureClassifier</span><span class="p">(</span><span class="n">MixtureModelIO</span><span class="p">,</span>
+                                  <span class="n">Classifier</span><span class="p">,</span>
+                                  <span class="n">MixtureVisualization</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Univariate mixed log-normal model classifier.</span>
+
+<span class="sd">    Attributes:</span>
+
+<span class="sd">        model (mixtures.UnivariateMixture) - frozen univariate mixture model</span>
+
+<span class="sd">        num_components (int) - number of mixture components</span>
+
+<span class="sd">        classifier (vectorized func) - maps values to labels</span>
+
+<span class="sd">        labels (np.ndarray[int]) - predicted labels</span>
+
+<span class="sd">    Inherited attributes:</span>
+
+<span class="sd">        values (np.ndarray[float]) - basis for clustering</span>
+
+<span class="sd">        num_labels (int) - number of output labels</span>
+
+<span class="sd">        log (bool) - indicates whether clustering performed on log values</span>
+
+<span class="sd">        cmap (matplotlib.colors.ColorMap) - colormap for labels</span>
+
+<span class="sd">        parameters (dict) - {param name: param value} pairs</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span>
+                 <span class="n">num_components</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                 <span class="n">num_labels</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                 <span class="n">fit_kw</span><span class="o">=</span><span class="p">{},</span>
+                 <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fit a univariate mixture model classifier to an array of values.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            values (np.ndarray[float]) - basis for clustering (not log-transformed)</span>
+
+<span class="sd">            num_components (int) - number of mixture components</span>
+
+<span class="sd">            num_labels (int) - number of class labels</span>
+
+<span class="sd">            fit_kw (dict) - keyword arguments for fitting mixture model</span>
+
+<span class="sd">            model (mixtures.UnivariateMixture) - pre-fitted model</span>
+
+<span class="sd">        Keyword arguments:</span>
+
+<span class="sd">            attribute (str or list) - attribute(s) on which to cluster</span>
+
+<span class="sd">            cmap (matplotlib.colors.ColorMap) - colormap for class_id</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># instantiate classifier (remove redundant log parameter)</span>
+        <span class="k">if</span> <span class="s1">&#39;log&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">_</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;log&#39;</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">num_labels</span><span class="o">=</span><span class="n">num_labels</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;num_components&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">num_components</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;fit_kw&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fit_kw</span>
+
+        <span class="c1"># fit model</span>
+        <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">num_components</span><span class="p">,</span> <span class="o">**</span><span class="n">fit_kw</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+
+        <span class="c1"># build classifier and posterior</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">classifier</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_classifier</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">posterior</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_posterior</span><span class="p">()</span>
+
+        <span class="c1"># assign labels</span>
+        <span class="k">if</span> <span class="n">values</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">classifier</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">num_components</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Number of model components. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">n_components</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">means</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Mean of each component. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">means</span>
+
+<div class="viewcode-block" id="UnivariateMixtureClassifier.fit"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.classification.mixtures.UnivariateMixtureClassifier.fit">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">num_components</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fit univariate gaussian mixture model.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            values (np.ndarray[float]) - 1D array of log-transformed values</span>
+
+<span class="sd">            num_components (int) - number of model components</span>
+
+<span class="sd">            kwargs: keyword arguments for fitting</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            model (mixtures.UnivariateMixture)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">UnivariateMixture</span><span class="o">.</span><span class="n">from_logsample</span><span class="p">(</span><span class="n">values</span><span class="p">,</span>
+                                                <span class="n">num_components</span><span class="p">,</span>
+                                                <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="UnivariateMixtureClassifier.predict"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.classification.mixtures.UnivariateMixtureClassifier.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Predict which component each of &lt;values&gt; belongs to. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">values</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="UnivariateMixtureClassifier.predict_proba"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.classification.mixtures.UnivariateMixtureClassifier.predict_proba">[docs]</a>    <span class="k">def</span> <span class="nf">predict_proba</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Predict the posterior probability with which each of &lt;values&gt; belongs to each component.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">values</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="UnivariateMixtureClassifier.build_posterior"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.classification.mixtures.UnivariateMixtureClassifier.build_posterior">[docs]</a>    <span class="k">def</span> <span class="nf">build_posterior</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build function that returns the posterior probability of each label given a series of values.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">posterior</span><span class="p">(</span><span class="n">values</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot; Returns probabilities of each label for &lt;values&gt;.  &quot;&quot;&quot;</span>
+
+            <span class="c1"># evaluate posterior probability of each label for each value</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">predict_proba</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+            <span class="n">_posterior</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">component_groups</span><span class="p">]</span>
+            <span class="n">_posterior</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">_posterior</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+
+            <span class="c1"># fix label probabilities for points outside the support bounds</span>
+            <span class="n">below</span> <span class="o">=</span> <span class="n">values</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">lbound</span>
+            <span class="n">above</span> <span class="o">=</span> <span class="n">values</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">ubound</span>
+            <span class="k">for</span> <span class="n">rows</span><span class="p">,</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">((</span><span class="n">below</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">above</span><span class="o">.</span><span class="n">ravel</span><span class="p">()),</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">rows</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">adjust</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">rows</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_labels</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+                <span class="n">adjust</span><span class="p">[:,</span> <span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.</span>
+                <span class="n">_posterior</span><span class="p">[</span><span class="n">rows</span><span class="p">]</span> <span class="o">=</span> <span class="n">adjust</span>
+
+            <span class="k">return</span> <span class="n">_posterior</span>
+
+        <span class="k">return</span> <span class="n">posterior</span></div>
+
+<div class="viewcode-block" id="UnivariateMixtureClassifier.evaluate_posterior"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.classification.mixtures.UnivariateMixtureClassifier.evaluate_posterior">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate_posterior</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns posterior across components for &lt;data&gt;. &quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span>  <span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">attribute</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">posterior</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="UnivariateMixtureClassifier.build_classifier"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.classification.mixtures.UnivariateMixtureClassifier.build_classifier">[docs]</a>    <span class="k">def</span> <span class="nf">build_classifier</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build function that returns the most probable label for each of a series of values.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">classifier</span><span class="p">(</span><span class="n">values</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot; Returns &lt;label&gt; for &lt;values&gt; by maximizing posterior.  &quot;&quot;&quot;</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">posterior</span><span class="p">(</span><span class="n">values</span><span class="p">)</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">classifier</span></div></div>
+
+
+<div class="viewcode-block" id="BivariateMixtureClassifier"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.classification.mixtures.BivariateMixtureClassifier">[docs]</a><span class="k">class</span> <span class="nc">BivariateMixtureClassifier</span><span class="p">(</span><span class="n">BivariateMixtureVisualization</span><span class="p">,</span>
+                                 <span class="n">UnivariateMixtureClassifier</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Bivariate mixed log-normal model classifier.</span>
+
+<span class="sd">    Attributes:</span>
+
+<span class="sd">        model (mixtures.BivariateMixture) - frozen bivariate mixture model</span>
+
+<span class="sd">    Inherited attributes:</span>
+
+<span class="sd">        values (np.ndarray[float]) - basis for clustering</span>
+
+<span class="sd">        attribute (list) - attributes on which to cluster</span>
+
+<span class="sd">        num_labels (int) - number of labels</span>
+
+<span class="sd">        num_components (int) - number of mixture components</span>
+
+<span class="sd">        classifier (vectorized func) - maps values to labels</span>
+
+<span class="sd">        labels (np.ndarray[int]) - predicted labels</span>
+
+<span class="sd">        log (bool) - indicates whether clustering performed on log values</span>
+
+<span class="sd">        cmap (matplotlib.colors.ColorMap) - colormap for labels</span>
+
+<span class="sd">        parameters (dict) - {param name: param value} pairs</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">margin</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns UnivariateMixtureClassifier for specified margin. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">marginalize</span><span class="p">(</span><span class="n">margin</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BivariateMixtureClassifier.marginalize"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.classification.mixtures.BivariateMixtureClassifier.marginalize">[docs]</a>    <span class="k">def</span> <span class="nf">marginalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">margin</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns UnivariateMixtureClassifier for specified margin. &quot;&quot;&quot;</span>
+
+        <span class="c1"># assemble marginalized properties</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">[:,</span> <span class="p">[</span><span class="n">margin</span><span class="p">]]</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="n">margin</span><span class="p">]</span>
+
+        <span class="c1"># duplicate parameters</span>
+        <span class="n">parameters</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span>
+        <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;attribute&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">attribute</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">parameters</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;log&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">UnivariateMixtureClassifier</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="n">parameters</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BivariateMixtureClassifier.fit"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.classification.mixtures.BivariateMixtureClassifier.fit">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">num_components</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fit univariate gaussian mixture model.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            values (np.ndarray[float]) - 1D array of log-transformed values</span>
+
+<span class="sd">            num_components (int) - number of model components</span>
+
+<span class="sd">            kwargs: keyword arguments for fitting</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            model (mixtures.BivariateMixture)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">BivariateMixture</span><span class="o">.</span><span class="n">from_logsample</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">num_components</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../../../index.html">
+    <img class="logo" src="../../../../_static/graphics/logo.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">INSTALLATION</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../start.html">GETTING STARTED</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../documentation.html">DOCUMENTATION</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../usage.html">EXAMPLE USAGE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../contact.html">CONTACT</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Sebastian Bernasek.
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,443 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>flyqma.analysis.statistics &#8212; flyqma v0.1-beta documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for flyqma.analysis.statistics</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
+<span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="k">import</span> <span class="n">ks_2samp</span><span class="p">,</span> <span class="n">ttest_ind</span><span class="p">,</span> <span class="n">mannwhitneyu</span>
+
+<span class="kn">from</span> <span class="nn">..visualization</span> <span class="k">import</span> <span class="o">*</span>
+
+
+<div class="viewcode-block" id="PairwiseComparison"><a class="viewcode-back" href="../../../modules/analysis.html#flyqma.analysis.statistics.PairwiseComparison">[docs]</a><span class="k">class</span> <span class="nc">PairwiseComparison</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Pairwise statistical comparison between measurements of two populations.</span>
+
+<span class="sd">    Attributes:</span>
+
+<span class="sd">        x (pd.DataFrame) - measurements of first population</span>
+
+<span class="sd">        y (pd.DataFrame) - measurements of second population</span>
+
+<span class="sd">        basis (str) - attribute on which populations are compared</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">basis</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Instantiate pairwise comparison of two populations.</span>
+
+<span class="sd">        Attributes:</span>
+
+<span class="sd">            x (pd.DataFrame) - measurements of first population</span>
+
+<span class="sd">            y (pd.DataFrame) - measurements of second population</span>
+
+<span class="sd">            basis (str) - attribute on which populations are compared</span>
+
+<span class="sd">            &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">y</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">basis</span> <span class="o">=</span> <span class="n">basis</span>
+
+<div class="viewcode-block" id="PairwiseComparison.compare"><a class="viewcode-back" href="../../../modules/analysis.html#flyqma.analysis.statistics.PairwiseComparison.compare">[docs]</a>    <span class="k">def</span> <span class="nf">compare</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="s1">&#39;MW&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run statistical test.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            test (str) - name of test used, one of (&#39;KS&#39;, &#39;t&#39;, &#39;MW&#39;)</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            p (float) - p-value</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># extract compared values for each population</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">basis</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">basis</span><span class="p">]</span>
+
+        <span class="c1"># perform statistical test</span>
+        <span class="k">if</span> <span class="n">test</span> <span class="o">==</span> <span class="s1">&#39;KS&#39;</span><span class="p">:</span>
+            <span class="n">k</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="n">ks_2samp</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">test</span> <span class="o">==</span> <span class="s1">&#39;t&#39;</span><span class="p">:</span>
+            <span class="n">k</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="n">ttest_ind</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">k</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="n">mannwhitneyu</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">alternative</span><span class="o">=</span><span class="s1">&#39;two-sided&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">p</span></div></div>
+
+
+<div class="viewcode-block" id="CloneComparison"><a class="viewcode-back" href="../../../modules/analysis.html#flyqma.analysis.statistics.CloneComparison">[docs]</a><span class="k">class</span> <span class="nc">CloneComparison</span><span class="p">(</span><span class="n">PairwiseComparison</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Pairwise statistical comparison between two concurrent cell types.</span>
+
+<span class="sd">    Attributes:</span>
+
+<span class="sd">        label (str) - attribute used to define population labels</span>
+
+<span class="sd">        type1 (str) - first label</span>
+
+<span class="sd">        type2 (str) - second label</span>
+
+<span class="sd">    Inherited attributes:</span>
+
+<span class="sd">        x (pd.DataFrame) - measurements of first population</span>
+
+<span class="sd">        y (pd.DataFrame) - measurements of second population</span>
+
+<span class="sd">        basis (str) - attribute on which populations are compared</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">measurements</span><span class="p">,</span> <span class="n">type1</span><span class="p">,</span> <span class="n">type2</span><span class="p">,</span> <span class="n">basis</span><span class="p">,</span>
+                 <span class="n">label</span><span class="o">=</span><span class="s1">&#39;genotype&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Instantiate comparison between two concurrent cell types.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            measurements (pd.DataFrame) - cell measurement data</span>
+
+<span class="sd">            type1 (str) - first label</span>
+
+<span class="sd">            type2 (str) - second label</span>
+
+<span class="sd">            basis (str) - attribute on which populations are compared</span>
+
+<span class="sd">            label (str) - attribute used to define population labels</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># store labels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">label</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">type1</span> <span class="o">=</span> <span class="n">type1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">type2</span> <span class="o">=</span> <span class="n">type2</span>
+
+        <span class="c1"># select concurrent cells of each type</span>
+        <span class="n">ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">measurements</span><span class="p">[</span><span class="s1">&#39;concurrent_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">type1</span><span class="p">)],</span>
+                             <span class="n">measurements</span><span class="p">[</span><span class="s1">&#39;concurrent_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">type2</span><span class="p">)])</span>
+        <span class="n">measurements</span> <span class="o">=</span> <span class="n">measurements</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>
+
+        <span class="c1"># split into two populations</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">measurements</span><span class="p">[</span><span class="n">measurements</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">==</span> <span class="n">type1</span><span class="p">]</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">measurements</span><span class="p">[</span><span class="n">measurements</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">==</span> <span class="n">type2</span><span class="p">]</span>
+
+        <span class="c1"># instantiate comparison</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">basis</span><span class="o">=</span><span class="n">basis</span><span class="p">)</span>
+
+<div class="viewcode-block" id="CloneComparison.plot"><a class="viewcode-back" href="../../../modules/analysis.html#flyqma.analysis.statistics.CloneComparison.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+             <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+             <span class="n">colors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+             <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;violin&#39;</span><span class="p">,</span>
+             <span class="n">ylabel</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+             <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Visualize comparison using seaborn box or violinplot.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            ax (matplotlib.axes.AxesSubplot)</span>
+
+<span class="sd">            colors (dict) - color for each box/violin keyed by label</span>
+
+<span class="sd">            mode (str) - type of comparison, either &#39;box&#39;, &#39;violin&#39;, or &#39;strip&#39;</span>
+
+<span class="sd">            ylabel (str) - label for yaxis</span>
+
+<span class="sd">            kwargs: keyword arguments for seaborn plotting function</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># create figure if none provided</span>
+        <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mf">1.25</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">))</span>
+
+        <span class="c1"># plot boxplot</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;box&#39;</span><span class="p">:</span>
+            <span class="n">sns</span><span class="o">.</span><span class="n">boxplot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
+                    <span class="n">x</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">,</span>
+                    <span class="n">y</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">basis</span><span class="p">,</span>
+                    <span class="n">data</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">)),</span>
+                    <span class="n">order</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">type2</span><span class="p">),</span>
+                    <span class="n">notch</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">width</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>
+                    <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># plot violinplot</span>
+        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;violin&#39;</span><span class="p">:</span>
+            <span class="n">sns</span><span class="o">.</span><span class="n">violinplot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
+                    <span class="n">x</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">,</span>
+                    <span class="n">y</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">basis</span><span class="p">,</span>
+                    <span class="n">data</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">)),</span>
+                    <span class="n">order</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">type2</span><span class="p">),</span>
+                    <span class="n">scale</span><span class="o">=</span><span class="s1">&#39;width&#39;</span><span class="p">,</span>
+                    <span class="n">linewidth</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+                    <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># plot stripplot</span>
+        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;strip&#39;</span><span class="p">:</span>
+            <span class="n">sns</span><span class="o">.</span><span class="n">stripplot</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
+                    <span class="n">x</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">,</span>
+                    <span class="n">y</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">basis</span><span class="p">,</span>
+                    <span class="n">data</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">)),</span>
+                    <span class="n">order</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">type2</span><span class="p">),</span>
+                    <span class="n">dodge</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># format axis</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">format_axis</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="n">ylabel</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CloneComparison.format_axis"><a class="viewcode-back" href="../../../modules/analysis.html#flyqma.analysis.statistics.CloneComparison.format_axis">[docs]</a>    <span class="k">def</span> <span class="nf">format_axis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;violin&#39;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Format axis.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            ax (matplotlib.axes.AxesSubplot)</span>
+
+<span class="sd">            colors (dict) - color for each box/violin keyed by label</span>
+
+<span class="sd">            mode (str) - type of comparison, either &#39;box&#39;, &#39;violin&#39;, or &#39;strip&#39;</span>
+
+<span class="sd">            ylabel (str) - label for y axis</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># define labels and corresponding fill colors</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;m&#39;</span><span class="p">:</span> <span class="s1">&#39;−/−&#39;</span><span class="p">,</span> <span class="s1">&#39;h&#39;</span><span class="p">:</span> <span class="s1">&#39;−/+&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">:</span> <span class="s1">&#39;+/+&#39;</span><span class="p">,</span>
+                  <span class="s1">&#39;0&#39;</span><span class="p">:</span> <span class="s1">&#39;−/−&#39;</span><span class="p">,</span> <span class="s1">&#39;1&#39;</span><span class="p">:</span> <span class="s1">&#39;−/+&#39;</span><span class="p">,</span> <span class="s1">&#39;2&#39;</span><span class="p">:</span> <span class="s1">&#39;+/+&#39;</span><span class="p">}</span>
+
+        <span class="k">if</span> <span class="n">colors</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">colors</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;m&#39;</span><span class="p">:</span> <span class="s1">&#39;−/−&#39;</span><span class="p">,</span> <span class="s1">&#39;h&#39;</span><span class="p">:</span> <span class="s1">&#39;−/+&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">:</span> <span class="s1">&#39;+/+&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;0&#39;</span><span class="p">:</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;1&#39;</span><span class="p">:</span> <span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="s1">&#39;2&#39;</span><span class="p">:</span> <span class="s1">&#39;c&#39;</span><span class="p">}</span>
+
+        <span class="c1"># format axes</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_ticks_position</span><span class="p">(</span><span class="s1">&#39;left&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">xaxis</span><span class="o">.</span><span class="n">set_ticks_position</span><span class="p">(</span><span class="s1">&#39;bottom&#39;</span><span class="p">)</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;top&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="c1"># get violin artists</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;violin&#39;</span><span class="p">:</span>
+            <span class="n">is_poly</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;PolyCollection&#39;</span>
+            <span class="n">polys</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">ax</span><span class="o">.</span><span class="n">collections</span> <span class="k">if</span> <span class="n">is_poly</span><span class="p">(</span><span class="n">c</span><span class="p">)]</span>
+
+        <span class="c1"># format xticks</span>
+        <span class="n">ticklabels</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">get_xticklabels</span><span class="p">()):</span>
+
+            <span class="c1"># set violin/box color</span>
+            <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;violin&#39;</span><span class="p">:</span>
+                <span class="n">polys</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="n">colors</span><span class="p">[</span><span class="n">label</span><span class="o">.</span><span class="n">get_text</span><span class="p">()[</span><span class="mi">0</span><span class="p">]])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">artists</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_facecolor</span><span class="p">(</span><span class="n">colors</span><span class="p">[</span><span class="n">label</span><span class="o">.</span><span class="n">get_text</span><span class="p">()[</span><span class="mi">0</span><span class="p">]])</span>
+
+            <span class="c1"># set tick label as genotype</span>
+            <span class="n">label</span><span class="o">.</span><span class="n">set_text</span><span class="p">(</span><span class="n">labels</span><span class="p">[</span><span class="n">label</span><span class="o">.</span><span class="n">get_text</span><span class="p">()[</span><span class="mi">0</span><span class="p">]])</span>
+            <span class="n">ticklabels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+
+        <span class="c1"># format xlabels</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">ticklabels</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">)</span>
+
+        <span class="c1"># set ylabel</span>
+        <span class="k">if</span> <span class="n">ylabel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">ylabel</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="SummaryStatistics"><a class="viewcode-back" href="../../../modules/analysis.html#flyqma.analysis.statistics.SummaryStatistics">[docs]</a><span class="k">class</span> <span class="nc">SummaryStatistics</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Summary of comparisons between mutant, heterozygote, and wildtype clones.</span>
+
+<span class="sd">    Attributes:</span>
+
+<span class="sd">        measurements (pd.DataFrame) - cell measurement data</span>
+
+<span class="sd">        basis (str) - attribute on which clones are compared</span>
+
+<span class="sd">        label (str) - attribute used to define population labels</span>
+
+<span class="sd">        test (str) - name of test used, one of (&#39;KS&#39;, &#39;t&#39;, &#39;MW&#39;)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">control</span><span class="p">,</span> <span class="n">perturbation</span><span class="p">,</span> <span class="n">basis</span><span class="p">,</span>
+                 <span class="n">label</span><span class="o">=</span><span class="s1">&#39;celltype&#39;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="s1">&#39;MW&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Instantiate summary of comaprisons between mutant, heterozygote, and wildtype clones.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            control (pd.DataFrame) - measurements for control condition</span>
+
+<span class="sd">            perturbation (pd.DataFrame) - measurements for perturbation condition</span>
+
+<span class="sd">            basis (str) - attribute on which clones are compared</span>
+
+<span class="sd">            label (str) - attribute used to define population labels</span>
+
+<span class="sd">            test (str) - name of test used, one of (&#39;KS&#39;, &#39;t&#39;, &#39;MW&#39;)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">measurements</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">control</span><span class="o">=</span><span class="n">control</span><span class="p">,</span> <span class="n">perturbation</span><span class="o">=</span><span class="n">perturbation</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">basis</span> <span class="o">=</span> <span class="n">basis</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">label</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">test</span> <span class="o">=</span> <span class="n">test</span>
+
+        <span class="c1"># compute and report pvalues</span>
+        <span class="n">pvals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="n">pvals</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SummaryStatistics.compare_celltype"><a class="viewcode-back" href="../../../modules/analysis.html#flyqma.analysis.statistics.SummaryStatistics.compare_celltype">[docs]</a>    <span class="k">def</span> <span class="nf">compare_celltype</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">condition</span><span class="p">,</span> <span class="n">type1</span><span class="p">,</span> <span class="n">type2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;celltype&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Args:</span>
+
+<span class="sd">            condition (str) - experimental condition, &#39;control&#39; or &#39;perturbation&#39;</span>
+
+<span class="sd">            type1 (str) - first cell type</span>
+
+<span class="sd">            type2 (str) - second cell type</span>
+
+<span class="sd">            label (str) - attribute used to define population labels</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            p (float) - p value for comparison statistic</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">measurements</span><span class="p">[</span><span class="n">condition</span><span class="p">]</span>
+        <span class="n">comparison</span> <span class="o">=</span> <span class="n">CloneComparison</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">type1</span><span class="p">,</span> <span class="n">type2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">basis</span><span class="p">,</span>
+                                     <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">comparison</span><span class="o">.</span><span class="n">compare</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">test</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SummaryStatistics.run"><a class="viewcode-back" href="../../../modules/analysis.html#flyqma.analysis.statistics.SummaryStatistics.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compare mutant vs heterozygous and heterozygous vs wildtype for both the control and perturbation conditions.</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            pvals (dict) - {comparison: pvalue} pairs</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pvals</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">c_mh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compare_celltype</span><span class="p">(</span><span class="s1">&#39;control&#39;</span><span class="p">,</span> <span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">),</span>
+            <span class="n">c_hw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compare_celltype</span><span class="p">(</span><span class="s1">&#39;control&#39;</span><span class="p">,</span> <span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">),</span>
+            <span class="n">p_mh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compare_celltype</span><span class="p">(</span><span class="s1">&#39;perturbation&#39;</span><span class="p">,</span> <span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">),</span>
+            <span class="n">p_hw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compare_celltype</span><span class="p">(</span><span class="s1">&#39;perturbation&#39;</span><span class="p">,</span> <span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">pvals</span></div>
+
+<div class="viewcode-block" id="SummaryStatistics.report"><a class="viewcode-back" href="../../../modules/analysis.html#flyqma.analysis.statistics.SummaryStatistics.report">[docs]</a>    <span class="k">def</span> <span class="nf">report</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pvals</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Print summary of statistical comparisons for each condition.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            pvals (dict) - {comparison: pvalue} pairs</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Statistical test: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">test</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Control: 0x vs 1x: </span><span class="si">{:0.4f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pvals</span><span class="p">[</span><span class="s1">&#39;c_mh&#39;</span><span class="p">]))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Control: 1x vs 2x: </span><span class="si">{:0.4f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pvals</span><span class="p">[</span><span class="s1">&#39;c_hw&#39;</span><span class="p">]))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Perturbation: 0x vs 1x: </span><span class="si">{:0.4f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pvals</span><span class="p">[</span><span class="s1">&#39;p_mh&#39;</span><span class="p">]))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Perturbation: 1x vs 2x: </span><span class="si">{:0.4f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pvals</span><span class="p">[</span><span class="s1">&#39;p_hw&#39;</span><span class="p">]))</span></div></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../../index.html">
+    <img class="logo" src="../../../_static/graphics/logo.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">INSTALLATION</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../start.html">GETTING STARTED</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../documentation.html">DOCUMENTATION</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usage.html">EXAMPLE USAGE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contact.html">CONTACT</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Sebastian Bernasek.
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

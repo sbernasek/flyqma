@@ -1,0 +1,518 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>flyqma.annotation.annotation &#8212; flyqma v0.1-beta documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for flyqma.annotation.annotation</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="k">import</span> <span class="n">mkdir</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">Counter</span>
+
+<span class="kn">from</span> <span class="nn">..utilities</span> <span class="k">import</span> <span class="n">IO</span>
+
+<span class="kn">from</span> <span class="nn">.spatial.sampling</span> <span class="k">import</span> <span class="n">NeighborSampler</span><span class="p">,</span> <span class="n">CommunitySampler</span><span class="p">,</span> <span class="n">RadialSampler</span>
+<span class="kn">from</span> <span class="nn">.classification.mixtures</span> <span class="k">import</span> <span class="n">BivariateMixtureClassifier</span>
+<span class="kn">from</span> <span class="nn">.model_selection</span> <span class="k">import</span> <span class="n">BivariateModelSelection</span>
+
+
+<div class="viewcode-block" id="AnnotationIO"><a class="viewcode-back" href="../../../modules/annotation.html#flyqma.annotation.annotation.AnnotationIO">[docs]</a><span class="k">class</span> <span class="nc">AnnotationIO</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Methods for saving and loading an Annotation instance.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Dictionary of parameter values. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span><span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="s1">&#39;classifier&#39;</span><span class="p">}</span>
+
+<div class="viewcode-block" id="AnnotationIO.save"><a class="viewcode-back" href="../../../modules/annotation.html#flyqma.annotation.annotation.AnnotationIO.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dirpath</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Save annotator to specified path.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            dirpath (str) - directory in which annotator is to be saved</span>
+
+<span class="sd">            data (bool) - if True, save training data</span>
+
+<span class="sd">            image (bool) - if True, save classifier image</span>
+
+<span class="sd">            kwargs: keyword arguments for image rendering</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># save parameters</span>
+        <span class="n">io</span> <span class="o">=</span> <span class="n">IO</span><span class="p">()</span>
+        <span class="n">io</span><span class="o">.</span><span class="n">write_json</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="s1">&#39;annotation.json&#39;</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">)</span>
+
+        <span class="c1"># save classifier</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">classifier</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">classifier</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">dirpath</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="n">image</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="AnnotationIO.load"><a class="viewcode-back" href="../../../modules/annotation.html#flyqma.annotation.annotation.AnnotationIO.load">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load annotator from file.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            path (str) - path to annotation directory</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            annotator (Annotation derivative)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">io</span> <span class="o">=</span> <span class="n">IO</span><span class="p">()</span>
+
+        <span class="c1"># load parameters</span>
+        <span class="n">parameters</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">read_json</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;annotation.json&#39;</span><span class="p">))</span>
+        <span class="n">attribute</span> <span class="o">=</span> <span class="n">parameters</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;attribute&#39;</span><span class="p">)</span>
+
+        <span class="c1"># instantiate annotator</span>
+        <span class="n">annotator</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">attribute</span><span class="p">,</span> <span class="o">**</span><span class="n">parameters</span><span class="p">)</span>
+
+        <span class="c1"># load classifier</span>
+        <span class="n">classifier_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;classifier&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">exists</span><span class="p">(</span><span class="n">classifier_path</span><span class="p">):</span>
+            <span class="n">annotator</span><span class="o">.</span><span class="n">classifier</span> <span class="o">=</span> <span class="n">BivariateMixtureClassifier</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">classifier_path</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">annotator</span></div></div>
+
+
+<div class="viewcode-block" id="Annotation"><a class="viewcode-back" href="../../../modules/annotation.html#flyqma.annotation.annotation.Annotation">[docs]</a><span class="k">class</span> <span class="nc">Annotation</span><span class="p">(</span><span class="n">AnnotationIO</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Object for assigning labels to measurements. Object is trained on one or more graphs by fitting a bivariate mixture model and using a model selection procedure to select an optimal number of components.</span>
+
+<span class="sd">    The trained model may then be used to label measurements in other graphs, either through direct prediction via the bivariate mixture model or through a hybrid prediction combining the bivariate mixture model with a marginal univariate model.</span>
+
+<span class="sd">    Attributes:</span>
+
+<span class="sd">        classifier (Classifier derivative) - callable object</span>
+
+<span class="sd">        attribute (str) - attribute used to determine labels</span>
+
+<span class="sd">    Parameters:</span>
+
+<span class="sd">        sampler_type (str) - either &#39;radial&#39;, &#39;neighbors&#39;, &#39;community&#39;</span>
+
+<span class="sd">        sampler_kwargs (dict) - keyword arguments for sampler</span>
+
+<span class="sd">        min_num_components (int) - minimum number of mixture components</span>
+
+<span class="sd">        max_num_components (int) - maximum number of mixture components</span>
+
+<span class="sd">        kwargs: keyword arguments for Classifier</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute</span><span class="p">,</span>
+                 <span class="n">sampler_type</span><span class="o">=</span><span class="s1">&#39;radial&#39;</span><span class="p">,</span>
+                 <span class="n">sampler_kwargs</span><span class="o">=</span><span class="p">{},</span>
+                 <span class="n">min_num_components</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                 <span class="n">max_num_components</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Instantiate annotation object.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            attribute (str) - name of attribute used to classify cells</span>
+
+<span class="sd">            sampler_type (str) - either &#39;radial&#39;, &#39;neighbors&#39;, &#39;community&#39;</span>
+
+<span class="sd">            sampler_kwargs (dict) - keyword arguments for sampler</span>
+
+<span class="sd">            min_num_components (int) - minimum number of mixture components</span>
+
+<span class="sd">            max_num_components (int) - maximum number of mixture components</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attribute</span> <span class="o">=</span> <span class="n">attribute</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sampler_type</span> <span class="o">=</span> <span class="n">sampler_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sampler_kwargs</span> <span class="o">=</span> <span class="n">sampler_kwargs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_num_components</span> <span class="o">=</span> <span class="n">min_num_components</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_num_components</span> <span class="o">=</span> <span class="n">max_num_components</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns labels for a graph of measurements. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Annotation.from_data"><a class="viewcode-back" href="../../../modules/annotation.html#flyqma.annotation.annotation.Annotation.from_data">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_data</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">attribute</span><span class="p">,</span> <span class="n">xykey</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Instantiate annotation object from measurement data.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            data (pd.DataFrame) - measurement data containing &lt;attribute&gt;, as well as &lt;xykey&gt; fields</span>
+
+<span class="sd">            attribute (str) - name of attribute used to classify cells</span>
+
+<span class="sd">            xykey (list) - name of attributes defining measurement x/y position</span>
+
+<span class="sd">            kwargs: keyword arguments for Annotation</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            annotator (Annotation derivative)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">annotator</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">attribute</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">annotator</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">WeightedGraph</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">attribute</span><span class="p">,</span> <span class="n">xykey</span><span class="o">=</span><span class="n">xykey</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">annotator</span></div>
+
+<div class="viewcode-block" id="Annotation.from_layer"><a class="viewcode-back" href="../../../modules/annotation.html#flyqma.annotation.annotation.Annotation.from_layer">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_layer</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">layer</span><span class="p">,</span> <span class="n">attribute</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Instantiate from layer.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            layer (data.Layer) - image layer instance</span>
+
+<span class="sd">            attribute (str) - name of attribute used to classify cells</span>
+
+<span class="sd">            kwargs: keyword arguments for Annotation</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            annotator (Annotation derivative)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">annotator</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">attribute</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">annotator</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">layer</span><span class="o">.</span><span class="n">graph</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">annotator</span></div>
+
+<div class="viewcode-block" id="Annotation.copy"><a class="viewcode-back" href="../../../modules/annotation.html#flyqma.annotation.annotation.Annotation.copy">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">src</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Instantiate from another &lt;source&gt; annotator instance. &quot;&quot;&quot;</span>
+        <span class="n">dst</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">src</span><span class="o">.</span><span class="n">attribute</span><span class="p">)</span>
+        <span class="n">dst</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">src</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">dst</span></div>
+
+<div class="viewcode-block" id="Annotation.train"><a class="viewcode-back" href="../../../modules/annotation.html#flyqma.annotation.annotation.Annotation.train">[docs]</a>    <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">graphs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Train classifier on a series of graphs.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            graphs (Graph or WeightedGraph) - graphs of adjacent measurements</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># generate sample</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampler_type</span> <span class="o">==</span> <span class="s1">&#39;radial&#39;</span><span class="p">:</span>
+            <span class="n">data</span><span class="p">,</span> <span class="n">keys</span> <span class="o">=</span> <span class="n">RadialSampler</span><span class="o">.</span><span class="n">multisample</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">attribute</span><span class="p">,</span>
+                                                <span class="o">*</span><span class="n">graphs</span><span class="p">,</span>
+                                                <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">sampler_kwargs</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampler_type</span> <span class="o">==</span> <span class="s1">&#39;community&#39;</span><span class="p">:</span>
+            <span class="n">data</span><span class="p">,</span> <span class="n">keys</span> <span class="o">=</span> <span class="n">CommunitySampler</span><span class="o">.</span><span class="n">multisample</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">attribute</span><span class="p">,</span>
+                                                <span class="o">*</span><span class="n">graphs</span><span class="p">,</span>
+                                                <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">sampler_kwargs</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampler_type</span> <span class="o">==</span> <span class="s1">&#39;neighbors&#39;</span><span class="p">:</span>
+            <span class="n">data</span><span class="p">,</span> <span class="n">keys</span> <span class="o">=</span> <span class="n">NeighborSampler</span><span class="o">.</span><span class="n">multisample</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">attribute</span><span class="p">,</span>
+                                               <span class="o">*</span><span class="n">graphs</span><span class="p">,</span>
+                                               <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">sampler_kwargs</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Sampler type &#39;&#39;</span><span class="si">{:s}</span><span class="s1">&#39;&#39; not recognized.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sampler_type</span><span class="p">))</span>
+
+        <span class="c1"># run model selection</span>
+        <span class="n">selector</span> <span class="o">=</span> <span class="n">BivariateModelSelection</span><span class="p">(</span><span class="n">data</span><span class="p">,</span>
+            <span class="n">keys</span><span class="p">,</span>
+            <span class="n">min_num_components</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">min_num_components</span><span class="p">,</span>
+            <span class="n">max_num_components</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_num_components</span><span class="p">)</span>
+
+        <span class="c1"># store BIC-optimal model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">classifier</span> <span class="o">=</span> <span class="n">selector</span><span class="o">.</span><span class="n">BIC_optimal</span>
+
+        <span class="k">return</span> <span class="n">selector</span></div>
+
+<div class="viewcode-block" id="Annotation.get_sampler"><a class="viewcode-back" href="../../../modules/annotation.html#flyqma.annotation.annotation.Annotation.get_sampler">[docs]</a>    <span class="k">def</span> <span class="nf">get_sampler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">sampler_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sampler_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Instantiate sampler.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            graph (spatial.WeightedGraph)</span>
+
+<span class="sd">            sampler_type (str) - either &#39;radial&#39;, &#39;neighbors&#39; or &#39;community&#39;</span>
+
+<span class="sd">            sampler_kwargs (dict) - keyword arguments for sampling</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            sampler</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># use default sampler configuration if none is specified</span>
+        <span class="k">if</span> <span class="n">sampler_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sampler_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampler_type</span>
+
+        <span class="k">if</span> <span class="n">sampler_kwargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sampler_kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampler_kwargs</span>
+
+        <span class="c1"># instantiate sampler</span>
+        <span class="k">if</span> <span class="n">sampler_type</span> <span class="o">==</span> <span class="s1">&#39;radial&#39;</span><span class="p">:</span>
+            <span class="n">sampler</span> <span class="o">=</span> <span class="n">RadialSampler</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">attribute</span><span class="p">,</span> <span class="o">**</span><span class="n">sampler_kwargs</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">sampler_type</span> <span class="o">==</span> <span class="s1">&#39;community&#39;</span><span class="p">:</span>
+            <span class="n">sampler</span> <span class="o">=</span> <span class="n">CommunitySampler</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">attribute</span><span class="p">,</span> <span class="o">**</span><span class="n">sampler_kwargs</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">sampler_type</span> <span class="o">==</span> <span class="s1">&#39;neighbors&#39;</span><span class="p">:</span>
+            <span class="n">sampler</span> <span class="o">=</span> <span class="n">NeighborSampler</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">attribute</span><span class="p">,</span> <span class="o">**</span><span class="n">sampler_kwargs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Sampler type &#39;&#39;</span><span class="si">{:s}</span><span class="s1">&#39;&#39; not recognized.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sampler_type</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">sampler</span></div>
+
+<div class="viewcode-block" id="Annotation.get_sample"><a class="viewcode-back" href="../../../modules/annotation.html#flyqma.annotation.annotation.Annotation.get_sample">[docs]</a>    <span class="k">def</span> <span class="nf">get_sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">sampler_type</span><span class="p">,</span> <span class="n">sampler_kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get sample to be annotated. A sample consists of a columns of measured levels adjoined to a column of levels averaged over the neighborhood of each measurement.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            graph (spatial.WeightedGraph)</span>
+
+<span class="sd">            sampler_type (str) - either &#39;radial&#39;, &#39;neighbors&#39; or &#39;community&#39;</span>
+
+<span class="sd">            sampler_kwargs (dict) - keyword arguments for sampling</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            sample (np.ndarray[float]) - sampled levels</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># instantiate sampler</span>
+        <span class="n">sampler</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sampler</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">sampler_type</span><span class="p">,</span> <span class="n">sampler_kwargs</span><span class="p">)</span>
+
+        <span class="c1"># generate sample</span>
+        <span class="n">sample</span> <span class="o">=</span> <span class="n">sampler</span><span class="o">.</span><span class="n">sample</span>
+
+        <span class="c1"># log transform sample</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">classifier</span><span class="o">.</span><span class="n">log</span><span class="p">:</span>
+            <span class="n">sample</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">sample</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">sample</span></div>
+
+<div class="viewcode-block" id="Annotation.combine_posteriors"><a class="viewcode-back" href="../../../modules/annotation.html#flyqma.annotation.annotation.Annotation.combine_posteriors">[docs]</a>    <span class="k">def</span> <span class="nf">combine_posteriors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">posterior</span><span class="p">,</span> <span class="n">marginal_posterior</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">0.8</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Replace uncertain posterior probablilities with their more certain marginal counterparts. If the maximum marginal posterior probability for a given sample does not meet the specified threshold while the maximum bivarite posterior probability does, the latter value is used. Otherwise, the marginal value is used.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            posterior (np.ndarray[float]) - posterior probabilities of each label</span>
+
+<span class="sd">            marginal_posterior (np.ndarray[float]) - marginal posterior probabilities of each label</span>
+
+<span class="sd">            threshold (float) - minimum marginal posterior probability of a given label before spatial context is considered</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            combined (np.ndarray[float])</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">combined</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">marginal_posterior</span><span class="p">)</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">posterior</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">threshold</span><span class="p">,</span>
+                              <span class="n">marginal_posterior</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">threshold</span><span class="p">)</span>
+        <span class="n">combined</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">posterior</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="k">return</span> <span class="n">combined</span></div>
+
+<div class="viewcode-block" id="Annotation.evaluate_marginal_posterior"><a class="viewcode-back" href="../../../modules/annotation.html#flyqma.annotation.annotation.Annotation.evaluate_marginal_posterior">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate_marginal_posterior</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample</span><span class="p">,</span> <span class="n">margin</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Evaluates posterior probability of each label using only the specified marginal distribution.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            sample (np.ndarray[float]) - sample values</span>
+
+<span class="sd">            margin (int) - index of desired margin</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            marginal_posterior (np.ndarray[float])</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">classifier</span><span class="p">[</span><span class="n">margin</span><span class="p">]</span><span class="o">.</span><span class="n">posterior</span><span class="p">(</span><span class="n">sample</span><span class="p">[:,</span> <span class="p">[</span><span class="n">margin</span><span class="p">]])</span></div>
+
+<div class="viewcode-block" id="Annotation.diffuse_posteriors"><a class="viewcode-back" href="../../../modules/annotation.html#flyqma.annotation.annotation.Annotation.diffuse_posteriors">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">diffuse_posteriors</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">posterior</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.9</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Diffuse estimated posterior probabilities of each label along the weighted edges of the graph.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            graph (Graph) - graph connecting adjacent measurements</span>
+
+<span class="sd">            posterior (np.ndarray[float]) - posterior probabiltiy of each label</span>
+
+<span class="sd">            alpha (float) - attenuation factor</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            diffused_posteriors (np.ndarray[float])</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># compile normalized adjancy matrix</span>
+        <span class="n">adjacency</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">adjacency_positional</span>
+        <span class="n">adjacency</span> <span class="o">/=</span> <span class="n">adjacency</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># evaluate centrality</span>
+        <span class="n">external</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="o">*</span><span class="n">adjacency</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="n">alpha</span> <span class="o">*</span> <span class="n">adjacency</span><span class="p">)</span>
+        <span class="n">internal</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">alpha</span><span class="p">)</span> <span class="o">*</span> <span class="n">posterior</span>
+        <span class="n">diffused_posteriors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">external</span><span class="p">,</span> <span class="n">internal</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">diffused_posteriors</span></div>
+
+<div class="viewcode-block" id="Annotation.annotate"><a class="viewcode-back" href="../../../modules/annotation.html#flyqma.annotation.annotation.Annotation.annotate">[docs]</a>    <span class="k">def</span> <span class="nf">annotate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span>
+                 <span class="n">bivariate_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">threshold</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span>
+                 <span class="n">alpha</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span>
+                 <span class="n">sampler_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">sampler_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Annotate graph of measurements.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            graph (spatial.WeightedGraph)</span>
+
+<span class="sd">            bivariate_only (bool) - if True, only use posteriors evaluated using the bivariate mixture model. Otherwise, use the marginal univariate posterior by default, replacing uncertain values with their counterparts estimated by the bivariate model.</span>
+
+<span class="sd">            threshold (float) - minimum marginal posterior probability of a given label before spatial context is considered</span>
+
+<span class="sd">            alpha (float) - attenuation factor</span>
+
+<span class="sd">            sampler_type (str) - either &#39;radial&#39;, &#39;neighbors&#39; or &#39;community&#39;</span>
+
+<span class="sd">            sampler_kwargs (dict) - keyword arguments for sampling</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            labels (np.ndarray[int]) - labels for each measurement in graph</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># get sample data</span>
+        <span class="n">sample</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_sample</span><span class="p">(</span><span class="n">graph</span><span class="o">=</span><span class="n">graph</span><span class="p">,</span>
+                                 <span class="n">sampler_type</span><span class="o">=</span><span class="n">sampler_type</span><span class="p">,</span>
+                                 <span class="n">sampler_kwargs</span><span class="o">=</span><span class="n">sampler_kwargs</span><span class="p">)</span>
+
+        <span class="c1"># classify sample</span>
+        <span class="n">posterior</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">classifier</span><span class="o">.</span><span class="n">posterior</span><span class="p">(</span><span class="n">sample</span><span class="p">)</span>
+
+        <span class="c1"># combine with posteriors estimated by univariate marginal classifier</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">bivariate_only</span><span class="p">:</span>
+            <span class="n">marginal</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluate_marginal_posterior</span><span class="p">(</span><span class="n">sample</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">posterior</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">combine_posteriors</span><span class="p">(</span><span class="n">posterior</span><span class="p">,</span> <span class="n">marginal</span><span class="p">,</span> <span class="n">threshold</span><span class="p">)</span>
+
+        <span class="c1"># diffuse posteriors</span>
+        <span class="k">if</span> <span class="n">alpha</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">posterior</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">diffuse_posteriors</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">posterior</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">)</span>
+
+        <span class="c1"># assign labels</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">posterior</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">labels</span></div></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../../index.html">
+    <img class="logo" src="../../../_static/graphics/logo.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">INSTALLATION</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../start.html">GETTING STARTED</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../documentation.html">DOCUMENTATION</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../usage.html">EXAMPLE USAGE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contact.html">CONTACT</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Sebastian Bernasek.
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,722 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>flyqma.annotation.spatial.sampling &#8212; flyqma v0.1-beta documentation</title>
+    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for flyqma.annotation.spatial.sampling</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
+
+<span class="kn">from</span> <span class="nn">...visualization</span> <span class="k">import</span> <span class="o">*</span>
+
+<span class="kn">from</span> <span class="nn">.infomap</span> <span class="k">import</span> <span class="n">InfoMap</span>
+
+
+<div class="viewcode-block" id="NeighborSampler"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.sampling.NeighborSampler">[docs]</a><span class="k">class</span> <span class="nc">NeighborSampler</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class for sampling node attributes averaged over neighbors.</span>
+
+<span class="sd">    Attributes:</span>
+
+<span class="sd">        graph (spatial.Graph) - graph instance</span>
+
+<span class="sd">        G (nx.Graph) - graph with node attribute</span>
+
+<span class="sd">        attr (str) - attribute to be averaged over neighbors</span>
+
+<span class="sd">        depth (int) - maximum number of edges connecting neighbors</span>
+
+<span class="sd">        log (bool) - if True, log-transform values before averaging</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Instantiate sampler for averaging &lt;attr&gt; value over all neighbors within &lt;depth&gt; of each node.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            graph (spatial.Graph) - graph instance</span>
+
+<span class="sd">            attr (str) - attribute to be averaged over neighbors</span>
+
+<span class="sd">            depth (int) - maximum number of edges connecting neighbors</span>
+
+<span class="sd">            log (bool) - if True, log-transform values before averaging</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">graph</span> <span class="o">=</span> <span class="n">graph</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attr</span> <span class="o">=</span> <span class="n">attr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">depth</span> <span class="o">=</span> <span class="n">depth</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span> <span class="o">=</span> <span class="n">log</span>
+
+        <span class="c1"># add node attribute to graph</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">attr_used</span> <span class="ow">not</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_attribute_to_graph</span><span class="p">()</span>
+
+        <span class="c1"># sample over neigbors</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">average_over_neighbors</span><span class="p">()</span>
+
+<div class="viewcode-block" id="NeighborSampler.multisample"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.sampling.NeighborSampler.multisample">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">multisample</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="o">*</span><span class="n">graphs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate composite sample from one or more &lt;graphs&gt;.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            attr (str) - attribute to be averaged over neighbors</span>
+
+<span class="sd">            graphs (spatial.Graph) - one or more graph instances</span>
+
+<span class="sd">            kwargs: keyword arguments for sampler</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            sample (np.ndarray[float]) - 2D array of sampled values, first column contains cell measurements while the second column contains measurements averaged over the neighbors of each cell</span>
+
+<span class="sd">            keys (list of str) - attribute keys for sampled data</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">samples</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">graph</span> <span class="ow">in</span> <span class="n">graphs</span><span class="p">:</span>
+            <span class="n">sampler</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">samples</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sampler</span><span class="o">.</span><span class="n">sample</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">samples</span><span class="p">),</span> <span class="n">sampler</span><span class="o">.</span><span class="n">keys</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">num_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Number of nodes. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">num_nodes</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Graph data. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">data</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">G</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; NetworkX graph instance. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">G</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">node_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Vector of attribute values for each node. &quot;&quot;&quot;</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">attr</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">:</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">values</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">node_values_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Dictionary of attribute values, keyed by node index. &quot;&quot;&quot;</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">attr</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">:</span>
+            <span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">neighbors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Dictionary of neighbor indices keyed by node indices. &quot;&quot;&quot;</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">depth_limit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">depth</span><span class="p">)</span>
+        <span class="n">bfs</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="p">[</span><span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">nx</span><span class="o">.</span><span class="n">bfs_edges</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">node</span><span class="p">:</span> <span class="n">bfs</span><span class="p">(</span><span class="n">node</span><span class="p">)</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">}</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">size_attr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Neighborhood size attribute name. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s1">&#39;d</span><span class="si">{:d}</span><span class="s1">_neighbors&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">depth</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">attr_used</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Name of attribute used to access graph data. &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;log_&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">attr</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">attr</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">averaged_attr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Name of averaged attribute. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{:s}</span><span class="s1">_d</span><span class="si">{:d}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">attr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">depth</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; List of attribute names. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">attr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">averaged_attr</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns bivariate sample combining each node&#39;s attribute value with the average attribute value in its neighborhood. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+
+<div class="viewcode-block" id="NeighborSampler.add_attribute_to_graph"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.sampling.NeighborSampler.add_attribute_to_graph">[docs]</a>    <span class="k">def</span> <span class="nf">add_attribute_to_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Add attribute to networkx graph object. &quot;&quot;&quot;</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_values_dict</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">attr_used</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_neighbor_average</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">node_values</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Average attribute value over all neighbors of each node in a graph.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            G (nx.Graph) - graph with nodes containing an attribute</span>
+
+<span class="sd">            node_values (dict) - node attribute values keyed by node index</span>
+
+<span class="sd">            depth (int) - maximum number of edges connecting neighbors</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            node_to_neighborhood (dict) - dictionary of neighborhood (&lt;attribute&gt;, size) tuples keyed by node index</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># define breadth first search of each &lt;src&gt; node</span>
+        <span class="n">bfs</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="p">[</span><span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">nx</span><span class="o">.</span><span class="n">bfs_edges</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">depth_limit</span><span class="o">=</span><span class="n">depth</span><span class="p">)]</span>
+
+        <span class="c1"># define function to parse mean node attribute within neighborhood</span>
+        <span class="n">parse</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">nbs</span><span class="p">:</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="n">node_values</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">nbs</span><span class="p">]),</span> <span class="nb">len</span><span class="p">(</span><span class="n">nbs</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="p">{</span><span class="n">src</span><span class="p">:</span> <span class="n">parse</span><span class="p">(</span><span class="n">bfs</span><span class="p">(</span><span class="n">src</span><span class="p">))</span> <span class="k">for</span> <span class="n">src</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">}</span>
+
+<div class="viewcode-block" id="NeighborSampler.average_over_neighbors"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.sampling.NeighborSampler.average_over_neighbors">[docs]</a>    <span class="k">def</span> <span class="nf">average_over_neighbors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Average attribute value over all neighbors adjacent to each node.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># average attribute over neighbors</span>
+        <span class="n">neighbor_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_neighbor_average</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_values_dict</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">depth</span><span class="p">)</span>
+
+        <span class="c1"># extract average and sample size for each node</span>
+        <span class="n">keys</span><span class="p">,</span> <span class="n">values</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">neighbor_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+        <span class="n">node_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span>
+        <span class="n">means</span><span class="p">,</span> <span class="n">sizes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">values</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+
+        <span class="c1"># log transform average</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">:</span>
+            <span class="n">means</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">means</span><span class="p">)</span>
+
+        <span class="c1"># store outcome</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">node_indices</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">averaged_attr</span><span class="p">]</span> <span class="o">=</span> <span class="n">means</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">node_indices</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">size_attr</span><span class="p">]</span> <span class="o">=</span> <span class="n">sizes</span></div>
+
+    <span class="nd">@default_figure</span>
+    <span class="k">def</span> <span class="nf">histogram_sample_sizes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Histogram sample sizes. &quot;&quot;&quot;</span>
+        <span class="n">sizes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">size_attr</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">sizes</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">sizes</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+
+    <span class="nd">@square_figure</span>
+    <span class="k">def</span> <span class="nf">plot_neigborhood</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span>
+                         <span class="n">color</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span>
+                         <span class="n">bg_color</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span>
+                         <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                         <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Visualize neighborhood surrounding &lt;node&gt;.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            node (int) - node positional index</span>
+
+<span class="sd">            color (str or RGB tuple) - color for nodes within neighborhood</span>
+
+<span class="sd">            bg_color (str or RGB tuple) - color for nodes outside neighborhood</span>
+
+<span class="sd">            kwargs: keyword arguments for plt.scatter</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">node_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">node_map</span><span class="p">(</span><span class="n">node</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">neighbors_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">neighbors</span><span class="p">[</span><span class="n">node_id</span><span class="p">]</span>
+        <span class="n">neighbors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">position_map</span><span class="p">(</span><span class="n">neighbors_id</span><span class="p">)</span>
+
+        <span class="n">colors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">bg_color</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">size</span><span class="p">)])</span>
+        <span class="n">colors</span><span class="p">[</span><span class="n">node</span><span class="p">]</span> <span class="o">=</span> <span class="n">color</span>
+        <span class="n">colors</span><span class="p">[</span><span class="n">neighbors</span><span class="p">]</span> <span class="o">=</span> <span class="n">color</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">xykey</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="nd">@default_figure</span>
+    <span class="k">def</span> <span class="nf">plot_autocorrelation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xmax</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Plot autocorrelation versus path length. &quot;&quot;&quot;</span>
+
+        <span class="c1"># evaluate distance between all nodes</span>
+        <span class="n">paths</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nx</span><span class="o">.</span><span class="n">all_pairs_shortest_path_length</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="p">,</span> <span class="n">cutoff</span><span class="o">=</span><span class="n">xmax</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">xmax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">max_depth</span> <span class="o">=</span> <span class="nb">max</span><span class="p">([</span><span class="nb">max</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">values</span><span class="p">())</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">paths</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">max_depth</span> <span class="o">=</span> <span class="n">xmax</span>
+
+        <span class="c1"># get node levels and evaluate global mean/variance</span>
+        <span class="n">levels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_values</span>
+        <span class="n">mu</span><span class="p">,</span> <span class="n">sigma2</span> <span class="o">=</span> <span class="n">levels</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="n">levels</span><span class="o">.</span><span class="n">var</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">eval_flux</span><span class="p">(</span><span class="n">edge_list</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot; Evaluate mean fluctuation in edge_list. &quot;&quot;&quot;</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">position_map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">edge_list</span><span class="p">))</span>
+            <span class="n">flux</span> <span class="o">=</span> <span class="p">((</span><span class="n">levels</span><span class="p">[</span><span class="n">idx</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]]</span><span class="o">-</span><span class="n">mu</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">levels</span><span class="p">[</span><span class="n">idx</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]]</span> <span class="o">-</span> <span class="n">mu</span><span class="p">))</span> <span class="o">/</span> <span class="n">sigma2</span>
+            <span class="k">return</span> <span class="n">flux</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="n">flux</span><span class="o">.</span><span class="n">std</span><span class="p">(),</span> <span class="n">flux</span><span class="o">.</span><span class="n">size</span>
+
+        <span class="c1"># compute pairwise fluctuations between nodes</span>
+        <span class="n">edges</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_depth</span><span class="o">+</span><span class="mi">1</span><span class="p">)}</span>
+        <span class="k">for</span> <span class="n">node</span><span class="p">,</span> <span class="n">neighbors</span> <span class="ow">in</span> <span class="n">paths</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">neighbor</span><span class="p">,</span> <span class="n">distance</span> <span class="ow">in</span> <span class="n">neighbors</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">edges</span><span class="p">[</span><span class="n">distance</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">node</span><span class="p">,</span> <span class="n">neighbor</span><span class="p">))</span>
+
+        <span class="c1"># compile autocorrelation function</span>
+        <span class="n">means</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">sizes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">eval_flux</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">edges</span><span class="o">.</span><span class="n">values</span><span class="p">()]))</span>
+        <span class="n">means</span><span class="p">,</span> <span class="n">sizes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">means</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sizes</span><span class="p">)</span>
+
+        <span class="c1"># plot autocorrelation</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">max_depth</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="n">means</span><span class="p">,</span> <span class="s1">&#39;.-k&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="o">-</span><span class="mf">0.1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_depth</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Correlation&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Path length&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="CommunitySampler"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.sampling.CommunitySampler">[docs]</a><span class="k">class</span> <span class="nc">CommunitySampler</span><span class="p">(</span><span class="n">NeighborSampler</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class for sampling node attributes averaged over local community.</span>
+
+<span class="sd">    Attributes:</span>
+
+<span class="sd">        graph (spatial.Graph) - graph instance</span>
+
+<span class="sd">        G (nx.Graph) - graph with node attribute</span>
+
+<span class="sd">        attr (str) - attribute to be averaged over neighbors</span>
+
+<span class="sd">        depth (int) - mean correlation lifetime</span>
+
+<span class="sd">        level (int) - hierarchical level at which clusters are merged</span>
+
+<span class="sd">        log (bool) - if True, log-transform values before averaging</span>
+
+<span class="sd">        twolevel (bool) - if True, use two-level community clustering</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">twolevel</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Instantiate sampler for averaging &lt;attr&gt; value over all neighbors within &lt;depth&gt; of each node.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            graph (spatial.Graph) - graph instance</span>
+
+<span class="sd">            attr (str) - attribute to be averaged over neighbors</span>
+
+<span class="sd">            depth (int) - mean correlation lifetime</span>
+
+<span class="sd">            twolevel (bool) - if True, use two-level community clustering</span>
+
+<span class="sd">            log (bool) - if True, log-transform values before averaging</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># store attributes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">graph</span> <span class="o">=</span> <span class="n">graph</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attr</span> <span class="o">=</span> <span class="n">attr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">depth</span> <span class="o">=</span> <span class="n">depth</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">twolevel</span> <span class="o">=</span> <span class="n">twolevel</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span> <span class="o">=</span> <span class="n">log</span>
+
+        <span class="c1"># perform community detection</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">imap</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">detect_communities</span><span class="p">(</span><span class="n">twolevel</span><span class="o">=</span><span class="n">twolevel</span><span class="p">)</span>
+
+        <span class="c1"># determine clustering level</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">level</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clustering_level</span>
+
+        <span class="c1"># sample over neigbors</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">average_over_neighbors</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">neighbors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Dictionary of neighbor indices keyed by node indices. &quot;&quot;&quot;</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">_assign_community</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">level</span><span class="p">)</span>
+        <span class="n">gb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
+        <span class="n">exclude</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">node</span><span class="p">,</span> <span class="n">neighbors</span><span class="p">:</span> <span class="n">neighbors</span><span class="p">[</span><span class="n">neighbors</span><span class="o">!=</span><span class="n">node</span><span class="p">]</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">n</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">key</span><span class="p">(</span><span class="n">n</span><span class="p">):</span> <span class="n">exclude</span><span class="p">(</span><span class="n">key</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">gb</span><span class="o">.</span><span class="n">indices</span><span class="p">[</span><span class="n">c</span><span class="p">])</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span><span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">labels</span><span class="p">)}</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">size_attr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Neighborhood size attribute name. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s1">&#39;community_size&#39;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">averaged_attr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Name of averaged attribute. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{:s}</span><span class="s1">_community&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">attr</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">z_attr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Name of z-scored attribute. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">attr</span><span class="o">+</span><span class="s1">&#39;_zscore&#39;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">clustering_level</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Highest clustering level at which the mean correlation remains above &lt;self.depth&gt; multiples of the decay constant. &quot;&quot;&quot;</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">correlations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">autocorrelate</span><span class="p">(</span><span class="n">include_distances</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">correlations</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">correlations</span><span class="p">)</span>
+        <span class="n">relative_correlation</span> <span class="o">=</span> <span class="n">correlations</span><span class="o">/</span><span class="n">correlations</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">above</span> <span class="o">=</span> <span class="n">relative_correlation</span> <span class="o">&gt;=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">depth</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">above</span><span class="o">.</span><span class="n">nonzero</span><span class="p">()[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+<div class="viewcode-block" id="CommunitySampler.average_over_neighbors"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.sampling.CommunitySampler.average_over_neighbors">[docs]</a>    <span class="k">def</span> <span class="nf">average_over_neighbors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Average attribute value over all members of the community encompassing each node. &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">:</span>
+            <span class="n">agg</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">agg</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+        <span class="c1"># average over each community</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">_assign_community</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">level</span><span class="p">)</span>
+        <span class="n">community_levels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">labels</span><span class="p">)[</span><span class="bp">self</span><span class="o">.</span><span class="n">attr</span><span class="p">]</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">agg</span><span class="p">)</span>
+        <span class="n">community_to_mean_level</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vectorize</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">community_levels</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">)</span>
+        <span class="n">means</span> <span class="o">=</span> <span class="n">community_to_mean_level</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
+
+        <span class="c1"># log transform average</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">:</span>
+            <span class="n">means</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">means</span><span class="p">)</span>
+
+        <span class="c1"># evaluate community sizes</span>
+        <span class="n">neighbors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">neighbors</span>
+        <span class="n">get_community_size</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vectorize</span><span class="p">(</span><span class="k">lambda</span> <span class="n">n</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">neighbors</span><span class="p">[</span><span class="n">n</span><span class="p">]))</span>
+
+        <span class="c1"># store outcome</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">averaged_attr</span><span class="p">]</span> <span class="o">=</span> <span class="n">means</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">size_attr</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_community_size</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CommunitySampler.autocorrelate"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.sampling.CommunitySampler.autocorrelate">[docs]</a>    <span class="k">def</span> <span class="nf">autocorrelate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">include_distances</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns autocorrelation versus community depth.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            include_distances (bool) - return mean separate distances</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            levels (list) - clustering depths, starting from finest resolution</span>
+
+<span class="sd">            correlations (list) - mean correlation within communities</span>
+
+<span class="sd">            &lt;optional&gt; distances (list) - mean pairwise separation distance</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># compile z-scored node values</span>
+        <span class="n">node_v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_values</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">z_attr</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">node_v</span><span class="o">-</span><span class="n">node_v</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span><span class="o">/</span><span class="n">node_v</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+
+        <span class="c1"># define hierarchical levels</span>
+        <span class="n">levels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">imap</span><span class="o">.</span><span class="n">aggregator</span><span class="o">.</span><span class="n">max_depth</span><span class="p">))</span>
+
+        <span class="c1"># define aggregation functions</span>
+        <span class="k">def</span> <span class="nf">get_binsize</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot; Evaluate total number of node pairs. &quot;&quot;&quot;</span>
+            <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+
+        <span class="k">def</span> <span class="nf">get_fluctuations</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot; Evaluate total pairwise fluctuation between nodes. &quot;&quot;&quot;</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">get_matrix_upper</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">get_distances</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot; Evaluate total pairwise distance between nodes. &quot;&quot;&quot;</span>
+            <span class="n">distance_matrix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">_distance_matrix</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+            <span class="n">distances</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">get_matrix_upper</span><span class="p">(</span><span class="n">distance_matrix</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">distances</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+        <span class="c1"># evaluate autocorrelation at each hierarchical level</span>
+        <span class="n">correlations</span><span class="p">,</span> <span class="n">distances</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">level</span> <span class="ow">in</span> <span class="n">levels</span><span class="p">:</span>
+            <span class="n">labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">_assign_community</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
+            <span class="n">gb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
+            <span class="n">total_flux</span> <span class="o">=</span> <span class="n">gb</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">z_attr</span><span class="p">]</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="n">get_fluctuations</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="n">num_of_flux</span> <span class="o">=</span> <span class="n">gb</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">z_attr</span><span class="p">]</span><span class="o">.</span><span class="n">agg</span><span class="p">(</span><span class="n">get_binsize</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="n">correlations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">total_flux</span> <span class="o">/</span> <span class="n">num_of_flux</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">include_distances</span><span class="p">:</span>
+                <span class="n">total_distance</span> <span class="o">=</span> <span class="n">gb</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">xykey</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">get_distances</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                <span class="n">distances</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">total_distance</span><span class="o">/</span><span class="n">num_of_flux</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">include_distances</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">distances</span><span class="p">,</span> <span class="n">correlations</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">levels</span><span class="p">,</span> <span class="n">correlations</span></div>
+
+    <span class="nd">@default_figure</span>
+    <span class="k">def</span> <span class="nf">plot_autocorrelation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">spatial</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plot autocorrelation versus community depth.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            distance (bool) - if True, plot spatial correlation</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+
+        <span class="n">levels</span><span class="p">,</span> <span class="n">correlation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">autocorrelate</span><span class="p">(</span><span class="n">include_distances</span><span class="o">=</span><span class="n">spatial</span><span class="p">)</span>
+
+        <span class="c1"># plot autocorrelation</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">levels</span><span class="p">,</span> <span class="n">correlation</span><span class="p">,</span> <span class="s1">&#39;.-k&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="o">-</span><span class="mf">0.1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Correlation&#39;</span><span class="p">)</span>
+
+        <span class="c1"># format axis</span>
+        <span class="k">if</span> <span class="n">spatial</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Distance&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Hierarchical level&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="RadialSampler"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.sampling.RadialSampler">[docs]</a><span class="k">class</span> <span class="nc">RadialSampler</span><span class="p">(</span><span class="n">NeighborSampler</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class for sampling node attributes averaged within a predetermined radius of each node.</span>
+
+<span class="sd">    Attributes:</span>
+
+<span class="sd">        graph (spatial.Graph) - graph instance</span>
+
+<span class="sd">        G (nx.Graph) - graph with node attribute</span>
+
+<span class="sd">        attr (str) - attribute to be averaged over neighbors</span>
+
+<span class="sd">        depth (int) - hierarchical level to which communities are merged</span>
+
+<span class="sd">        log (bool) - if True, log-transform values before averaging</span>
+
+<span class="sd">        length_scale (float) - characteristic length scale of the graph</span>
+
+<span class="sd">        radius (float) - radius of sampling region surrounding each measurement</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">graph</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Instantiate sampler for averaging &lt;attr&gt; value over all nodes within a predetermined radius of each node. The radius is defined by &lt;depth&gt; multiples of the characteristic length over which correlations in the attribute value decay.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            graph (spatial.Graph) - graph instance</span>
+
+<span class="sd">            attr (str) - attribute to be averaged over neighbors</span>
+
+<span class="sd">            depth (int) - hierarchical level to which communities are merged</span>
+
+<span class="sd">            log (bool) - if True, log-transform values before averaging</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># store attributes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">graph</span> <span class="o">=</span> <span class="n">graph</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">attr</span> <span class="o">=</span> <span class="n">attr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">depth</span> <span class="o">=</span> <span class="n">depth</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span> <span class="o">=</span> <span class="n">log</span>
+
+        <span class="c1"># determine characteristic length scale and set sampling radius</span>
+        <span class="n">length_scale</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">get_correlations</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">log</span><span class="p">)</span><span class="o">.</span><span class="n">characteristic_length</span>
+
+        <span class="c1"># if failed (e.g. no correlation), use 1.5x median edge length</span>
+        <span class="k">if</span> <span class="n">length_scale</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">length_scale</span> <span class="o">=</span> <span class="mf">1.5</span> <span class="o">*</span> <span class="n">graph</span><span class="o">.</span><span class="n">median_edge_length</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">length_scale</span> <span class="o">=</span> <span class="n">length_scale</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">radius</span> <span class="o">=</span> <span class="n">depth</span> <span class="o">*</span> <span class="n">length_scale</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">neighbor_mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_neighbor_mask</span>
+
+        <span class="c1"># sample over neigbors</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">average_over_neighbors</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">distance_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Euclidean distance matrix between nodes (ordered by position in &lt;self.data&gt;). &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">distance_matrix</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_neighbor_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Boolean adjacency mask (True for neighbors). &quot;&quot;&quot;</span>
+        <span class="n">neighbor_mask</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">distance_matrix</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">radius</span><span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">fill_diagonal</span><span class="p">(</span><span class="n">neighbor_mask</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">neighbor_mask</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">neighbors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Dictionary of neighbor positional indices keyed by node indices.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span>  <span class="p">{</span><span class="n">n</span><span class="p">:</span> <span class="n">r</span><span class="o">.</span><span class="n">nonzero</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">neighbor_mask</span><span class="p">)}</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">size_attr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Neighborhood size attribute name. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s1">&#39;sampling_radius&#39;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">averaged_attr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Name of averaged attribute. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{:s}</span><span class="s1">_radial&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">attr</span><span class="p">)</span>
+
+<div class="viewcode-block" id="RadialSampler.average_over_neighbors"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.sampling.RadialSampler.average_over_neighbors">[docs]</a>    <span class="k">def</span> <span class="nf">average_over_neighbors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Average attribute value over all nodes within the specified radius of each node.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># average within each neighborhood</span>
+        <span class="n">node_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_values</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">node_values</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">masked_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">masked_array</span><span class="p">(</span><span class="n">matrix</span><span class="p">,</span> <span class="n">mask</span><span class="o">=~</span><span class="bp">self</span><span class="o">.</span><span class="n">neighbor_mask</span><span class="p">)</span>
+        <span class="n">means</span> <span class="o">=</span> <span class="n">masked_values</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">data</span>
+
+        <span class="c1"># log transform average</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">:</span>
+            <span class="n">means</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">means</span><span class="p">)</span>
+
+        <span class="c1"># store outcome</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">averaged_attr</span><span class="p">]</span> <span class="o">=</span> <span class="n">means</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">size_attr</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="o">~</span><span class="n">masked_values</span><span class="o">.</span><span class="n">mask</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
+
+    <span class="nd">@square_figure</span>
+    <span class="k">def</span> <span class="nf">plot_neigborhood</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span>
+                         <span class="n">color</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span>
+                         <span class="n">bg_color</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span>
+                         <span class="n">radius</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                         <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                         <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Visualize neighborhood surrounding &lt;node&gt;.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            node (int) - node positional index</span>
+
+<span class="sd">            color (str or RGB tuple) - color for nodes within neighborhood</span>
+
+<span class="sd">            bg_color (str or RGB tuple) - color for nodes outside neighborhood</span>
+
+<span class="sd">            radius (bool) - if True, plot sampling radius</span>
+
+<span class="sd">            kwargs: keyword arguments for plt.scatter</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># draw selection boundary</span>
+        <span class="k">if</span> <span class="n">radius</span><span class="p">:</span>
+            <span class="n">center</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">xykey</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">node</span><span class="p">]</span>
+            <span class="n">circle</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">Circle</span><span class="p">(</span><span class="n">center</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">radius</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">add_artist</span><span class="p">(</span><span class="n">circle</span><span class="p">)</span>
+
+        <span class="c1"># scatter points</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">bg_color</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="o">.</span><span class="n">size</span><span class="p">)])</span>
+        <span class="n">colors</span><span class="p">[</span><span class="n">node</span><span class="p">]</span> <span class="o">=</span> <span class="n">color</span>
+        <span class="n">colors</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">neighbors</span><span class="p">[</span><span class="n">node</span><span class="p">]]</span> <span class="o">=</span> <span class="n">color</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">xykey</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="nd">@default_figure</span>
+    <span class="k">def</span> <span class="nf">plot_autocorrelation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Plot autocorrelation versus community depth. &quot;&quot;&quot;</span>
+        <span class="n">correlations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">graph</span><span class="o">.</span><span class="n">get_correlations</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">attr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">)</span>
+        <span class="n">correlations</span><span class="o">.</span><span class="n">visualize</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../../../index.html">
+    <img class="logo" src="../../../../_static/graphics/logo.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">INSTALLATION</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../start.html">GETTING STARTED</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../documentation.html">DOCUMENTATION</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../usage.html">EXAMPLE USAGE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../contact.html">CONTACT</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Sebastian Bernasek.
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

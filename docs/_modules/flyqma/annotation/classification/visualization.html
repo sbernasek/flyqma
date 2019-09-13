@@ -1,0 +1,395 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>flyqma.annotation.classification.visualization &#8212; flyqma v0.1-beta documentation</title>
+    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for flyqma.annotation.classification.visualization</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.signal</span> <span class="k">import</span> <span class="n">argrelextrema</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">matplotlib.colors</span> <span class="k">import</span> <span class="n">ListedColormap</span><span class="p">,</span> <span class="n">Normalize</span>
+
+<span class="kn">from</span> <span class="nn">...visualization</span> <span class="k">import</span> <span class="o">*</span>
+
+
+<div class="viewcode-block" id="MixtureVisualization"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.classification.visualization.MixtureVisualization">[docs]</a><span class="k">class</span> <span class="nc">MixtureVisualization</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Methods for visualizing a mixture-model based classifier. &quot;&quot;&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">label_colors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; RGB color for each class label. &quot;&quot;&quot;</span>
+        <span class="n">component_to_label</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vectorize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">component_to_label</span><span class="o">.</span><span class="n">get</span><span class="p">)</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">component_to_label</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_components</span><span class="p">))</span>
+        <span class="n">label_colors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmap</span><span class="p">(</span><span class="n">labels</span><span class="p">)[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">label_colors</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">support</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Model support. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">support</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">esupport</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Empirical support vector (sorted values). &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">epdf</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Empirical PDF over support. &quot;&quot;&quot;</span>
+        <span class="n">num_bins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_samples</span> <span class="o">//</span> <span class="mi">25</span>
+        <span class="n">bins</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="n">num_bins</span><span class="p">)</span>
+        <span class="n">counts</span><span class="p">,</span> <span class="n">edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">histogram</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="n">bins</span><span class="p">,</span> <span class="n">normed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">bin_centers</span> <span class="o">=</span> <span class="p">[(</span><span class="n">edges</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">+</span><span class="n">edges</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="mf">2.</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">edges</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span>
+        <span class="k">return</span> <span class="n">edges</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">counts</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ecdf</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Empirical CDF over support. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">),</span> <span class="n">endpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pdf</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Model PDF over support. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">pdf</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">component_pdfs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Weighted component PDFs over support. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">component_pdfs</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">component_cdfs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns weighted CDF of each component over support. &quot;&quot;&quot;</span>
+        <span class="n">cdfs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">x</span><span class="o">.</span><span class="n">cdf</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">components</span><span class="p">])</span>
+        <span class="n">cdfs</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">weights_</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cdfs</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">support_labels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Labels for support vector. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">classifier</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+    <span class="nd">@default_figure</span>
+    <span class="k">def</span> <span class="nf">plot_pdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                  <span class="n">density</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+                  <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+                  <span class="n">xmin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">xmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">ymin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">ymax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plot model density function, colored by output label.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># plot model pdf segments, colored by output label</span>
+        <span class="n">support_labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">support_labels</span>
+        <span class="n">breakpoints</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">support_labels</span><span class="p">)</span><span class="o">.</span><span class="n">nonzero</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">+</span><span class="p">[</span><span class="kc">None</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">bp</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">breakpoints</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">indices</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">bp</span><span class="p">,</span> <span class="n">breakpoints</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">segment_support</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span>
+            <span class="n">segment_pdf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pdf</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span>
+            <span class="n">segment_labels</span> <span class="o">=</span> <span class="n">support_labels</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span>
+            <span class="n">segment_color</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmap</span><span class="p">(</span><span class="n">segment_labels</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">segment_support</span><span class="p">,</span> <span class="n">segment_pdf</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">segment_color</span><span class="p">)</span>
+
+        <span class="c1"># plot overall model pdf</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pdf</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="c1"># format axis</span>
+        <span class="k">if</span> <span class="n">ymax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">maxima</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pdf</span><span class="p">[</span><span class="n">argrelextrema</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pdf</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">greater</span><span class="p">)]</span>
+            <span class="n">ymax</span> <span class="o">=</span> <span class="mf">2.5</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">maxima</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">maxima</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">lbound</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">ubound</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ymax</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Values&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Density&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+
+    <span class="nd">@default_figure</span>
+    <span class="k">def</span> <span class="nf">plot_pdfs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                  <span class="n">empirical</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                  <span class="n">line</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                  <span class="n">fill</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                  <span class="n">density</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+                  <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+                  <span class="n">cmap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">vmin</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+                  <span class="n">xmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">ymax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plot density function for each distribution, colored by output label.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            ax (matplotlib.axes.AxesSubplot) - if None, create figure</span>
+
+<span class="sd">            empirical (bool) - if True, include empirical PDF</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># define colormap</span>
+        <span class="k">if</span> <span class="n">cmap</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">colormap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_colormap</span><span class="p">(</span><span class="n">cmap</span><span class="p">,</span> <span class="n">vmin</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">colormap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmap</span>
+
+        <span class="c1"># plot empirical pdf</span>
+        <span class="k">if</span> <span class="n">empirical</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">epdf</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="s1">&#39;post&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># plot individual component pdfs</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">pdf</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">component_pdfs</span><span class="p">):</span>
+            <span class="n">color</span> <span class="o">=</span> <span class="n">colormap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">component_to_label</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">line</span><span class="p">:</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="p">,</span> <span class="n">pdf</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">1.</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">fill</span><span class="p">:</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="p">,</span> <span class="n">pdf</span><span class="p">,</span> <span class="n">facecolors</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="n">rasterized</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># plot model pdf</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pdf</span><span class="p">,</span> <span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># format axis</span>
+        <span class="k">if</span> <span class="n">ymax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">maxima</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pdf</span><span class="p">[</span><span class="n">argrelextrema</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pdf</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">greater</span><span class="p">)]</span>
+            <span class="n">ymax</span> <span class="o">=</span> <span class="mf">2.5</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="n">maxima</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">maxima</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ymax</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">lbound</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">ubound</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Values&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Density&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+
+    <span class="nd">@default_figure</span>
+    <span class="k">def</span> <span class="nf">plot_cdfs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                  <span class="n">log</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                  <span class="n">cmap</span><span class="o">=</span><span class="n">plt</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">Greys</span><span class="p">,</span>
+                  <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                  <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plot component cumulative distribution functions as stackplot.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">to_linear</span><span class="p">(</span><span class="n">support</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot; Convert support to linear basis. &quot;&quot;&quot;</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">support</span><span class="p">)</span>
+
+        <span class="c1"># log transform data</span>
+        <span class="n">support</span><span class="p">,</span> <span class="n">esupport</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">esupport</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">log</span><span class="p">:</span>
+            <span class="n">support</span><span class="p">,</span> <span class="n">esupport</span> <span class="o">=</span> <span class="n">to_linear</span><span class="p">(</span><span class="n">support</span><span class="p">),</span> <span class="n">to_linear</span><span class="p">(</span><span class="n">esupport</span><span class="p">)</span>
+
+        <span class="c1"># get component CDFs</span>
+        <span class="n">component_cdfs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">component_cdfs</span>
+
+        <span class="c1"># plot weighted CDF for each component</span>
+        <span class="n">means</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">means</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">norm</span> <span class="o">=</span> <span class="n">Normalize</span><span class="p">(</span><span class="n">vmin</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">vmax</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+        <span class="n">order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">means</span><span class="p">)</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="n">cmap</span><span class="p">(</span><span class="n">norm</span><span class="p">(</span><span class="n">means</span><span class="p">[</span><span class="n">order</span><span class="p">]))</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">stackplot</span><span class="p">(</span><span class="n">support</span><span class="p">,</span> <span class="n">component_cdfs</span><span class="p">[</span><span class="n">order</span><span class="p">],</span> <span class="n">colors</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># plot empirical CDF (data)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">esupport</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ecdf</span><span class="p">,</span> <span class="s1">&#39;-r&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">1.</span><span class="p">)</span>
+
+        <span class="c1"># plot mixture CDF</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">support</span><span class="p">,</span> <span class="n">component_cdfs</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="s1">&#39;--k&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
+
+
+<span class="k">class</span> <span class="nc">BivariateMixtureVisualization</span><span class="p">:</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">support</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Model support. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">supportx</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">esupport</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Empirical support vector (sorted values). &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pdf</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Model PDF over support. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">pdf</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">component_pdfs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Weighted component PDFs over support. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">component_pdfs</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">component_cdfs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns weighted CDF of each component over support. &quot;&quot;&quot;</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">cdfs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">x</span><span class="o">.</span><span class="n">cdf</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">components</span><span class="p">])</span>
+        <span class="n">cdfs</span> <span class="o">*=</span> <span class="n">model</span><span class="o">.</span><span class="n">weights_</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cdfs</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">support_labels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Labels for support vector (over x margin). &quot;&quot;&quot;</span>
+        <span class="n">margin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">marginalize</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">margin</span><span class="o">.</span><span class="n">classifier</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">support</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+
+    <span class="nd">@joint_figure</span>
+    <span class="k">def</span> <span class="nf">plot_bivariate_pdf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Plot bivariate PDF, with each cluster shaded by its label. &quot;&quot;&quot;</span>
+
+        <span class="n">pdfs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">component_pdfs</span>
+
+        <span class="c1"># plot each bivariate pdf, colored by label</span>
+        <span class="n">norm</span> <span class="o">=</span> <span class="n">Normalize</span><span class="p">(</span><span class="n">pdfs</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">pdfs</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">ax_joint</span><span class="o">.</span><span class="n">set_facecolor</span><span class="p">(</span><span class="n">bg</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">pdf</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">pdfs</span><span class="p">):</span>
+            <span class="n">ccm</span> <span class="o">=</span> <span class="n">build_transparent_cmap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">label_colors</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="n">bg</span><span class="o">=</span><span class="n">bg</span><span class="p">)</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">ax_joint</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">norm</span><span class="p">(</span><span class="n">pdf</span><span class="p">),</span> <span class="n">cmap</span><span class="o">=</span><span class="n">ccm</span><span class="p">,</span> <span class="n">extent</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">extent</span><span class="p">)</span>
+
+        <span class="c1"># plot marginal pdfs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">plot_margin</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">ax_xmargin</span><span class="p">,</span> <span class="n">component_color</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">label_colors</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">plot_margin</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">invert</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">ax_ymargin</span><span class="p">,</span> <span class="n">component_color</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">label_colors</span><span class="p">)</span>
+
+        <span class="n">fig</span><span class="o">.</span><span class="n">ax_xmargin</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">lbound</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">ubound</span><span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">ax_ymargin</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">lbound</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">ubound</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">fig</span>
+
+    <span class="nd">@joint_figure</span>
+    <span class="k">def</span> <span class="nf">plot_bivariate_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Plot bivariate data, with each sample shaded by its label. &quot;&quot;&quot;</span>
+
+        <span class="c1"># define label colors</span>
+        <span class="n">marker_labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">classifier</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+        <span class="n">marker_colors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmap</span><span class="p">(</span><span class="n">marker_labels</span><span class="p">)[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># plot each bivariate pdf, colored by label</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">ax_joint</span><span class="o">.</span><span class="n">set_facecolor</span><span class="p">(</span><span class="n">bg</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">plot_data</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">ax_joint</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">marker_colors</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">ax_joint</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">lbound</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">ubound</span><span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">ax_joint</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">lbound</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">ubound</span><span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">ax_joint</span><span class="o">.</span><span class="n">invert_yaxis</span><span class="p">()</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">ax_joint</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">(</span><span class="n">fig</span><span class="o">.</span><span class="n">ax_joint</span><span class="o">.</span><span class="n">get_xticks</span><span class="p">())</span>
+
+        <span class="c1"># plot marginal pdfs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">plot_margin</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">ax_xmargin</span><span class="p">,</span> <span class="n">component_color</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">label_colors</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">plot_margin</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">invert</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">ax_ymargin</span><span class="p">,</span> <span class="n">component_color</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">label_colors</span><span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">ax_xmargin</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">lbound</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">ubound</span><span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">ax_ymargin</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">lbound</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">ubound</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">fig</span>
+
+    <span class="nd">@joint_figure</span>
+    <span class="k">def</span> <span class="nf">plot_phase_space</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fig</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Plot phase space, with each region shaded by its label. &quot;&quot;&quot;</span>
+
+        <span class="n">labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">classifier</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">support</span><span class="p">)</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">labels</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">support_size</span><span class="p">)</span>
+
+        <span class="n">l</span><span class="p">,</span> <span class="n">u</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">lbound</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">ubound</span>
+        <span class="n">extent</span> <span class="o">=</span> <span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">l</span><span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">ax_joint</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cmap</span><span class="p">(</span><span class="n">labels</span><span class="p">),</span> <span class="n">extent</span><span class="o">=</span><span class="n">extent</span><span class="p">)</span>
+
+        <span class="c1"># plot marginal pdfs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">plot_margin</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">ax_xmargin</span><span class="p">,</span> <span class="n">component_color</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">label_colors</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">plot_margin</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">invert</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">ax_ymargin</span><span class="p">,</span> <span class="n">component_color</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">label_colors</span><span class="p">)</span>
+
+        <span class="n">fig</span><span class="o">.</span><span class="n">ax_xmargin</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">lbound</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">ubound</span><span class="p">)</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">ax_ymargin</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">lbound</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">ubound</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">fig</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../../../index.html">
+    <img class="logo" src="../../../../_static/graphics/logo.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">INSTALLATION</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../start.html">GETTING STARTED</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../documentation.html">DOCUMENTATION</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../usage.html">EXAMPLE USAGE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../contact.html">CONTACT</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Sebastian Bernasek.
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,916 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>flyqma.annotation.spatial.graphs &#8212; flyqma v0.1-beta documentation</title>
+    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for flyqma.annotation.spatial.graphs</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">matplotlib.colors</span> <span class="k">import</span> <span class="n">Normalize</span><span class="p">,</span> <span class="n">ListedColormap</span>
+<span class="kn">from</span> <span class="nn">matplotlib.tri</span> <span class="k">import</span> <span class="n">Triangulation</span>
+<span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="nn">nx</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">Counter</span>
+
+<span class="kn">from</span> <span class="nn">.triangulation</span> <span class="k">import</span> <span class="n">LocalTriangulation</span>
+<span class="kn">from</span> <span class="nn">.infomap</span> <span class="k">import</span> <span class="n">InfoMap</span>
+<span class="kn">from</span> <span class="nn">.correlation</span> <span class="k">import</span> <span class="n">SpatialCorrelation</span>
+
+
+<div class="viewcode-block" id="TopologicalProperties"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.graphs.TopologicalProperties">[docs]</a><span class="k">class</span> <span class="nc">TopologicalProperties</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Topological properties for Graph objects. &quot;&quot;&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">num_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Number of nodes. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Unique nodes in graph. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">nodes_order</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Indices that sort nodes by positional index in &lt;self.data&gt;. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">position_map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">))</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">edges</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Distance-filtered edges. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tri</span><span class="o">.</span><span class="n">edges</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">edge_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Distance-filtered edges as (from, to) tuples. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[(</span><span class="nb">int</span><span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">adjacency</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Adjacency matrix ordered by &lt;self.nodes&gt;. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">nx</span><span class="o">.</span><span class="n">to_numpy_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="p">,</span> <span class="n">nodelist</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">adjacency_positional</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Adjacency matrix ordered by positional index in &lt;self.data&gt;. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">adjacency</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes_order</span><span class="p">,</span> <span class="p">:][:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes_order</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="SpatialProperties"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.graphs.SpatialProperties">[docs]</a><span class="k">class</span> <span class="nc">SpatialProperties</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Spatial properties for Graph objects. &quot;&quot;&quot;</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">node_positions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Assign 2D coordinate positions to nodes. &quot;&quot;&quot;</span>
+        <span class="n">node_positions</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">:</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">position_map</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+            <span class="n">node_positions</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">tri</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">tri</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]])</span>
+        <span class="k">return</span> <span class="n">node_positions</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">node_positions_arr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; N x 2 array of node coordinates, ordered by positional index.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">xykey</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">edge_lengths</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Unique edge lengths. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">distance_matrix</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">adjacency</span><span class="o">.</span><span class="n">nonzero</span><span class="p">()])[::</span><span class="mi">2</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">median_edge_length</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Median edge length. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edge_lengths</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_distance_matrix</span><span class="p">(</span><span class="n">xy</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns euclidean distance matrix between all points in &lt;xy&gt;. &quot;&quot;&quot;</span>
+
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">xy</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">x_component</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">x</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">T</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="n">y_component</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">y</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">T</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x_component</span> <span class="o">+</span> <span class="n">y_component</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">distance_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Euclidean distance matrix between all nodes. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_distance_matrix</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">node_positions_arr</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SpatialProperties.get_matrix_upper"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.graphs.SpatialProperties.get_matrix_upper">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_matrix_upper</span><span class="p">(</span><span class="n">matrix</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return upper triangular portion of a 2-D matrix.</span>
+
+<span class="sd">        Parameters:</span>
+
+<span class="sd">            matrix (2D np.ndarray)</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            upper (1D np.ndarray) - upper triangle, ordered row then column</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">matrix</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">triu_indices</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">matrix</span><span class="p">),</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">)]</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">unique_distances</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Upper triangular portion of euclidean distance matrix. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_matrix_upper</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">distance_matrix</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SpatialProperties.evaluate_fluctuations"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.graphs.SpatialProperties.evaluate_fluctuations">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">evaluate_fluctuations</span><span class="p">(</span><span class="n">values</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Construct pairwise fluctuation matrix for &lt;values&gt;.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            values (1D np.ndarray[float]) - attribute values</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            fluctuations (2D np.ndarray[float]) - pairwise fluctuations</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># compute correlation matrix and return upper triangular portion</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="p">(</span><span class="n">values</span> <span class="o">-</span> <span class="n">values</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span>
+        <span class="n">fluctuations</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fluctuations</span></div>
+
+<div class="viewcode-block" id="SpatialProperties.get_fluctuations_matrix"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.graphs.SpatialProperties.get_fluctuations_matrix">[docs]</a>    <span class="k">def</span> <span class="nf">get_fluctuations_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns normalized pairwise fluctuations of &lt;attribute&gt; value for each node in the graph.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            attribute (str) - name of attribute</span>
+
+<span class="sd">            log (bool) - if True, log-transform attribute values</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            fluctuations (2D np.ndarray[float]) - pairwise fluctuations</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">attribute_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">attribute</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">log</span><span class="p">:</span>
+            <span class="n">attribute_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">attribute_values</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluate_fluctuations</span><span class="p">(</span><span class="n">attribute_values</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_mark_boundary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute</span><span class="o">=</span><span class="s1">&#39;genotype&#39;</span><span class="p">,</span> <span class="n">max_edges</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Mark boundaries between nodes with differing attribute values. Boundaries are identified by nodes that share an edge with another node whose attribute value differs.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            attribute (str) - used to identify distinct groups of nodes</span>
+
+<span class="sd">            max_edges (int) - max number of transgroup edges for interior nodes</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            interior (np.vector[bool]) - mask for interior points</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># assign genotype to edges</span>
+        <span class="n">assign_genotype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vectorize</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">attribute</span><span class="p">])</span><span class="o">.</span><span class="n">get</span><span class="p">)</span>
+        <span class="n">edge_genotypes</span> <span class="o">=</span> <span class="n">assign_genotype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">)</span>
+
+        <span class="c1"># find edges traversing clones</span>
+        <span class="n">boundaries</span> <span class="o">=</span> <span class="p">(</span><span class="n">edge_genotypes</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">edge_genotypes</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>
+
+        <span class="c1"># get number of clone-traversing edges per node</span>
+        <span class="n">boundary_edges</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">[</span><span class="n">boundaries</span><span class="p">]</span>
+        <span class="n">edge_counts</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="n">boundary_edges</span><span class="o">.</span><span class="n">ravel</span><span class="p">())</span>
+
+        <span class="c1"># assign boundary label to nodes with too many clone-traversing edges</span>
+        <span class="n">boundary_nodes</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">edge_counts</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">c</span><span class="o">&gt;</span><span class="n">max_edges</span><span class="p">]</span>
+        <span class="n">interior</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="n">interior</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">position_map</span><span class="p">(</span><span class="n">boundary_nodes</span><span class="p">)]</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">return</span> <span class="n">interior</span></div>
+
+
+<div class="viewcode-block" id="GraphVisualizationMethods"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.graphs.GraphVisualizationMethods">[docs]</a><span class="k">class</span> <span class="nc">GraphVisualizationMethods</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Methods for visualizing a Graph instance. &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="GraphVisualizationMethods.plot_edges"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.graphs.GraphVisualizationMethods.plot_edges">[docs]</a>    <span class="k">def</span> <span class="nf">plot_edges</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plot triangulation edges.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            ax (matplotlib.axes.AxesSubplot)</span>
+
+<span class="sd">            kwargs: keyword arguments for matplotlib.pyplot.triplot</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+        <span class="n">lines</span><span class="p">,</span> <span class="n">markers</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">triplot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tri</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GraphVisualizationMethods.label_triangles"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.graphs.GraphVisualizationMethods.label_triangles">[docs]</a>    <span class="k">def</span> <span class="nf">label_triangles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label_by</span><span class="o">=</span><span class="s1">&#39;genotype&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Label each triangle with most common node attribute value.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            label_by (str) - node attribute used to label each triangle</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            labels (np.ndarray[int]) - labels for each triangle</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># get triangulation vertices</span>
+        <span class="n">vertices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tri</span><span class="o">.</span><span class="n">triangles</span><span class="p">)</span>
+
+        <span class="c1"># get value of each node</span>
+        <span class="n">get_level</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">node_id</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">label_by</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">node_id</span><span class="p">]</span>
+        <span class="n">levels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">apply_along_axis</span><span class="p">(</span><span class="n">get_level</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">arr</span><span class="o">=</span><span class="n">vertices</span><span class="p">)</span>
+
+        <span class="c1"># aggregate within triangles</span>
+        <span class="n">get_mode</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">Counter</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">most_common</span><span class="p">(</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">apply_along_axis</span><span class="p">(</span><span class="n">get_mode</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">arr</span><span class="o">=</span><span class="n">levels</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">labels</span></div>
+
+<div class="viewcode-block" id="GraphVisualizationMethods.plot_triangles"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.graphs.GraphVisualizationMethods.plot_triangles">[docs]</a>    <span class="k">def</span> <span class="nf">plot_triangles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                       <span class="n">label_by</span><span class="o">=</span><span class="s1">&#39;genotype&#39;</span><span class="p">,</span>
+                       <span class="n">cmap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                       <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                       <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Plot triangle faces using tripcolor.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            label_by (str) - data attribute used to color each triangle</span>
+
+<span class="sd">            cmap (matplotlib.colors.ColorMap) - colormap for attribute values</span>
+
+<span class="sd">            ax (matplotlib.axes.AxesSubplot)</span>
+
+<span class="sd">            kwargs: keyword arguments for plt.tripcolor</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+
+        <span class="c1"># assign triangle colors</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">label_triangles</span><span class="p">(</span><span class="n">label_by</span><span class="o">=</span><span class="n">label_by</span><span class="p">)</span>
+
+        <span class="c1"># define colormap</span>
+        <span class="k">if</span> <span class="n">cmap</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cmap</span> <span class="o">=</span> <span class="n">ListedColormap</span><span class="p">([</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="s1">&#39;k&#39;</span><span class="p">],</span> <span class="n">N</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+        <span class="c1"># plot triangle faces</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">tripcolor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tri</span><span class="p">,</span>
+                     <span class="n">facecolors</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span>
+                     <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span>
+                     <span class="n">lw</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                     <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span>
+                     <span class="n">antialiased</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                     <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="GraphVisualizationMethods.show"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.graphs.GraphVisualizationMethods.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">colorby</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">disconnect</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Visualize graph.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            ax (matplotlib.axes.AxesSubplot) - if None, create figure</span>
+
+<span class="sd">            colorby (str) - node attribute used to assign node/edge colors</span>
+
+<span class="sd">            disconnect (bool) - if True, remove edges between nodes whose colorby values differ</span>
+
+<span class="sd">            kwargs: keyword arguments for NetworkxGraphVisualization.draw</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">colorby</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Colorby attribute must be an integer type.&#39;</span>
+            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">colorby</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">in</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">,</span> <span class="nb">int</span><span class="p">),</span> <span class="n">msg</span>
+
+        <span class="c1"># construct graph</span>
+        <span class="k">if</span> <span class="n">colorby</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">G</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_networkx</span><span class="p">(</span><span class="n">colorby</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">G</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">G</span>
+
+        <span class="c1"># disconnect nodes not sharing the &lt;colorby&gt; attribute</span>
+        <span class="k">if</span> <span class="n">disconnect</span><span class="p">:</span>
+            <span class="n">is_different</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">u</span><span class="p">,</span><span class="n">v</span><span class="p">:</span> <span class="n">G</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="n">u</span><span class="p">][</span><span class="n">colorby</span><span class="p">]</span> <span class="o">!=</span> <span class="n">G</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="n">v</span><span class="p">][</span><span class="n">colorby</span><span class="p">]</span>
+            <span class="n">removed_edges</span> <span class="o">=</span> <span class="p">[</span><span class="n">edge</span> <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">edges</span> <span class="k">if</span> <span class="n">is_different</span><span class="p">(</span><span class="o">*</span><span class="n">edge</span><span class="p">)]</span>
+            <span class="n">G</span><span class="o">.</span><span class="n">remove_edges_from</span><span class="p">(</span><span class="n">removed_edges</span><span class="p">)</span>
+
+        <span class="c1"># draw graph</span>
+        <span class="n">vis</span> <span class="o">=</span> <span class="n">NetworkxGraphVisualization</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">node_positions</span><span class="p">)</span>
+        <span class="n">vis</span><span class="o">.</span><span class="n">draw</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">colorby</span><span class="o">=</span><span class="n">colorby</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="CommunityDetection"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.graphs.CommunityDetection">[docs]</a><span class="k">class</span> <span class="nc">CommunityDetection</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Methods for detecting communities in a Graph. &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="CommunityDetection.detect_communities"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.graphs.CommunityDetection.detect_communities">[docs]</a>    <span class="k">def</span> <span class="nf">detect_communities</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Detect communities using InfoMap clustering.</span>
+
+<span class="sd">        Accepts keyword arguments for InfoMap, including:</span>
+
+<span class="sd">            twolevel (bool) - if True, perform two-level clustering, otherwise defaults to multi-level clustering</span>
+
+<span class="sd">            N (int) - number of trials</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">imap</span> <span class="o">=</span> <span class="n">InfoMap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edge_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_assign_community</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Assign communities using InfoMap clustering.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            level (int) - module level at which aggregation occurs, starting from the finest resolution</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            labels (np.ndarray[int]) - community labels ordered by positional index</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">imap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes_order</span><span class="p">],</span> <span class="n">level</span><span class="p">)</span>
+
+<div class="viewcode-block" id="CommunityDetection.assign_community"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.graphs.CommunityDetection.assign_community">[docs]</a>    <span class="k">def</span> <span class="nf">assign_community</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="s1">&#39;community&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Assign communities using InfoMap clustering.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            level (int) - module level at which aggregation occurs, starting from the finest resolution</span>
+
+<span class="sd">            key (str) - name of community attribute</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_assign_community</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">level</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="Graph"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.graphs.Graph">[docs]</a><span class="k">class</span> <span class="nc">Graph</span><span class="p">(</span><span class="n">TopologicalProperties</span><span class="p">,</span>
+            <span class="n">SpatialProperties</span><span class="p">,</span>
+            <span class="n">CommunityDetection</span><span class="p">,</span>
+            <span class="n">GraphVisualizationMethods</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Object provides an undirected unweighted graph connecting adjacent cells.</span>
+
+<span class="sd">    Attributes:</span>
+
+<span class="sd">        data (pd.DataFrame) - cell measurement data (nodes)</span>
+
+<span class="sd">        xykey (list) - attribute keys for node x/y positions</span>
+
+<span class="sd">        G (nx.Graph) - undirected graph instance</span>
+
+<span class="sd">        nodes (np.ndarray[int]) - node indices</span>
+
+<span class="sd">        edges (np.ndarray[int]) - pairs of connected node indices</span>
+
+<span class="sd">        node_map (vectorized func) - maps positional index to node index</span>
+
+<span class="sd">        position_map (vectorized func) - maps node index to positional index</span>
+
+<span class="sd">        tri (matplotlib.tri.Triangulation) - triangulation of node positions</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">xykey</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Instantiate Graph object.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            data (pd.DataFrame) - cell measurement data (nodes)</span>
+
+<span class="sd">            xykey (list) - attribute keys for node x/y positions</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># set xykey</span>
+        <span class="k">if</span> <span class="n">xykey</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">xykey</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;centroid_x&#39;</span><span class="p">,</span> <span class="s1">&#39;centroid_y&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xykey</span> <span class="o">=</span> <span class="n">xykey</span>
+
+        <span class="c1"># store data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+
+        <span class="c1"># instantiate community detection</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">community_labels</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">imap</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># define mapping from position to node index</span>
+        <span class="n">position_to_node</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">node_map</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vectorize</span><span class="p">(</span><span class="n">position_to_node</span><span class="o">.</span><span class="n">get</span><span class="p">)</span>
+
+        <span class="c1"># define reverse map</span>
+        <span class="n">node_to_position</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="p">:</span> <span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">position_to_node</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">position_map</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vectorize</span><span class="p">(</span><span class="n">node_to_position</span><span class="o">.</span><span class="n">get</span><span class="p">)</span>
+
+        <span class="c1"># triangulate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tri</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_construct_triangulation</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">xykey</span><span class="p">)</span>
+
+        <span class="c1"># build networkx graph instance</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">G</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_networkx</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Graph.copy"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.graphs.Graph.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns deep copy of graph instance. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Graph.get_subgraph"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.graphs.Graph.get_subgraph">[docs]</a>    <span class="k">def</span> <span class="nf">get_subgraph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ind</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Instantiate subgraph from DataFrame indices. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">Graph</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">ind</span><span class="p">],</span> <span class="n">xykey</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">xykey</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Graph.get_networkx"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.graphs.Graph.get_networkx">[docs]</a>    <span class="k">def</span> <span class="nf">get_networkx</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">node_attributes</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns networkx instance of graph.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            node_attributes (str) - attributes to be added for each node</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">G</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+        <span class="n">G</span><span class="o">.</span><span class="n">add_weighted_edges_from</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edge_list</span><span class="p">)</span>
+
+        <span class="c1"># add node attributes</span>
+        <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">node_attributes</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">attr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">values_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">nodes</span><span class="p">][</span><span class="n">attr</span><span class="p">])</span>
+                <span class="n">nx</span><span class="o">.</span><span class="n">set_node_attributes</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">attr</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">values_dict</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">G</span></div>
+
+<div class="viewcode-block" id="Graph.get_correlations"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.graphs.Graph.get_correlations">[docs]</a>    <span class="k">def</span> <span class="nf">get_correlations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns SpatialCorrelation object for &lt;attribute&gt;.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            attribute (str) - name of attribute</span>
+
+<span class="sd">            log (bool) - if True, log-transform attribute values</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            correlations (SpatialCorrelation)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">d_ij</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unique_distances</span>
+        <span class="n">C</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_fluctuations_matrix</span><span class="p">(</span><span class="n">attribute</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="n">log</span><span class="p">)</span>
+        <span class="n">C_ij</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_matrix_upper</span><span class="p">(</span><span class="n">C</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">SpatialCorrelation</span><span class="p">(</span><span class="n">d_ij</span><span class="p">,</span> <span class="n">C_ij</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_construct_triangulation</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">xykey</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Construct Delaunay triangulation with edge filter.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            data (pd.DataFrame) - node measurement data</span>
+
+<span class="sd">            xykey (list) - attribute keys for node x/y coordinates</span>
+
+<span class="sd">            kwargs: keyword arguments for triangulation</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pts</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">xykey</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+        <span class="k">return</span> <span class="n">LocalTriangulation</span><span class="p">(</span><span class="o">*</span><span class="n">pts</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="WeightedGraph"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.graphs.WeightedGraph">[docs]</a><span class="k">class</span> <span class="nc">WeightedGraph</span><span class="p">(</span><span class="n">Graph</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Object provides an undirected weighted graph connecting adjacent cells. Edge weights are evaluated based on the similarity of expression between pairs of connected nodes. Node similariy is based on the cell measurement data attribute specified by the &#39;weighted_by&#39; parameter.</span>
+
+<span class="sd">    Attributes:</span>
+
+<span class="sd">        weighted_by (str) - data attribute used to weight edges</span>
+
+<span class="sd">        imap (spatial.InfoMap) - community detection</span>
+
+<span class="sd">        community_labels (np.ndarray[int]) - community label for each node</span>
+
+<span class="sd">        logratio (bool) - if True, weight edges by log ratio</span>
+
+<span class="sd">        distance (bool) - if True, weights edges by distance rather than similarity</span>
+
+<span class="sd">    Inherited attributes:</span>
+
+<span class="sd">        data (pd.DataFrame) - cell measurement data (nodes)</span>
+
+<span class="sd">        xykey (list) - attribute keys for node x/y positions</span>
+
+<span class="sd">        nodes (np.ndarray[int]) - node indices</span>
+
+<span class="sd">        edges (np.ndarray[int]) - pairs of connected node indices</span>
+
+<span class="sd">        node_map (vectorized func) - maps positional index to node index</span>
+
+<span class="sd">        position_map (vectorized func) - maps node index to positional index</span>
+
+<span class="sd">        tri (matplotlib.tri.Triangulation) - triangulation of node positions</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">weighted_by</span><span class="p">,</span>
+                 <span class="n">xykey</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">logratio</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                 <span class="n">distance</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Instantiate weighted graph.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            data (pd.DataFrame) - cell measurement data</span>
+
+<span class="sd">            weighted_by (str) - data attribute used to weight edges</span>
+
+<span class="sd">            xykey (list) - attribute keys for node x/y positions</span>
+
+<span class="sd">            logratio (bool) - if True, weight edges by log ratio</span>
+
+<span class="sd">            distance (bool) - if True, weights edges by distance</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># set attributes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weighted_by</span> <span class="o">=</span> <span class="n">weighted_by</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logratio</span> <span class="o">=</span> <span class="n">logratio</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">distance</span> <span class="o">=</span> <span class="n">distance</span>
+
+        <span class="c1"># instantiate graph</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">xykey</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">edge_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Distance-filtered edges as (from, to, weight) tuples. &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">weighted_by</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="s1">&#39;None&#39;</span><span class="p">):</span>
+            <span class="n">weights</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluate_edge_weights</span><span class="p">()</span>
+            <span class="n">unpack</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">e</span><span class="p">,</span> <span class="n">w</span><span class="p">:</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">w</span><span class="p">)</span>
+            <span class="n">edge_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">unpack</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">,</span> <span class="n">weights</span><span class="p">)]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">edge_list</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">edge_list</span>
+
+        <span class="k">return</span> <span class="n">edge_list</span>
+
+<div class="viewcode-block" id="WeightedGraph.evaluate_edge_weights"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.graphs.WeightedGraph.evaluate_edge_weights">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate_edge_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Evaluate edge weights.</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            weights (np.ndarray[float]) - edge weights</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">wf</span> <span class="o">=</span> <span class="n">WeightFunction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>
+                            <span class="n">weighted_by</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">weighted_by</span><span class="p">,</span>
+                            <span class="n">distance</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">distance</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">wf</span><span class="o">.</span><span class="n">assess_weights</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">edges</span><span class="p">,</span> <span class="n">logratio</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">logratio</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="WeightFunction"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.graphs.WeightFunction">[docs]</a><span class="k">class</span> <span class="nc">WeightFunction</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Object for weighting graph edges by similarity.</span>
+
+<span class="sd">    Attributes:</span>
+
+<span class="sd">        data (pd.DataFrame) - nodes data</span>
+
+<span class="sd">        weighted_by (str) - node attribute used to assess similarity</span>
+
+<span class="sd">        values (pd.Series) - node attribute values</span>
+
+<span class="sd">        distance (bool) - if True, weights edges by distance</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">weighted_by</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">distance</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Instantiate edge weighting function.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            data (pd.DataFrame) - nodes data</span>
+
+<span class="sd">            weighted_by (str) - node attribute used to assess similarity</span>
+
+<span class="sd">            distance (bool) - if True, weights edges by distance</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weighted_by</span> <span class="o">=</span> <span class="n">weighted_by</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">weighted_by</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">distance</span> <span class="o">=</span> <span class="n">distance</span>
+
+<div class="viewcode-block" id="WeightFunction.difference"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.graphs.WeightFunction.difference">[docs]</a>    <span class="k">def</span> <span class="nf">difference</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Evaluate difference in values between nodes i and j.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            i, j (ind) - node indices</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            difference (float)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">j</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="WeightFunction.logratio"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.graphs.WeightFunction.logratio">[docs]</a>    <span class="k">def</span> <span class="nf">logratio</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Evaluate log ratio between nodes i and j.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            i, j (ind) - node indices</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            logratio (float)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">j</span><span class="p">]))</span></div>
+
+<div class="viewcode-block" id="WeightFunction.assess_weights"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.graphs.WeightFunction.assess_weights">[docs]</a>    <span class="k">def</span> <span class="nf">assess_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">edges</span><span class="p">,</span> <span class="n">logratio</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Evaluate edge weights normalized by mean difference in node values.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            edges (list of (i, j) tuples) - edges between nodes i and j</span>
+
+<span class="sd">            logratio (bool) - if True, weight edges by logratio</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            weights (np.ndarray[float]) - edge weights</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">logratio</span><span class="p">:</span>
+            <span class="n">energy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">logratio</span><span class="p">(</span><span class="o">*</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">energy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="o">*</span><span class="n">e</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">])</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">energy</span><span class="o">/</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">energy</span><span class="p">))</span>
+
+        <span class="c1"># invert similarities to distances</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">distance</span><span class="p">:</span>
+            <span class="n">weights</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">weights</span>
+
+        <span class="k">return</span> <span class="n">weights</span></div></div>
+
+
+<div class="viewcode-block" id="NetworkxGraphVisualization"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.graphs.NetworkxGraphVisualization">[docs]</a><span class="k">class</span> <span class="nc">NetworkxGraphVisualization</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Object for visualizing a NetworkX Graph object.</span>
+
+<span class="sd">    Attributes:</span>
+
+<span class="sd">        G (nx.Graph) - networkx graph object</span>
+
+<span class="sd">        pos (np.ndarray[float]) - 2D node positions</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">G</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Instantiate graph visualization.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            G (nx.Graph) - networkx graph object</span>
+
+<span class="sd">            pos (np.ndarray[float]) - 2D node positions</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">G</span> <span class="o">=</span> <span class="n">G</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos</span> <span class="o">=</span> <span class="n">pos</span>
+
+<div class="viewcode-block" id="NetworkxGraphVisualization.build_cmap"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.graphs.NetworkxGraphVisualization.build_cmap">[docs]</a>    <span class="k">def</span> <span class="nf">build_cmap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">colorby</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Build colormap. &quot;&quot;&quot;</span>
+        <span class="n">levels</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="n">nx</span><span class="o">.</span><span class="n">get_node_attributes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="p">,</span> <span class="n">colorby</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">levels</span><span class="p">)</span><span class="o">.</span><span class="n">size</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">ListedColormap</span><span class="p">(</span><span class="n">colors</span><span class="p">,</span> <span class="s1">&#39;indexed&#39;</span><span class="p">,</span> <span class="n">N</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="NetworkxGraphVisualization.draw"><a class="viewcode-back" href="../../../../modules/annotation.html#flyqma.annotation.spatial.graphs.NetworkxGraphVisualization.draw">[docs]</a>    <span class="k">def</span> <span class="nf">draw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+             <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+             <span class="n">colorby</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+             <span class="n">edge_color</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span>
+             <span class="n">node_color</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span>
+             <span class="n">cmap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+             <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Draw graph.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            ax (matplotlib.axes.AxesSubplot) - axis on which to draw graph</span>
+
+<span class="sd">            colorby (str) - node attribute on which nodes/edges are colored</span>
+
+<span class="sd">            edge_color, node_color (str) - edge/node colors, overrides colorby</span>
+
+<span class="sd">            node_cmap (matplotlib.colors.ColorMap) - node colormap</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">assert</span> <span class="p">(</span><span class="n">colorby</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">node_color</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">),</span> <span class="s1">&#39;Either node color or colorby attribute must be specified.&#39;</span>
+        <span class="k">assert</span> <span class="p">(</span><span class="n">colorby</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">edge_color</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">),</span> <span class="s1">&#39;Either edge color or colorby attribute must be specified.&#39;</span>
+
+        <span class="c1"># create figure</span>
+        <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+
+        <span class="c1"># build colormap</span>
+        <span class="k">if</span> <span class="n">cmap</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="kc">None</span> <span class="ow">in</span> <span class="p">(</span><span class="n">edge_color</span><span class="p">,</span> <span class="n">node_color</span><span class="p">):</span>
+            <span class="n">cmap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_cmap</span><span class="p">(</span><span class="n">colorby</span><span class="o">=</span><span class="n">colorby</span><span class="p">)</span>
+
+        <span class="c1"># assign node color</span>
+        <span class="k">if</span> <span class="n">node_color</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">get_color</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">cmap</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+            <span class="n">node_colors</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_color</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">nx</span><span class="o">.</span><span class="n">get_node_attributes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="p">,</span> <span class="n">colorby</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">node_colors</span> <span class="o">=</span> <span class="p">[</span><span class="n">node_color</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">nodes</span><span class="p">]</span>
+
+        <span class="c1"># assign edge color</span>
+        <span class="k">if</span> <span class="n">edge_color</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">node_value</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">index</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="n">index</span><span class="p">][</span><span class="n">colorby</span><span class="p">]</span>
+            <span class="n">node_color</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">index</span><span class="p">:</span> <span class="n">cmap</span><span class="p">(</span><span class="n">node_value</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
+            <span class="n">edge_colors</span> <span class="o">=</span> <span class="p">[</span><span class="n">node_color</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span><span class="p">,</span><span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">edges</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">edge_colors</span> <span class="o">=</span> <span class="p">[</span><span class="n">edge_color</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="o">.</span><span class="n">edges</span><span class="p">]</span>
+
+        <span class="c1"># draw graph</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_draw</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">G</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos</span><span class="p">,</span> <span class="n">node_colors</span><span class="p">,</span> <span class="n">edge_colors</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_draw</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span>
+              <span class="n">G</span><span class="p">,</span>
+              <span class="n">pos</span><span class="p">,</span>
+              <span class="n">node_colors</span><span class="p">,</span>
+              <span class="n">edge_colors</span><span class="p">,</span>
+              <span class="n">node_alpha</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+              <span class="n">node_size</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+              <span class="n">node_edgewidth</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span>
+              <span class="n">lw</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+              <span class="n">edge_alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+              <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Draw graph.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            G (nx.Graph) - graph object</span>
+
+<span class="sd">            pos (np.ndarray[float]) - node xy positions in space (graph layout)</span>
+
+<span class="sd">            node_colors (array like) - node values</span>
+
+<span class="sd">            edge_colors (array like) - edge colors</span>
+
+<span class="sd">            node_alpha (float) - node transparency</span>
+
+<span class="sd">            node_size (float) - node size</span>
+
+<span class="sd">            node_edgewidth (float) - linewidth of node outline</span>
+
+<span class="sd">            lw (float) - maximum edge linewidth</span>
+
+<span class="sd">            edge_alpha (float) - edge line transparency</span>
+
+<span class="sd">            kwargs: keyword arguments for nx.draw_networkx_nodes</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># extract edge weights</span>
+        <span class="n">edge_weights</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;weight&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">G</span><span class="o">.</span><span class="n">edges</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="kc">True</span><span class="p">)]</span>
+
+        <span class="c1"># draw edges</span>
+        <span class="n">norm</span> <span class="o">=</span> <span class="n">Normalize</span><span class="p">(</span><span class="n">vmin</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">edge_weights</span><span class="p">),</span> <span class="n">vmax</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="n">edge_weights</span><span class="p">))</span>
+        <span class="n">edge_widths</span> <span class="o">=</span> <span class="p">[</span><span class="n">norm</span><span class="p">(</span><span class="n">w</span><span class="p">)</span><span class="o">*</span><span class="n">lw</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">edge_weights</span><span class="p">]</span>
+        <span class="n">nx</span><span class="o">.</span><span class="n">draw_networkx_edges</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span>
+                               <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
+                               <span class="n">edge_color</span><span class="o">=</span><span class="n">edge_colors</span><span class="p">,</span>
+                               <span class="n">width</span><span class="o">=</span><span class="n">edge_widths</span><span class="p">,</span>
+                               <span class="n">alpha</span><span class="o">=</span><span class="n">edge_alpha</span><span class="p">)</span>
+
+        <span class="c1"># draw nodes</span>
+        <span class="n">nodeCollection</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">draw_networkx_nodes</span><span class="p">(</span><span class="n">G</span><span class="p">,</span>
+            <span class="n">pos</span><span class="o">=</span><span class="n">pos</span><span class="p">,</span>
+            <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
+            <span class="n">node_color</span><span class="o">=</span><span class="n">node_colors</span><span class="p">,</span>
+            <span class="n">node_alpha</span><span class="o">=</span><span class="n">node_alpha</span><span class="p">,</span>
+            <span class="n">node_size</span><span class="o">=</span><span class="n">node_size</span><span class="p">,</span>
+            <span class="n">linewidths</span><span class="o">=</span><span class="n">node_edgewidth</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../../../index.html">
+    <img class="logo" src="../../../../_static/graphics/logo.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">INSTALLATION</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../start.html">GETTING STARTED</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../documentation.html">DOCUMENTATION</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../usage.html">EXAMPLE USAGE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../contact.html">CONTACT</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Sebastian Bernasek.
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
