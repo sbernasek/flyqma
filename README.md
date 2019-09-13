@@ -54,7 +54,9 @@ After downloading the [latest distribution](https://github.com/sebastianbernasek
 Examples
 ========
 
-For examples of complete projects utilizing the entire **NU FlyEye** platform, please refer to [our Fly-QMA manuscript](https://github.com/sebastianbernasek/flyqma_ms) and [our study](https://github.com/sebastianbernasek/pnt_yan_ratio) of Pnt and Yan expression during retinal patterning in *Drosophila*.
+See the [Fly-QMA tutorial](https://github.com/sebastianbernasek/flyqma/blob/master/tutorial.ipynb) to get started with Fly-QMA.
+
+For additional examples of complete projects utilizing Fly-QMA and the entire **NU FlyEye** platform, please refer to [our Fly-QMA manuscript](https://github.com/sebastianbernasek/flyqma_ms) and [our study](https://github.com/sebastianbernasek/pnt_yan_ratio) of Pnt and Yan expression during retinal patterning in *Drosophila*.
 
 
 Authors

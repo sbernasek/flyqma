@@ -118,9 +118,7 @@ class SilhouetteIO:
 
 class SilhouetteLayerIO:
     """
-    Methods for converting a layer to Silhouette readable format.
-
-    A layer file is structured as follows:
+    Methods for converting a layer to Silhouette readable format. A layer file is structured as follows:
 
     LAYER_ID.json :
 
@@ -136,6 +134,7 @@ class SilhouetteLayerIO:
             "pixel_count": CONTOUR_AREA,
             "points": [[x1, y1], [x2, y2] ... ]}
         }
+
 
     """
 

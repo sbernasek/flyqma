@@ -10,7 +10,7 @@
 Getting Started
 ===============
 
-The fastest way to familiarize yourself with **Fly-QMA** is to start with a working example. We recommend starting with the `FlyQMA Tutorial <https://github.com/sebastianbernasek/flyqma/tutorial.ipynb>`_.
+The fastest way to familiarize yourself with **Fly-QMA** is to start with a working example. We recommend starting with the Fly-QMA `Tutorial <https://github.com/sebastianbernasek/flyqma/blob/master/tutorial.ipynb>`_.
 
 Additionally, we suggest reading the sections below before working with your own microscopy data.
 
