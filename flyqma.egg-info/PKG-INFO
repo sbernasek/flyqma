@@ -23,11 +23,11 @@ Description: Fly-QMA
         
           - **Annotation.** Identify distinct subpopulations of cells
         
-          - **Cell Selection.** Manually select cells for comparison
+          - **ROI Definition.** Manually define regions of interest
         
           - **Comparison.** Compare expression levels between subpopulations
         
-        Please refer to the [documentation](https://sebastianbernasek.github.io/clones/index.html#) page for tips on getting started with analyzing your data.
+        Please refer to the [documentation](https://sebastianbernasek.github.io/flyqma/index.html#) page for tips on getting started with analyzing your data.
         
         
         Dependencies
@@ -56,13 +56,13 @@ Description: Fly-QMA
         
         After downloading the [latest distribution](https://github.com/sebastianbernasek/clones/archive/v0.1-beta.tar.gz), the simplest method is to install via ``pip``:
         
-            pip install flyqma-0.1.0-beta.tar.gz
+            pip install flyqma-0.1.0.tar.gz
         
         
         Examples
         ========
         
-        For an example of a complete project utilizing the entire **NU FlyEye** platform, please refer to [our study](https://github.com/sebastianbernasek/pnt_yan_ratio) of Pnt and Yan expression during retinal patterning in *Drosophila*.
+        For examples of complete projects utilizing the entire **NU FlyEye** platform, please refer to [our Fly-QMA manuscript](https://github.com/sebastianbernasek/flyqma_ms) and [our study](https://github.com/sebastianbernasek/pnt_yan_ratio) of Pnt and Yan expression during retinal patterning in *Drosophila*.
         
         
         Authors

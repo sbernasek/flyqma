@@ -293,7 +293,7 @@ class StackInterface:
         for i, layer in enumerate(stack):
 
             # create all axes for current layer
-            axes = [self.fig.add_subplot(gs[i*ncols]+j) for j in range(ncols)]
+            axes = [self.fig.add_subplot(gs[i*ncols+j]) for j in range(ncols)]
 
             # add layer gui to layer --> interface map
             self.layer_to_interface[i] = LayerInterface(layer, axes)

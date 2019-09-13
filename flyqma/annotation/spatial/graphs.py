@@ -1,3 +1,4 @@
+from copy import deepcopy
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import Normalize, ListedColormap
@@ -417,6 +418,10 @@ class Graph(TopologicalProperties,
 
         # build networkx graph instance
         self.G = self.get_networkx()
+
+    def copy(self):
+        """ Returns deep copy of graph instance. """
+        return deepcopy(self)
 
     def get_subgraph(self, ind):
         """ Instantiate subgraph from DataFrame indices. """

@@ -229,6 +229,11 @@ class ImageMultichromatic(ImageScalar):
             image (ImageScalar) - monochrome image
 
         """
+
+        if type(channel) == str:
+            if 'ch' in channel:
+                channel = int(channel.strip('ch'))
+
         if copy:
             monochrome = deepcopy(self.im[:, :, channel])
         else:

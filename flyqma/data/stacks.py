@@ -199,6 +199,11 @@ class Stack(StackIO):
         """ Number of color channels in stack. """
         return self.metadata['colordepth']
 
+    @property
+    def selector_path(self):
+        """ Path to model selection object. """
+        return join(self.annotator_path, 'models')
+
     def get_included_layers(self):
         """ Returns indices of included layers. """
         layers = [self.load_layer(i, graph=False) for i in range(self.depth)]

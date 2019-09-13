@@ -74,8 +74,14 @@ class LayerVisualization:
                         alpha=70,
                         **kwargs):
         """ Plot boundary of <label_by> groups with <label> on <ax>. """
-        boundaries = CloneBoundaries(self.data, label_by=label_by, alpha=alpha)
-        boundaries.plot_boundary(label, color=color, ax=ax, **kwargs)
+
+        # add labels to ephemeral copy of graph data
+        graph = self.graph.copy()
+        graph.data[label_by] = self.data[label_by]
+
+        # plot clone boundaries
+        bounds = CloneBoundaries(graph, label_by=label_by, alpha=alpha)
+        bounds.plot_boundary(label, color=color, ax=ax, **kwargs)
 
     def plot_boundaries(self, ax,
                         label_by='genotype',
@@ -83,8 +89,14 @@ class LayerVisualization:
                         alpha=70,
                         **kwargs):
         """ Plot boundaries of all <label_by> groups on <ax>. """
-        boundaries = CloneBoundaries(self.data, label_by=label_by, alpha=alpha)
-        boundaries.plot_boundaries(cmap=cmap, ax=ax, **kwargs)
+
+        # add labels to ephemeral copy of graph data
+        graph = self.graph.copy()
+        graph.data[label_by] = self.data[label_by]
+
+        # plot clone boundaries
+        bounds = CloneBoundaries(graph, label_by=label_by, alpha=alpha)
+        bounds.plot_boundaries(cmap=cmap, ax=ax, **kwargs)
 
     def _build_mask(self, values,
                    interior_only=False,
@@ -503,7 +515,10 @@ class Layer(LayerIO, ImageMultichromatic, LayerVisualization):
 
         # load inclusion; defaults to True
         if 'selection' in self.subdirs.keys():
-            self.load_inclusion()
+            if len(listdir(self.subdirs['selection'])) == 0:
+                self.include = True
+            else:
+                self.load_inclusion()
         else:
             self.include = True
 
