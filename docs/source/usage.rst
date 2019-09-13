@@ -4,10 +4,11 @@
    :alt: nulogo
    :target: https://amaral.northwestern.edu/
 
+
 Example Usage
 =============
 
-**Fly-QMA** provides a wide range of functionality for measuring and analyzing gene expression in eye clones. A brief introduction to some basic operations is provided below. For detailed usage instructions please see the :ref:`documentation <documentation>`.
+**Fly-QMA** provides a wide range of functionality for measuring and analyzing reporter fluorescence in mosaic imaginal discs. A brief introduction to some basic operations is provided below. For detailed usage instructions please see the :ref:`documentation <documentation>`.
 
 
 Loading image data
@@ -39,34 +40,10 @@ Select an individual layer:
 
 
 
-Measuring expression
---------------------
-
-Segment an image layer, measure the segment properties, and save the results:
-
-.. code-block:: python
-
-   >>> layer.segment()
-   >>> layer.save()
-
-
-Bleedthrough Correction
------------------------
-
-Perform bleedthrough correction:
-
-.. code-block:: python
-
-   >>> from flyqma.bleedthrough.correction import LayerCorrection
-   >>> correction = LayerCorrection(layer, niters=50)
-   >>> correction.show_correction()
-   >>> correction.save()
-
-
 .. _gui:
 
-Cell Selection GUI
-------------------
+Region of Interest Selection GUI
+--------------------------------
 
 The Fly-QMA package includes a matplot-lib based GUI for selecting a particular region of interest within an image layer. The interface consists of a grid of images in which rows correspond to layers and columns correspond to each of the available fluorescence channels. To launch the GUI for an individual image stack:
 
@@ -84,7 +61,7 @@ The Fly-QMA package includes a matplot-lib based GUI for selecting a particular 
    >>> gui.connect()
 
 
-Regions of a layer are selected by drawing a selection boundary that encloses them. A selection boundary is defined by a series of sequentially-added points. Click on a layer image to add a point to that layer's selection boundary. Points may be added to any of a layer's fluorescence channels, and will automatically appear withing all other fluorescence channels for that layer. The most recently added point appears as a large red dot, while all other points appear as small yellow dots. Once three or more dots are present in an image layer, the current selection boundary is displayed with a yellow line. Once completed, a given layer might look like:
+Regions of interest are selected by drawing a selection boundary that encloses them. A selection boundary is defined by a series of sequentially-added points. Click on a layer image to add a point to that layer's selection boundary. Points may be added to any of a layer's fluorescence channels, and will automatically appear withing all other fluorescence channels for that layer. The most recently added point appears as a large red dot, while all other points appear as small yellow dots. Once three or more dots are present in an image layer, the current selection boundary is displayed with a yellow line. Once completed, a given layer might look like:
 
 
 .. figure:: graphics/example_path.jpg
@@ -123,10 +100,44 @@ A saved GUI may be reopened via the ``GUI.load`` method, at which point further 
    **Example:** A completed selection
 
 
+See the selection :ref:`documentation <selection_docs>` for additional details.
+
+
+
+Measuring expression
+--------------------
+
+Segment an image layer, measure the segment properties, and save the results:
+
+.. code-block:: python
+
+   >>> layer.segment()
+   >>> layer.save()
+
+See the measurement :ref:`documentation <measurement_docs>` for additional details and parameters needed to customize the segmentation routine to suit your data.
+
+
+
+Bleedthrough Correction
+-----------------------
+
+Perform bleedthrough correction:
+
+.. code-block:: python
+
+   >>> from flyqma.bleedthrough.correction import LayerCorrection
+   >>> correction = LayerCorrection(layer)
+   >>> correction.show_correction()
+   >>> correction.save()
+
+See the bleedthrough correction :ref:`documentation <bleedthrough_docs>` for additional details and a complete list of available parameters.
+
+
+
 Data Aggregation
 ----------------
 
-Aggregate all measurement data for an experiment:
+Aggregate all measurement data from an experiment:
 
 .. code-block:: python
 
@@ -135,7 +146,8 @@ Aggregate all measurement data for an experiment:
 **The processed cell measurement data are now ready for analysis!**
 
 
+
 Additional Examples
 -------------------
 
-For detailed usage examples, please refer to the `code <https://github.com/sebastianbernasek/pnt_yan_ratio>`_ used to generate the figures in our manuscript.
+For real usage examples, please refer to the `FlyQMA manuscript <https://github.com/sebastianbernasek/flyqma_ms>`_ and the `our study <https://github.com/sebastianbernasek/pnt_yan_ratio>`_ of Pnt and Yan expression in the developing eye.

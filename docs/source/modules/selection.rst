@@ -4,11 +4,13 @@
    :alt: nulogo
    :target: https://amaral.northwestern.edu/
 
+.. _selection_docs:
+
 
 Selection Module
 ================
 
-``flyqma.selection`` provides a matplotlib-based GUI for manually curating cell measurement data.
+``flyqma.selection`` provides a matplotlib-based GUI for defining a region of interest within each image.
 
 
 User Interface
@@ -23,7 +25,7 @@ Tools for constructing a layer and stack selection GUI.
 Event Handling
 --------------
 
-Tools for managing GUI event-handling.
+Tools for managing GUI-mediated event-handling.
 
 .. automodule:: flyqma.selection.gui
    :members:

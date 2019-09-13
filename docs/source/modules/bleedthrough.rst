@@ -8,20 +8,31 @@
 Bleedthrough Module
 ===================
 
-``flyqma.bleedthrough`` provides methods for managing fluorescence bleedthrough between color channels.
+``flyqma.bleedthrough`` provides methods for correcting for spectral bleedthrough between fluorescent reporter channels.
 
 
 Background Extraction
 ---------------------
 
-Extract the background pixels from a segmented image.
+Tools for extracting the background pixels from a segmented image.
 
 .. automodule:: flyqma.bleedthrough.background
    :members:
 
 
-Linear Models
--------------
+Resampling
+----------
+
+Tools for resampling a set of pixel intensities.
+
+.. automodule:: flyqma.bleedthrough.resampling
+   :members:
+
+
+Bleedthrough Coefficient Characterization
+-----------------------------------------
+
+Tools for characterizing bleedthrough coefficients.
 
 .. automodule:: flyqma.bleedthrough.models
    :members:
@@ -30,8 +41,17 @@ Linear Models
 Bleedthrough Correction
 -----------------------
 
-Correction for fluorescence bleedthrough.
+Tools for correcting measurements subject to bleedthrough.
 
 .. automodule:: flyqma.bleedthrough.correction
+   :members:
+
+
+Visualization
+-------------
+
+Tools for visualizing the bleedthrough correction procedure.
+
+.. automodule:: flyqma.bleedthrough.visualization
    :members:
 

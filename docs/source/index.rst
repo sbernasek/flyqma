@@ -20,11 +20,11 @@ Given confocal microscopy data, the package facilitates:
 
   - **Annotation.** Identify distinct subpopulations of cells
 
-  - **Cell Selection.** Manually select cells for comparison
+  - **ROI Definition.** Manually define regions of interest within each image
 
   - **Comparison.** Compare expression levels between subpopulations
 
-To see Fly-QMA in action, check out `our study <https://github.com/sebastianbernasek/pnt_yan_ratio>`_ of Pnt and Yan expression during retinal patterning in *Drosophila*.
+To see Fly-QMA in action, check out the `FlyQMA manuscript <https://github.com/sebastianbernasek/flyqma_ms>`_ and `our study <https://github.com/sebastianbernasek/pnt_yan_ratio>`_ of Pnt and Yan expression during retinal patterning in *Drosophila*.
 
 
 .. toctree::
