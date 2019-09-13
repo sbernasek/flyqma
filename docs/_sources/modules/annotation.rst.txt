@@ -22,9 +22,6 @@ Mixture Models
 
 Tools for fitting univariate and bivariate gaussian mixture models.
 
-.. automodule:: flyqma.annotation.mixtures.pomegranate
-   :members:
-
 .. automodule:: flyqma.annotation.mixtures.univariate
    :members:
 
@@ -80,9 +77,6 @@ Tools for analyzing the 2D spatial arrangement of cells.
    :members:
 
 .. automodule:: flyqma.annotation.spatial.correlation
-   :members:
-
-.. automodule:: flyqma.annotation.spatial.community
    :members:
 
 .. automodule:: flyqma.annotation.spatial.infomap
