@@ -22,31 +22,10 @@ Given confocal microscopy data, the Fly-QMA package facilitates:
 Please refer to the [documentation](https://sebastianbernasek.github.io/flyqma/index.html#) page for tips on getting started with analyzing your data.
 
 
-Dependencies
-============
-
- - Python 3.6+
-
-Required:
-
- - [PyTables](https://www.pytables.org/usersguide/installation.html)
- - [Scipy](https://www.scipy.org/)
- - [Pandas](https://pandas.pydata.org/)
- - [PIL](https://pillow.readthedocs.io/en/5.2.x/)
- - [TiffFile](https://pypi.org/project/tifffile/)
- - [Matplotlib](https://matplotlib.org/)
- - [Seaborn](https://seaborn.pydata.org/)
- - [Scikit-Image](https://scikit-image.org/)
- - [Scikit-Learn](http://scikit-learn.org/stable/)
- - [Statsmodels](https://www.statsmodels.org/stable/index.html)
- - [NetworkX](https://networkx.github.io/)
- - [Infomap](https://mapequation.github.io/infomap/)
-
-
 Installation
 ============
 
-After downloading the [latest distribution](https://github.com/sebastianbernasek/clones/archive/v0.1-beta.tar.gz), the simplest method is to install via ``pip``:
+You will first need a working environment running Python 3.6+ or later, after which you can download the [latest distribution](https://github.com/sebastianbernasek/clones/archive/v0.1-beta.tar.gz) and install via ``pip``:
 
     pip install flyqma-1.0.tar.gz
 
