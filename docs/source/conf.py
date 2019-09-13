@@ -24,7 +24,7 @@ if '..' not in sys.path:
 # -- Project information -----------------------------------------------------
 
 project = 'flyqma'
-copyright = '2018, Sebastian Bernasek'
+copyright = '2019, Amaral Lab'
 author = 'Sebastian Bernasek'
 
 # The short X.Y version
