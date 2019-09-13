@@ -132,8 +132,7 @@ class SilhouetteLayerIO:
             "color_std": {"b": X, "g": X, "r": X},
             "id": CONTOUR_ID,
             "pixel_count": CONTOUR_AREA,
-            "points": [[x1, y1], [x2, y2] ... ]}
-        }
+            "points": [[x1, y1], [x2, y2] ... ]}}
 
 
     """
