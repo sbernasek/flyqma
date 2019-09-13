@@ -7,6 +7,18 @@ from sklearn.mixture import GaussianMixture
 from .visualization import MixtureVisualization
 
 
+class MixtureIO:
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        del state["values"]
+        return state
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        self.values = None
+
+
 class MixtureProperties:
     """ Properties for guassian mixture models. """
 
@@ -102,6 +114,7 @@ class MixtureProperties:
 
 
 class UnivariateMixture(GaussianMixture,
+                        MixtureIO,
                         MixtureProperties,
                         MixtureVisualization):
     """

@@ -38,9 +38,9 @@ class MixtureModelIO(ClassifierIO):
         # instantiate Classifier
         path = super().save(dirpath, data, image, extension, **kwargs)
 
-        # save model
+        # save model (temporarily remove values)
         if self.model is not None:
-            self.model.values = None
+            #self.model.values = None
             with open(join(path, 'model.pkl'), 'wb') as file:
                 pickle.dump(self.model, file)
 

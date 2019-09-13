@@ -270,6 +270,10 @@ class LayerCorrection(Correction, LayerCorrectionVisualization):
         # write metadata to file
         io.write_json(join(path, 'data.json'), data)
 
+        # update measurements
+        self.layer.apply_correction(self.layer.data)
+        self.layer.save_processed_data()
+
         # save figures
         if images:
             self.show_fit()

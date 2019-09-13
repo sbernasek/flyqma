@@ -164,9 +164,6 @@ class Stack(StackIO):
         self.annotator = None
         self.load_annotator()
 
-        # store indices of included layers
-        self.included = self.get_included_layers()
-
         # reset layer iterator count
         self.count = 0
 
@@ -188,6 +185,11 @@ class Stack(StackIO):
             return layer
         else:
             raise StopIteration
+
+    @property
+    def included(self):
+        """ Indices of included layers. """
+        return self.get_included_layers()
 
     @property
     def depth(self):
@@ -319,6 +321,11 @@ class Stack(StackIO):
         if save:
             self.save_annotator(data=True)
             selector.save(self.annotator_path)
+
+            # annotate measurements
+            for layer in self:
+                layer.annotate(layer.data)
+                layer.save_processed_data()
 
     def aggregate_measurements(self, raw=False, process=False):
         """

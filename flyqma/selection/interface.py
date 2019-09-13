@@ -15,6 +15,8 @@ class LayerVisualization:
 
         path (str) - layer path
 
+        layer (flyqma.Layer) - layer instance
+
         axes (array like) - axes for blue/red/green color channels
 
     """
@@ -30,6 +32,8 @@ class LayerVisualization:
             axes (array like) - axes for blue/red/green color channels
 
         """
+
+        self.layer = layer
 
         # set selection path
         layer.make_subdir('selection')
@@ -130,6 +134,8 @@ class LayerInterface(LayerVisualization):
 
         path (str) - layer path
 
+        layer (flyqma.Layer) - layer instance
+
         axes (array like) - axes for blue/red/green color channels
 
     """
@@ -202,6 +208,10 @@ class LayerInterface(LayerVisualization):
                   duplicate=self.duplicate,
                   exemplar=self.exemplar)
         io.write_json(join(self.path, 'md.json'), md)
+
+        # update measurements
+        self.layer.apply_selection(self.layer.data)
+        self.layer.save_processed_data()
 
     def clear(self):
         """ Clear all points from layer selection bounds. """

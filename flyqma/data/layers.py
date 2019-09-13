@@ -326,6 +326,7 @@ class LayerIO(SilhouetteLayerIO):
 
         # save processed data
         if processed_data and self.data is not None:
+            self.data = self.process_measurements(self.measurements)
             self.save_processed_data()
 
         # save annotation
@@ -602,12 +603,20 @@ class Layer(LayerIO, ImageMultichromatic, LayerVisualization):
             self.apply_correction(data)
 
         # annotate measurements (opt to load labels rather than annotate again)
+        self.annotate(data)
+
+        return data
+
+    def annotate(self, data=None):
+        """ Apply annotation to <data>. """
+
+        if data is None:
+            data = self.data
+
         if self.annotator is not None and self.graph is not None:
             self._apply_annotation(data)
             self.mark_boundaries(data, basis='genotype', max_edges=1)
             self.apply_concurrency(data, basis='genotype')
-
-        return data
 
     def apply_normalization(self, data):
         """
@@ -672,6 +681,13 @@ class Layer(LayerIO, ImageMultichromatic, LayerVisualization):
         # get independent/dependent variables
         xvar = cdata['params']['xvar']
         yvar = cdata['params']['yvar']
+        bgvar = self.metadata['bg']
+        if type(xvar) == int:
+            xvar = 'ch{:d}'.format(xvar)
+        if type(yvar) == int:
+            yvar = 'ch{:d}'.format(yvar)
+        if type(bgvar) == int:
+            bgvar = 'ch{:d}'.format(bgvar)
 
         # get linear model coefficients
         b, m = cdata['coefficients']
@@ -680,7 +696,7 @@ class Layer(LayerIO, ImageMultichromatic, LayerVisualization):
         trend = b + m * data[xvar].values
         data[yvar+'_predicted'] = trend
         data[yvar+'c'] = data[yvar] - trend
-        data[yvar+'c_normalized'] = data[yvar+'c'] / data[self.metadata['bg']]
+        data[yvar+'c_normalized'] = data[yvar+'c'] / data[bgvar]
 
     def build_graph(self, weighted_by, **graph_kw):
         """
