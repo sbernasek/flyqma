@@ -51,12 +51,19 @@ After downloading the [latest distribution](https://github.com/sebastianbernasek
     pip install flyqma-1.0.tar.gz
 
 
+Getting Started
+===============
+
+See the [Fly-QMA tutorial](https://github.com/sebastianbernasek/flyqma/blob/master/tutorial.ipynb).
+
+
 Examples
 ========
 
-See the [Fly-QMA tutorial](https://github.com/sebastianbernasek/flyqma/blob/master/tutorial.ipynb) to get started with Fly-QMA.
+For additional examples of complete projects utilizing Fly-QMA and the entire **NU FlyEye** platform, check out:
 
-For additional examples of complete projects utilizing Fly-QMA and the entire **NU FlyEye** platform, please refer to [our Fly-QMA manuscript](https://github.com/sebastianbernasek/flyqma_ms) and [our study](https://github.com/sebastianbernasek/pnt_yan_ratio) of Pnt and Yan expression during retinal patterning in *Drosophila*.
+ - [Our Fly-QMA manuscript](https://github.com/sebastianbernasek/flyqma_ms)
+ - [Our study](https://github.com/sebastianbernasek/pnt_yan_ratio) of Pnt and Yan expression during retinal patterning in *Drosophila*.
 
 
 Authors
