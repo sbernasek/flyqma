@@ -22,16 +22,16 @@ Mixture Models
 
 Tools for fitting univariate and bivariate gaussian mixture models.
 
-.. automodule:: flyqma.mixtures.pomegranate
+.. automodule:: flyqma.annotation.mixtures.pomegranate
    :members:
 
-.. automodule:: flyqma.mixtures.univariate
+.. automodule:: flyqma.annotation.mixtures.univariate
    :members:
 
-.. automodule:: flyqma.mixtures.bivariate
+.. automodule:: flyqma.annotation.mixtures.bivariate
    :members:
 
-.. automodule:: flyqma.mixtures.visualization
+.. automodule:: flyqma.annotation.mixtures.visualization
    :members:
 
 
