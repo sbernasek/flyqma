@@ -8,7 +8,7 @@
 Fly-QMA
 =======
 
-**Fly-QMA** is part of the **NU FlyEye** platform for studying gene expression in the developing *Drosophila* eye. The Fly-QMA package enables quantitative mosaic analysis (QMA) - that is, it helps compare expression levels between distinct clonal subpopulations within the eye epithelium.
+**Fly-QMA** is part of the **NU FlyEye** platform for studying gene expression in the developing *Drosophila* eye. The Fly-QMA package enables quantitative mosaic analysis (QMA) - that is, it helps compare expression levels between distinct clonal subpopulations within *Drosophila* imaginal discs. While developed for analyzing the eye epithelium, Fly-QMA is also applicable to wing and leg imaginal discs.
 
 Given confocal microscopy data, the package facilitates:
 

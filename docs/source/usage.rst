@@ -84,10 +84,9 @@ When a selection is saved, a boolean *selected* attribute is added to the layer'
 
 .. code-block:: bash
 
-   N: mark layer as neurons & cones
-   D: mark layer as duplicate
+   D: mark layer as *excluded*
 
-Layers marked *neurons & cones* or *duplicate* will be masked by a transparent overlay. When these layers are saved, the *selected* attribute is set to False for all of their constituent cell measurements.
+Layers marked *excluded* will be masked by a transparent overlay. When these layers are saved, the *selected* attribute is set to False for all of their constituent cell measurements.
 
 A saved GUI may be reopened via the ``GUI.load`` method, at which point further adjustments may be made to each layer.
 
@@ -127,7 +126,6 @@ Perform bleedthrough correction:
 
    >>> from flyqma.bleedthrough.correction import LayerCorrection
    >>> correction = LayerCorrection(layer)
-   >>> correction.show_correction()
    >>> correction.save()
 
 See the bleedthrough correction :ref:`documentation <bleedthrough_docs>` for additional details and a complete list of available parameters.
