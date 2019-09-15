@@ -85,11 +85,10 @@ X: <span class="nb">exit</span> GUI
 </pre></div>
 </div>
 <p>When a selection is saved, a boolean <em>selected</em> attribute is added to the layer’s cell measurement data indicating whether or not a given cell lies within the layer’s selection path. The <em>selected</em> attribute may then be used to filter the measurement data during subsequent analysis. The GUI also allows the user to mark entire layers for exclusion using two additional key commands:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>N: mark layer as neurons <span class="p">&amp;</span> cones
-D: mark layer as duplicate
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>D: mark layer as *excluded*
 </pre></div>
 </div>
-<p>Layers marked <em>neurons &amp; cones</em> or <em>duplicate</em> will be masked by a transparent overlay. When these layers are saved, the <em>selected</em> attribute is set to False for all of their constituent cell measurements.</p>
+<p>Layers marked <em>excluded</em> will be masked by a transparent overlay. When these layers are saved, the <em>selected</em> attribute is set to False for all of their constituent cell measurements.</p>
 <p>A saved GUI may be reopened via the <code class="docutils literal notranslate"><span class="pre">GUI.load</span></code> method, at which point further adjustments may be made to each layer.</p>
 <div class="figure align-center" id="id2">
 <img alt="example gui" src="_images/example_gui.jpg" style="width: 383.0px; height: 503.0px;" />
@@ -111,7 +110,6 @@ D: mark layer as duplicate
 <p>Perform bleedthrough correction:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">flyqma.bleedthrough.correction</span> <span class="kn">import</span> <span class="n">LayerCorrection</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">correction</span> <span class="o">=</span> <span class="n">LayerCorrection</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">correction</span><span class="o">.</span><span class="n">show_correction</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">correction</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
 </pre></div>
 </div>
