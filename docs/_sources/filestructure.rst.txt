@@ -16,15 +16,15 @@ The standardized file structure is hierarchically organized into three levels:
 
  1. **EXPERIMENT**: One or more tissue samples imaged under the same conditions.
 
- 2. **STACK**: All images of a particular tissue sample, e.g. an individual z-stack.
+ 2. **STACK**: All images of a particular tissue sample, such as an individual z-stack.
 
- 3. **LAYER**: All analysis relevant to a single 2-D image, e.g. an individual layer.
+ 3. **LAYER**: All analysis relevant to a single 2-D image, such as an individual layer.
 
 
-EXPERIMENT
-----------
+Experiments
+-----------
 
-Microscopy data should be arranged into a collection of STACK directories that reside within an EXPERIMENT directory unique to a particular set of experimental conditions. These STACK directories are sequentially numbered, beginning with zero.
+Microscopy data should be arranged into a collection of **STACK** directories that reside within an **EXPERIMENT** directory unique to a particular set of experimental conditions. These **STACK** directories are sequentially numbered, beginning with zero.
 
 .. code-block:: bash
 
@@ -35,15 +35,15 @@ Microscopy data should be arranged into a collection of STACK directories that r
    └── ... N     # Nth STACK directory
 
 
-STACK
------
+Z-Stacks
+--------
 
-Each STACK directory contains various components pertinent to all images within the z-stack. These may include:
+Each **STACK** directory contains various components pertinent to all images within the z-stack. These may include:
 
  - The original ``.tif`` image file depicting a z-stack of an imaginal disc. Images may be regularly-spaced 3D z-stacks or irregularly-spaced 3D collections of one or more layers. If a 2D image is provided, Fly-QMA will assume the z-stack only contains a single layer. *Note that the image file must retain the same name as its parent STACK directory.*
  - A ``metadata.json`` file containing all imaging metadata, e.g. number of layers, number of fluorescence channels, image bit depth, etc.
  - An ``annotation`` subdirectory containing all of the model components used to annotate a particular image stack.
- - A ``layers`` subdirectory containing all of the lower level LAYER directories. Layers are sequentially numbered, beginning with zero.
+ - A ``layers`` subdirectory containing all of the lower level **LAYER** directories. Layers are sequentially numbered, beginning with zero.
 
 .. code-block:: bash
 
@@ -62,10 +62,10 @@ Each STACK directory contains various components pertinent to all images within 
    └── ... N
 
 
-LAYER
------
+Layers
+------
 
-Each LAYER directory contains all components pertinent to an individual 2D layer within the z-stack. These may include:
+Each **LAYER** directory contains all components pertinent to an individual 2D layer within the z-stack. These may include:
 
  - A ``metadata.json`` file containing all layer metadata, such as particular parameter values used.
  - A ``selection`` subdirectory containing a ``selection.npy`` ROI mask. This mask is a 2D numpy array of boolean values in which each element indicates whether a given pixel is within the ROI.  **Users may readily import their own ROI mask by manually replacing this file.** The ``selection`` directory also includes a ``md.json`` file used whose contents are used to indicate whether or not the layer is included within subsequent analyses.
@@ -112,7 +112,7 @@ Each LAYER directory contains all components pertinent to an individual 2D layer
 Annotation
 ----------
 
-In Fly-QMA, annotation entails training a model to identify distinct levels of clonal marker fluorescence, then applying the model within the spatial context of a given image. While annotation is always applied at the LAYER level, Fly-QMA supports training the annotation model on each LAYER or on the entire STACK. The ``annotation`` subdirectory resides at the level used to train the model. Its contents are detailed below. If a model selection procedure is used, all of the trained models are also cached within a ``models`` subdirectory.
+In Fly-QMA, annotation entails training a model to identify distinct levels of clonal marker fluorescence, then applying the model within the spatial context of a given image. While annotation is always applied at the **LAYER** level, Fly-QMA supports training the annotation model on each **LAYER** or on the entire **STACK**. The ``annotation`` subdirectory resides at the level used to train the model. Its contents are detailed below. If a model selection procedure is used, all of the trained models are also cached within a ``models`` subdirectory.
 
 
 .. code-block:: bash
