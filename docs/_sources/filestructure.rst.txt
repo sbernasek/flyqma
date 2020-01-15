@@ -7,22 +7,22 @@
 
 .. _filestructure:
 
-Standardized File Structure
-===========================
+File Structure
+==============
 
 **Fly-QMA** uses the standardized file structure outlined below. Fly-QMA will adhere to this structure automatically, creating and updating the various subdirectories and files as needed. However, it is also possible to integrate external analysess (such as a segmentation mask) into the Fly-QMA workflow by manually adding them to the standardized file structure.
 
 The standardized file structure is hierarchically organized into three levels:
 
- - EXPERIMENT Level: The top level of organization containing one or more tissue samples imaged under the same conditions, e.g. a particular genetic background. This level enables users to aggregate measurements from multiple samples of the same type.
+ 1. **EXPERIMENT**: One or more tissue samples imaged under the same conditions.
 
- - STACK Level: The middle level of organization containing all images of a particular tissue sample, e.g. an individual z-stack. This level allows users to perform analyses (such as bleedthrough correction) that utilize all layers of an individual z-stack.
+ 2. **STACK**: All images of a particular tissue sample, e.g. an individual z-stack.
 
- - LAYER Level - The bottom level of organization containing all analysis relevant to a single 2-D image, e.g. an individual layer within a given z-stack.
+ 3. **LAYER**: All analysis relevant to a single 2-D image, e.g. an individual layer.
 
 
-Top Level: EXPERIMENT
----------------------
+EXPERIMENT
+----------
 
 Microscopy data should be arranged into a collection of STACK directories that reside within an EXPERIMENT directory unique to a particular set of experimental conditions. These STACK directories are sequentially numbered, beginning with zero.
 
@@ -35,8 +35,8 @@ Microscopy data should be arranged into a collection of STACK directories that r
    └── ... N     # Nth STACK directory
 
 
-Middle Level: STACK
--------------------
+STACK
+-----
 
 Each STACK directory contains various components pertinent to all images within the z-stack. These may include:
 
@@ -62,8 +62,8 @@ Each STACK directory contains various components pertinent to all images within 
    └── ... N
 
 
-Bottom Level: LAYER
--------------------
+LAYER
+-----
 
 Each LAYER directory contains all components pertinent to an individual 2D layer within the z-stack. These may include:
 

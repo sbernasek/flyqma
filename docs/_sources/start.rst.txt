@@ -28,7 +28,7 @@ Data Format
 Data Management
 ---------------
 
-**Fly-QMA** uses a :ref:`Standardized File Structure <filestructure>`. Microscopy data should be arranged into a collection of sequentially numbered "stack directories" that reside within a directory unique to a particular set of experimental conditions:
+**Fly-QMA** uses a :ref:`standardized file structure <filestructure>`. Microscopy data should be arranged into a collection of sequentially numbered "stack directories" that reside within a directory unique to a particular set of experimental conditions:
 
 .. code-block:: bash
 
