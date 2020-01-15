@@ -33,6 +33,7 @@ To see Fly-QMA in action, check out the `FlyQMA manuscript <https://github.com/s
 
    INSTALLATION <installation>
    GETTING STARTED <start>
+   FILE STRUCTURE <structure>
    DOCUMENTATION <documentation>
    EXAMPLE USAGE <usage>
    CONTACT <contact>
