@@ -59,7 +59,7 @@ class GLM(OLS):
 
         Args:
 
-            N (int) - numebr of samples used
+            N (int) - number of samples used
 
             maxiter (int) - maximum number of iterations for optimization
 

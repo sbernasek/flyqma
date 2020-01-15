@@ -41,8 +41,8 @@ class Experiment:
         self._id = path.split('/')[-1]
 
         # set stack paths
-        stack_paths = [p for p in glob(join(self.path, '*[0-9]')) if isdir(p)]
-        get_stack_id = lambda x: int(x.rsplit('/', maxsplit=1)[-1])
+        stack_paths = [p for p in glob(join(self.path, '*')) if isdir(p)]
+        get_stack_id = lambda x: x.rsplit('/', maxsplit=1)[-1]
         self.stack_dirs = {get_stack_id(p): p for p in stack_paths}
         self.stack_ids = sorted(self.stack_dirs.keys())
 
@@ -74,7 +74,7 @@ class Experiment:
 
         Args:
 
-            stack_id (int) - stack to be loaded
+            stack_id (str or int) - stack to be loaded
 
             full (bool) - if True, load full 3D image from tif file
 
@@ -83,7 +83,7 @@ class Experiment:
             stack (Stack)
 
         """
-        stack = Stack(self.stack_dirs[stack_id], **kwargs)
+        stack = Stack(self.stack_dirs[str(stack_id)], **kwargs)
         if full:
             stack.load_image()
         return stack

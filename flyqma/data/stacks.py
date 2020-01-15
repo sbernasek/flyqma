@@ -1,5 +1,7 @@
+import warnings
 from os.path import join, exists, abspath, isdir
 from os import mkdir
+from shutil import move
 from glob import glob
 import gc
 import numpy as np
@@ -15,6 +17,64 @@ from .silhouette import SilhouetteIO
 
 class StackIO(SilhouetteIO):
     """ Methods for saving and loading a Stack instance. """
+
+    @staticmethod
+    def from_tif(filepath, bits=16):
+        """
+        Initialize stack from tif <filepath>.
+
+        Args:
+
+            path (str) - path to tif image file
+
+            bits (int) - bit depth
+
+        Returns:
+
+            stack (flyqma.Stack)
+
+        """
+
+        path, ext = filepath.rsplit('.', maxsplit=1)
+        if ext.lower() != 'tif':
+            raise ValueError('TIF extension not found.')
+        _id = path.split('/')[-1]
+
+        # make directory
+        mkdir(path)
+        move(filepath, join( path, '{:s}.tif'.format(_id)))
+
+        return Stack(path, bits=bits)
+
+    @staticmethod
+    def from_silhouette(filepath, bits=16):
+        """
+        Initialize stack from silhouette <filepath>.
+
+        Args:
+
+            path (str) - path to silhouette file
+
+            bits (int) - bit depth
+
+        Returns:
+
+            stack (flyqma.Stack)
+
+        """
+
+        raise UserWarning('INCOMPLETE FUNCTIONALITY: TIF FILE REQUIRED.')
+
+        path, ext = filepath.rsplit('.', maxsplit=1)
+        if ext.lower() != 'silhouette':
+            raise ValueError('Silhouette extension not recognized.')
+        _id = path.split('/')[-1]
+
+        # make directory
+        mkdir(path)
+        move(filepath, join( path, '{:s}.silhouette'.format(_id)))
+
+        return Stack(path, bits=bits)
 
     def save(self):
         """ Save stack metadata and annotator. """
@@ -111,7 +171,7 @@ class Stack(StackIO):
 
         path (str) - path to stack directory
 
-        _id (int) - stack ID
+        _id (str or int) - stack ID
 
         stack (np.ndarray[float]) - 3D RGB image stack
 
@@ -131,9 +191,9 @@ class Stack(StackIO):
 
     """
 
-    def __init__(self, path, bits=12):
+    def __init__(self, path, bits=16):
         """
-        Initialize stack.
+        Initialize stack from stack directory <path>.
 
         Args:
 
@@ -143,13 +203,22 @@ class Stack(StackIO):
 
         """
 
+        # strip trailing slashes
+        path = path.rstrip('/')
+
+        # check if path is directly to a silhouette file
+        if '.silhouette' in path.lower():
+            raise ValueError('This is a silhouette file, use the Stack.from_silhouette constructor.')
+        elif '.tif' in path.lower():
+            raise ValueError('This is a tif file, use the Stack.from_tif constructor.')
+
         # set path to stack directory
+        self._id = path.rsplit('/', maxsplit=1)[-1]
         self.path = abspath(path)
         self.stack = None
 
         # set paths
-        self._id = int(path.rsplit('/', maxsplit=1)[-1])
-        self.tif_path = join(path, '{:d}.tif'.format(self._id))
+        self.tif_path = join(path, '{:s}.tif'.format(self._id))
         self.layers_path = join(self.path, 'layers')
         self.annotator_path = join(self.path, 'annotation')
 
@@ -211,7 +280,7 @@ class Stack(StackIO):
         layers = [self.load_layer(i, graph=False) for i in range(self.depth)]
         return [layer._id for layer in layers if layer.include]
 
-    def initialize(self, bits=12):
+    def initialize(self, bits=16):
         """
         Initialize stack directory.
 

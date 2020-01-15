@@ -130,6 +130,7 @@ class BackgroundExtraction:
         else:
             fig = plt.gcf()
 
+        # TO DO: handle alternate channel specification... non RGB... etc
         # extract and visualize red/green channels
         rg = deepcopy(self.layer.im)
         rg[:,:,-1] = 0
