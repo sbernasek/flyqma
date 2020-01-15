@@ -33,8 +33,10 @@
           <div class="body" role="main">
             
   <h1>Source code for flyqma.data.stacks</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span><span class="p">,</span> <span class="n">abspath</span><span class="p">,</span> <span class="n">isdir</span>
+<span></span><span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span><span class="p">,</span> <span class="n">abspath</span><span class="p">,</span> <span class="n">isdir</span>
 <span class="kn">from</span> <span class="nn">os</span> <span class="k">import</span> <span class="n">mkdir</span>
+<span class="kn">from</span> <span class="nn">shutil</span> <span class="k">import</span> <span class="n">move</span>
 <span class="kn">from</span> <span class="nn">glob</span> <span class="k">import</span> <span class="n">glob</span>
 <span class="kn">import</span> <span class="nn">gc</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -50,6 +52,64 @@
 
 <div class="viewcode-block" id="StackIO"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.stacks.StackIO">[docs]</a><span class="k">class</span> <span class="nc">StackIO</span><span class="p">(</span><span class="n">SilhouetteIO</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Methods for saving and loading a Stack instance. &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="StackIO.from_tif"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.stacks.StackIO.from_tif">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">from_tif</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">bits</span><span class="o">=</span><span class="mi">16</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize stack from tif &lt;filepath&gt;.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            path (str) - path to tif image file</span>
+
+<span class="sd">            bits (int) - bit depth</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            stack (flyqma.Stack)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">path</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">filepath</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="n">maxsplit</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ext</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">!=</span> <span class="s1">&#39;tif&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;TIF extension not found.&#39;</span><span class="p">)</span>
+        <span class="n">_id</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># make directory</span>
+        <span class="n">mkdir</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="n">move</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">join</span><span class="p">(</span> <span class="n">path</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{:s}</span><span class="s1">.tif&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">_id</span><span class="p">)))</span>
+
+        <span class="k">return</span> <span class="n">Stack</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">bits</span><span class="o">=</span><span class="n">bits</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="StackIO.from_silhouette"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.stacks.StackIO.from_silhouette">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">from_silhouette</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">bits</span><span class="o">=</span><span class="mi">16</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize stack from silhouette &lt;filepath&gt;.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            path (str) - path to silhouette file</span>
+
+<span class="sd">            bits (int) - bit depth</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            stack (flyqma.Stack)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">raise</span> <span class="ne">UserWarning</span><span class="p">(</span><span class="s1">&#39;INCOMPLETE FUNCTIONALITY: TIF FILE REQUIRED.&#39;</span><span class="p">)</span>
+
+        <span class="n">path</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">filepath</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="n">maxsplit</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ext</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">!=</span> <span class="s1">&#39;silhouette&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Silhouette extension not recognized.&#39;</span><span class="p">)</span>
+        <span class="n">_id</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># make directory</span>
+        <span class="n">mkdir</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="n">move</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">join</span><span class="p">(</span> <span class="n">path</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{:s}</span><span class="s1">.silhouette&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">_id</span><span class="p">)))</span>
+
+        <span class="k">return</span> <span class="n">Stack</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">bits</span><span class="o">=</span><span class="n">bits</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="StackIO.save"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.stacks.StackIO.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Save stack metadata and annotator. &quot;&quot;&quot;</span>
@@ -146,7 +206,7 @@
 
 <span class="sd">        path (str) - path to stack directory</span>
 
-<span class="sd">        _id (int) - stack ID</span>
+<span class="sd">        _id (str or int) - stack ID</span>
 
 <span class="sd">        stack (np.ndarray[float]) - 3D RGB image stack</span>
 
@@ -166,9 +226,9 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">bits</span><span class="o">=</span><span class="mi">12</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">bits</span><span class="o">=</span><span class="mi">16</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initialize stack.</span>
+<span class="sd">        Initialize stack from stack directory &lt;path&gt;.</span>
 
 <span class="sd">        Args:</span>
 
@@ -178,13 +238,22 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
 
+        <span class="c1"># strip trailing slashes</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+
+        <span class="c1"># check if path is directly to a silhouette file</span>
+        <span class="k">if</span> <span class="s1">&#39;.silhouette&#39;</span> <span class="ow">in</span> <span class="n">path</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;This is a silhouette file, use the Stack.from_silhouette constructor.&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="s1">&#39;.tif&#39;</span> <span class="ow">in</span> <span class="n">path</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;This is a tif file, use the Stack.from_tif constructor.&#39;</span><span class="p">)</span>
+
         <span class="c1"># set path to stack directory</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="n">maxsplit</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stack</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="c1"># set paths</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="n">maxsplit</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">tif_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{:d}</span><span class="s1">.tif&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tif_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{:s}</span><span class="s1">.tif&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">layers_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;layers&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">annotator_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;annotation&#39;</span><span class="p">)</span>
 
@@ -246,7 +315,7 @@
         <span class="n">layers</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">load_layer</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">graph</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">depth</span><span class="p">)]</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">layer</span><span class="o">.</span><span class="n">_id</span> <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">layers</span> <span class="k">if</span> <span class="n">layer</span><span class="o">.</span><span class="n">include</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="Stack.initialize"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.stacks.Stack.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bits</span><span class="o">=</span><span class="mi">12</span><span class="p">):</span>
+<div class="viewcode-block" id="Stack.initialize"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.stacks.Stack.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bits</span><span class="o">=</span><span class="mi">16</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize stack directory.</span>
 
