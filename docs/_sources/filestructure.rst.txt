@@ -5,7 +5,7 @@
    :target: https://amaral.northwestern.edu/
 
 
-.. _structure:
+.. _filestructure:
 
 Standardized File Structure
 ===========================
