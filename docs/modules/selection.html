@@ -1,0 +1,366 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Selection Module &#8212; flyqma v0.1-beta documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Annotation Module" href="annotation.html" />
+    <link rel="prev" title="Measurement Module" href="measurement.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <a class="reference external image-reference" href="https://amaral.northwestern.edu/"><img alt="nulogo" class="align-right" src="../_images/Northwestern_purple_RGB1.png" style="width: 30%;" /></a>
+<div class="section" id="selection-module">
+<span id="selection-docs"></span><h1>Selection Module<a class="headerlink" href="#selection-module" title="Permalink to this headline">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">flyqma.selection</span></code> provides a matplotlib-based GUI for defining a region of interest within each image.</p>
+<div class="section" id="user-interface">
+<h2>User Interface<a class="headerlink" href="#user-interface" title="Permalink to this headline">¶</a></h2>
+<p>Tools for constructing a layer and stack selection GUI.</p>
+<span class="target" id="module-flyqma.selection.interface"></span><dl class="class">
+<dt id="flyqma.selection.interface.LayerInterface">
+<em class="property">class </em><code class="descclassname">flyqma.selection.interface.</code><code class="descname">LayerInterface</code><span class="sig-paren">(</span><em>layer</em>, <em>axes</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/selection/interface.html#LayerInterface"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.selection.interface.LayerInterface" title="Permalink to this definition">¶</a></dt>
+<dd><p>Event handler for an individual layer.</p>
+<p>Attributes:</p>
+<blockquote>
+<div><p>include (bool) - flag for layer inclusion</p>
+<p>duplicate (bool) - flag for duplicate layer</p>
+<p>exemplar (bool) - flag for exemplary layer</p>
+<p>active_polyhon (bool) - if True, polygon is currently active</p>
+<p>pts (list) - selection boundary points</p>
+<p>traceback (list) - exception traceback</p>
+</div></blockquote>
+<p>Inherited attributes:</p>
+<blockquote>
+<div><p>path (str) - layer path</p>
+<p>layer (flyqma.Layer) - layer instance</p>
+<p>axes (array like) - axes for blue/red/green color channels</p>
+</div></blockquote>
+<dl class="method">
+<dt id="flyqma.selection.interface.LayerInterface.add_point">
+<code class="descname">add_point</code><span class="sig-paren">(</span><em>pt</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/selection/interface.html#LayerInterface.add_point"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.selection.interface.LayerInterface.add_point" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add point to layer selection bounds.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.selection.interface.LayerInterface.clear">
+<code class="descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/selection/interface.html#LayerInterface.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.selection.interface.LayerInterface.clear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clear all points from layer selection bounds.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.selection.interface.LayerInterface.load">
+<code class="descname">load</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/selection/interface.html#LayerInterface.load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.selection.interface.LayerInterface.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load layer selection.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.selection.interface.LayerInterface.remove_point">
+<code class="descname">remove_point</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/selection/interface.html#LayerInterface.remove_point"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.selection.interface.LayerInterface.remove_point" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove last point added to layer selection bounds.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.selection.interface.LayerInterface.save">
+<code class="descname">save</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/selection/interface.html#LayerInterface.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.selection.interface.LayerInterface.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save selected points and selection metadata to file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.selection.interface.LayerInterface.undo">
+<code class="descname">undo</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/selection/interface.html#LayerInterface.undo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.selection.interface.LayerInterface.undo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove last point added and update polygon.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.selection.interface.LayerInterface.update_polygon">
+<code class="descname">update_polygon</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/selection/interface.html#LayerInterface.update_polygon"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.selection.interface.LayerInterface.update_polygon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update polygon for each image.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="flyqma.selection.interface.LayerVisualization">
+<em class="property">class </em><code class="descclassname">flyqma.selection.interface.</code><code class="descname">LayerVisualization</code><span class="sig-paren">(</span><em>layer</em>, <em>axes</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/selection/interface.html#LayerVisualization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.selection.interface.LayerVisualization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Object for visualizing a single layer.</p>
+<p>Attributes:</p>
+<blockquote>
+<div><p>path (str) - layer path</p>
+<p>layer (flyqma.Layer) - layer instance</p>
+<p>axes (array like) - axes for blue/red/green color channels</p>
+</div></blockquote>
+<dl class="method">
+<dt id="flyqma.selection.interface.LayerVisualization.add_marker">
+<code class="descname">add_marker</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>color='k'</em>, <em>markersize=10</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/selection/interface.html#LayerVisualization.add_marker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.selection.interface.LayerVisualization.add_marker" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add marker to layer images.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.selection.interface.LayerVisualization.add_polygon">
+<code class="descname">add_polygon</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/selection/interface.html#LayerVisualization.add_polygon"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.selection.interface.LayerVisualization.add_polygon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add polygon to each image.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.selection.interface.LayerVisualization.clear_markers">
+<code class="descname">clear_markers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/selection/interface.html#LayerVisualization.clear_markers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.selection.interface.LayerVisualization.clear_markers" title="Permalink to this definition">¶</a></dt>
+<dd><p>” Remove all markers.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.selection.interface.LayerVisualization.overlay">
+<code class="descname">overlay</code><span class="sig-paren">(</span><em>msg</em>, <em>s=18</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/selection/interface.html#LayerVisualization.overlay"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.selection.interface.LayerVisualization.overlay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Overlay string centered on image.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.selection.interface.LayerVisualization.remove_marker">
+<code class="descname">remove_marker</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/selection/interface.html#LayerVisualization.remove_marker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.selection.interface.LayerVisualization.remove_marker" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove marker from layer images.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.selection.interface.LayerVisualization.remove_polygon">
+<code class="descname">remove_polygon</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/selection/interface.html#LayerVisualization.remove_polygon"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.selection.interface.LayerVisualization.remove_polygon" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove polygon from each image.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.selection.interface.LayerVisualization.render_images">
+<code class="descname">render_images</code><span class="sig-paren">(</span><em>layer</em>, <em>cmap=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/selection/interface.html#LayerVisualization.render_images"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.selection.interface.LayerVisualization.render_images" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add blue, green, and red channels of layer to axes.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>layer (Layer) - RGB image layer</p>
+<p>cmap (matplotlib.colors.ColorMap)</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.selection.interface.LayerVisualization.update_marker">
+<code class="descname">update_marker</code><span class="sig-paren">(</span><em>color</em>, <em>markersize</em>, <em>ind=-1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/selection/interface.html#LayerVisualization.update_marker"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.selection.interface.LayerVisualization.update_marker" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update size and color of last added marker.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="flyqma.selection.interface.StackInterface">
+<em class="property">class </em><code class="descclassname">flyqma.selection.interface.</code><code class="descname">StackInterface</code><span class="sig-paren">(</span><em>stack</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/selection/interface.html#StackInterface"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.selection.interface.StackInterface" title="Permalink to this definition">¶</a></dt>
+<dd><p>Object for visualizing multiple layers in an image stack.</p>
+<p>Attributes:</p>
+<blockquote>
+<div><p>path (str) - layer path</p>
+<p>axes (array like) - axes for blue/red/green color channels</p>
+</div></blockquote>
+<dl class="method">
+<dt id="flyqma.selection.interface.StackInterface.build_interface">
+<code class="descname">build_interface</code><span class="sig-paren">(</span><em>stack</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/selection/interface.html#StackInterface.build_interface"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.selection.interface.StackInterface.build_interface" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build interface by adding interface for each layer.</p>
+<p>Args:</p>
+<blockquote>
+<div>stack (Stack) - image stack</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.selection.interface.StackInterface.load">
+<code class="descname">load</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/selection/interface.html#StackInterface.load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.selection.interface.StackInterface.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load from existing selection data.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="event-handling">
+<h2>Event Handling<a class="headerlink" href="#event-handling" title="Permalink to this headline">¶</a></h2>
+<p>Tools for managing GUI-mediated event-handling.</p>
+<span class="target" id="module-flyqma.selection.gui"></span><dl class="class">
+<dt id="flyqma.selection.gui.GUI">
+<em class="property">class </em><code class="descclassname">flyqma.selection.gui.</code><code class="descname">GUI</code><span class="sig-paren">(</span><em>stack</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/selection/gui.html#GUI"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.selection.gui.GUI" title="Permalink to this definition">¶</a></dt>
+<dd><p>GUI for manually selecting regions within each layer of an image stack.</p>
+<p>Following instantiation, run “GUI.connect()” to begin event handling.</p>
+<p>Key actions:</p>
+<blockquote>
+<div><p>Z: remove last added point</p>
+<p>M: reset all points in layer</p>
+<p>S: save selection</p>
+<p>X: disconnect and exit GUI</p>
+<p>N: mark layer as neurons+cones and exclude</p>
+<p>D: mark layer as duplicate and exclude</p>
+<p>E: mark layer as exemplar</p>
+</div></blockquote>
+<dl class="method">
+<dt id="flyqma.selection.gui.GUI.connect">
+<code class="descname">connect</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/selection/gui.html#GUI.connect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.selection.gui.GUI.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connect event handling.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.selection.gui.GUI.disconnect">
+<code class="descname">disconnect</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/selection/gui.html#GUI.disconnect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.selection.gui.GUI.disconnect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Disconnect event handling.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.selection.gui.GUI.exit">
+<code class="descname">exit</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/selection/gui.html#GUI.exit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.selection.gui.GUI.exit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Disconnect and exit GUI.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="flyqma.selection.gui.GUI.load">
+<em class="property">static </em><code class="descname">load</code><span class="sig-paren">(</span><em>stack</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/selection/gui.html#GUI.load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.selection.gui.GUI.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load selection GUI from file.</p>
+<p>Args:</p>
+<blockquote>
+<div>stack (Stack) - image stack</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div>gui (GUI) - disconnected gui</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.selection.gui.GUI.on_click">
+<code class="descname">on_click</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/selection/gui.html#GUI.on_click"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.selection.gui.GUI.on_click" title="Permalink to this definition">¶</a></dt>
+<dd><p>Click action: add point.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.selection.gui.GUI.on_key">
+<code class="descname">on_key</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/selection/gui.html#GUI.on_key"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.selection.gui.GUI.on_key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Key actions.</p>
+<blockquote>
+<div><p>Z: remove last added point</p>
+<p>M: reset all points in layer</p>
+<p>S: save selection</p>
+<p>X: disconnect and exit GUI</p>
+<p>N: mark layer as neurons+cones and exclude</p>
+<p>D: mark layer as duplicate and exclude</p>
+<p>E: mark layer as exemplar</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.selection.gui.GUI.save">
+<code class="descname">save</code><span class="sig-paren">(</span><em>image=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/selection/gui.html#GUI.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.selection.gui.GUI.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save selection path for each layer.</p>
+<p>Args:</p>
+<blockquote>
+<div>image (bool) - if True, save overall image of selections</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.selection.gui.GUI.which_layer">
+<code class="descname">which_layer</code><span class="sig-paren">(</span><em>event</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/selection/gui.html#GUI.which_layer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.selection.gui.GUI.which_layer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns layer ID where event took place.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/graphics/logo.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">INSTALLATION</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../start.html">GETTING STARTED</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filestructure.html">FILE STRUCTURE</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../documentation.html">DOCUMENTATION</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="data.html">Data Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="measurement.html">Measurement Module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Selection Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="annotation.html">Annotation Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bleedthrough.html">Bleedthrough Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="analysis.html">Analysis Module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">EXAMPLE USAGE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contact.html">CONTACT</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../documentation.html">Documentation</a><ul>
+      <li>Previous: <a href="measurement.html" title="previous chapter">Measurement Module</a></li>
+      <li>Next: <a href="annotation.html" title="next chapter">Annotation Module</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Amaral Lab.
+      
+      |
+      <a href="../_sources/modules/selection.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
