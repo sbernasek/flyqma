@@ -39,8 +39,8 @@
 <span id="start"></span><h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
 <p>The fastest way to familiarize yourself with <strong>Fly-QMA</strong> is to start with a working example. We recommend starting with the Fly-QMA <a class="reference external" href="https://github.com/sebastianbernasek/flyqma/blob/master/tutorial.ipynb">Tutorial</a>.</p>
 <p>Before working with your own microscopy data, we also suggest reading the sections below.</p>
-<div class="section" id="data-format">
-<h2>Data Format<a class="headerlink" href="#data-format" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="image-preparation">
+<h2>Image Preparation<a class="headerlink" href="#image-preparation" title="Permalink to this headline">¶</a></h2>
 <p><strong>Fly-QMA</strong> uses a hierarchical <a class="reference internal" href="filestructure.html#filestructure"><span class="std std-ref">file structure</span></a> that is organized into three levels:</p>
 <blockquote>
 <div><ol class="arabic simple">
@@ -75,8 +75,8 @@
 <p class="last">Image segmentation is performed on a layer-by-layer basis. Because cells often span several adjacent layers in a confocal z-stack, individual layers must be spaced far enough apart to avoid measuring the same cells twice. Overlapping layers may also be manually excluded using the provided <a class="reference internal" href="modules/selection.html#selection-docs"><span class="std std-ref">ROI Selector</span></a>.</p>
 </div>
 </div>
-<div class="section" id="loading-data">
-<h2>Loading Data<a class="headerlink" href="#loading-data" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="loading-images">
+<h2>Loading Images<a class="headerlink" href="#loading-images" title="Permalink to this headline">¶</a></h2>
 <p>All measurements and analyses are performed in place. This means that new subdirectories and files are added to a stack directory each time a new segmentation, measurement, annotation, bleedthrough correction, or region of interest selection is saved. Saving one of these operations will overwrite any existing files of the same type.</p>
 <p>To begin using <strong>Fly-QMA</strong>, create an <code class="docutils literal notranslate"><span class="pre">Experiment</span></code> instance by passing the <code class="docutils literal notranslate"><span class="pre">/experiment</span></code> path to the object constructor:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">experiment</span> <span class="o">=</span> <span class="n">Experiment</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s1">&#39;/experiment&#39;</span><span class="p">)</span>
@@ -143,8 +143,8 @@ See the <code class="docutils literal notranslate"><span class="pre">flyqma.meas
 </pre></div>
 </div>
 </div>
-<div class="section" id="data-processing">
-<h2>Data Processing<a class="headerlink" href="#data-processing" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="analysis">
+<h2>Analysis<a class="headerlink" href="#analysis" title="Permalink to this headline">¶</a></h2>
 <p>The data stored in the <code class="docutils literal notranslate"><span class="pre">layer.measurements</span></code> attribute and <code class="docutils literal notranslate"><span class="pre">measurements.hdf</span></code> file reflect raw measurements of mean pixel fluorecence intensity for each identified cell contour. These measurements may then be subject to one or more processing operations such as:</p>
 <blockquote>
 <div><ul class="simple">
@@ -233,10 +233,10 @@ See the <code class="docutils literal notranslate"><span class="pre">flyqma.meas
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">INSTALLATION</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">GETTING STARTED</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#data-format">Data Format</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#loading-data">Loading Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#image-preparation">Image Preparation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#loading-images">Loading Images</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#measuring-expression">Measuring Expression</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#data-processing">Data Processing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#analysis">Analysis</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="filestructure.html">FILE STRUCTURE</a></li>
