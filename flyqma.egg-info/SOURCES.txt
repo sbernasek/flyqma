@@ -19,7 +19,6 @@ flyqma/annotation/classification/mixtures.py
 flyqma/annotation/classification/visualization.py
 flyqma/annotation/mixtures/__init__.py
 flyqma/annotation/mixtures/bivariate.py
-flyqma/annotation/mixtures/pomegranate.py
 flyqma/annotation/mixtures/univariate.py
 flyqma/annotation/mixtures/visualization.py
 flyqma/annotation/model_selection/__init__.py

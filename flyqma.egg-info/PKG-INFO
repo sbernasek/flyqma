@@ -1,41 +1,41 @@
 Metadata-Version: 1.2
 Name: flyqma
-Version: 0.1.0
-Summary: Quantitative mosaic analysis of clonal subpopulations in the Drosophila eye.
+Version: 0.1
+Summary: Quantitative mosaic analysis of Drosophila imaginal discs.
 Home-page: https://sebastianbernasek.github.io/flyqma/
 Author: Sebastian Bernasek
-Author-email: sebastian@u.northwestern.com
+Author-email: sebastian@u.northwestern.edu
 License: MIT
 Description: Fly-QMA
         =======
         
-        **Fly-QMA** is part of the **NU FlyEye** platform for studying gene expression in the developing *Drosophila* eye. The package enables Quantitative Mosaic Analysis (QMA) - that is, it helps users compare expression levels between distinct clonal subpopulations within the eye epithelium.
+        **Fly-QMA** is part of the **NU FlyEye** platform for quantitative analysis of *Drosophila* imaginal discs. The package enables Quantitative Mosaic Analysis (QMA) - that is, it helps users quantify and analyze expression patterns in mosaic tissues.
         
-        Expression patterns are typically identified by comparing the fluorescence of target gene reporters between groups of cells. Fly-QMA helps quantify these differences in reporter expression. Quantification entails measuring fluorescence intensities by analyzing experimentally collected images of fixed eye discs. Such measurements may then used to identify and compare distinct subpopulations within the eye field.
+        Expression patterns are typically identified by comparing the fluorescence of target gene reporters between groups of cells. Fly-QMA helps quantify these differences in reporter expression. Quantification entails measuring fluorescence intensities by analyzing images of imaginal discs. These measurements may then used to detect and analyze spatial patterns within each image.
         
-        Given confocal microscopy data, the Fly-QMA package facilitates:
+        Given confocal microscopy data, Fly-QMA provides:
         
-          - **Segmentation.** Detect cell nuclei within a microscope image
+          - **Segmentation.** Detect cell nuclei within each image
         
           - **Measurement.** Quantify reporter expression levels
         
           - **Bleedthrough Control.** Correct for fluorescence bleedthrough
         
-          - **Annotation.** Identify distinct subpopulations of cells
+          - **Annotation.** Label distinct subpopulations of cells
         
           - **ROI Definition.** Manually define regions of interest
         
           - **Comparison.** Compare expression levels between subpopulations
         
-        Please refer to the [documentation](https://sebastianbernasek.github.io/flyqma/index.html#) page for tips on getting started with analyzing your data.
+        Please visit the [Fly-QMA homepage](https://sebastianbernasek.github.io/flyqma) for tips on getting started.
         
         
         Installation
         ============
         
-        You will first need a working environment running Python 3.6+ or later, after which you can download the [latest distribution](https://github.com/sebastianbernasek/clones/archive/v0.1-beta.tar.gz) and install via ``pip``:
+        Installing Fly-QMA is easy. Set up a working environment running Python 3.6+, then install via  ``pip``:
         
-            pip install flyqma-1.0.tar.gz
+            pip install flyqma
         
         
         Getting Started
@@ -51,12 +51,6 @@ Description: Fly-QMA
         
          - [Our Fly-QMA manuscript](https://github.com/sebastianbernasek/flyqma_ms)
          - [Our study](https://github.com/sebastianbernasek/pnt_yan_ratio) of Pnt and Yan expression during retinal patterning in *Drosophila*.
-        
-        
-        Authors
-        =======
-        
-        [Sebastian Bernasek](https://github.com/sebastianbernasek)
         
 Platform: UNKNOWN
 Requires-Python: >=3

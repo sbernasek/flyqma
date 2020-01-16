@@ -7,7 +7,7 @@ from setuptools import find_packages
 
 setup(
     name='flyqma',
-    version='0.1.0',
+    version='0.1',
     author='Sebastian Bernasek',
     author_email='sebastian@u.northwestern.edu',
     packages=find_packages(exclude=('tests',)),
@@ -33,6 +33,5 @@ setup(
         "cython >= 0.22.1",
         "joblib >= 0.9.0b4",
         "pyyaml"
-    ],
-    cmdclass={'install': install},
+    ]
 )
