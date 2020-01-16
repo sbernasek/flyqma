@@ -8,11 +8,11 @@
 Installation
 ============
 
-After downloading the `latest distribution <https://github.com/sebastianbernasek/flyqma/archive/v1.0.tar.gz>`_, the simplest method is to install via ``pip``:
+Install via ``pip``:
 
 .. code-block:: bash
 
-   pip install flyqma-1.0.tar.gz
+   pip install flyqma
 
 
 Dependencies
