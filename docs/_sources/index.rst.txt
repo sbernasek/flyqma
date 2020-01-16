@@ -4,7 +4,7 @@
    :alt: nulogo
    :target: https://amaral.northwestern.edu/
 
-=======
+
 Fly-QMA
 =======
 
@@ -25,14 +25,15 @@ Given confocal microscopy data, the package facilitates:
 
   - **Comparison.** Compare expression levels between subpopulations
 
-To see Fly-QMA in action, check out the `FlyQMA manuscript <https://github.com/sebastianbernasek/flyqma_ms>`_ and `our study <https://github.com/sebastianbernasek/pnt_yan_ratio>`_ of Pnt and Yan expression during retinal patterning in *Drosophila*.
 
-To get started with your own data:
+Installation
+============
+
+Setup a working environment with Python 3.6+, then install via ``pip``:
 
 .. code-block:: bash
 
    pip install flyqma
-
 
 
 .. toctree::
