@@ -9,7 +9,7 @@
 Documentation
 =============
 
-**Fly-QMA** is organized into several complementary submodules. Please follow the table of contents below for detailed descriptions of their respective functionalities.
+**Fly-QMA** is organized into several complementary submodules, all of which utilize a standard :ref:`file structure <filestructure>`. Please follow the table of contents below for detailed descriptions of the modules and their respective functionalities.
 
 .. toctree::
    :maxdepth: 1
