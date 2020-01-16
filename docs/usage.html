@@ -1,0 +1,208 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Example Usage &#8212; flyqma v0.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="File Structure" href="filestructure.html" />
+    <link rel="prev" title="Getting Started" href="start.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <a class="reference external image-reference" href="https://amaral.northwestern.edu/"><img alt="nulogo" class="align-right" src="_images/Northwestern_purple_RGB.png" style="width: 30%;" /></a>
+<div class="section" id="example-usage">
+<h1>Example Usage<a class="headerlink" href="#example-usage" title="Permalink to this headline">¶</a></h1>
+<p><strong>Fly-QMA</strong> provides a wide range of functionality for measuring and analyzing reporter fluorescence in mosaic imaginal discs. A brief introduction to some basic operations is provided below. For detailed usage instructions please see the <a class="reference internal" href="documentation.html#documentation"><span class="std std-ref">documentation</span></a>.</p>
+<div class="section" id="loading-images">
+<h2>Loading Images<a class="headerlink" href="#loading-images" title="Permalink to this headline">¶</a></h2>
+<p>Load an experiment from a directory containing subdirectories of <code class="docutils literal notranslate"><span class="pre">.tif</span></code> files:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">flyqma.data</span> <span class="kn">import</span> <span class="n">experiments</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="s1">&#39;./data&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">experiment</span> <span class="o">=</span> <span class="n">experiments</span><span class="o">.</span><span class="n">Experiment</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Select an individual image stack:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">stack_id</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stack</span> <span class="o">=</span> <span class="n">experiment</span><span class="p">[</span><span class="n">stack_id</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Select an individual layer:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">layer_id</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">layer</span> <span class="o">=</span> <span class="n">stack</span><span class="p">[</span><span class="n">layer_id</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="roi-selection">
+<span id="gui"></span><h2>ROI Selection<a class="headerlink" href="#roi-selection" title="Permalink to this headline">¶</a></h2>
+<p>The Fly-QMA package includes a matplot-lib based GUI for selecting a particular region of interest within an image layer. The interface consists of a grid of images in which rows correspond to layers and columns correspond to each of the available fluorescence channels. To launch the GUI for an individual image stack:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">flyqma.selection.gui</span> <span class="kn">import</span> <span class="n">GUI</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># load a stack, including its image</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stack</span> <span class="o">=</span> <span class="n">experiment</span><span class="o">.</span><span class="n">load_stack</span><span class="p">(</span><span class="n">stack_ind</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># create the GUI interface (a still image)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gui</span> <span class="o">=</span> <span class="n">GUI</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">stack</span><span class="p">)</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># connect interface to user input</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gui</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Regions of interest are selected by drawing a selection boundary that encloses them. A selection boundary is defined by a series of sequentially-added points. Click on a layer image to add a point to that layer’s selection boundary. Points may be added to any of a layer’s fluorescence channels, and will automatically appear withing all other fluorescence channels for that layer. The most recently added point appears as a large red dot, while all other points appear as small yellow dots. Once three or more dots are present in an image layer, the current selection boundary is displayed with a yellow line. Once completed, a given layer might look like:</p>
+<div class="figure align-center" id="id1">
+<img alt="selection boundary" src="_images/example_path.jpg" style="width: 383.0px; height: 128.0px;" />
+<p class="caption"><span class="caption-text"><strong>Example:</strong> Selection boundary for a layer</span></p>
+</div>
+<p>The GUI offers some basic key commands:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>Z: remove last added point
+M: remove all points in layer
+S: save selection <span class="o">(</span><span class="k">for</span> all layers in stack<span class="o">)</span>
+X: <span class="nb">exit</span> GUI
+</pre></div>
+</div>
+<p>When a selection is saved, a boolean <em>selected</em> attribute is added to the layer’s cell measurement data indicating whether or not a given cell lies within the layer’s selection path. The <em>selected</em> attribute may then be used to filter the measurement data during subsequent analysis. The GUI also allows the user to mark entire layers for exclusion using two additional key commands:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>D: mark layer as *excluded*
+</pre></div>
+</div>
+<p>Layers marked <em>excluded</em> will be masked by a transparent overlay. When these layers are saved, the <em>selected</em> attribute is set to False for all of their constituent cell measurements.</p>
+<p>A saved GUI may be reopened via the <code class="docutils literal notranslate"><span class="pre">GUI.load</span></code> method, at which point further adjustments may be made to each layer.</p>
+<div class="figure align-center" id="id2">
+<img alt="example gui" src="_images/example_gui.jpg" style="width: 383.0px; height: 503.0px;" />
+<p class="caption"><span class="caption-text"><strong>Example:</strong> A completed selection</span></p>
+</div>
+<p>See the ROI selection <a class="reference internal" href="modules/selection.html#selection-docs"><span class="std std-ref">documentation</span></a> for additional details.</p>
+</div>
+<div class="section" id="expression-measurement">
+<h2>Expression Measurement<a class="headerlink" href="#expression-measurement" title="Permalink to this headline">¶</a></h2>
+<p>Segment an image layer, measure the segment properties, and save the results:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">layer</span><span class="o">.</span><span class="n">segment</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">layer</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>See the measurement <a class="reference internal" href="modules/measurement.html#measurement-docs"><span class="std std-ref">documentation</span></a> for additional details and parameters needed to customize the segmentation routine to suit your data.</p>
+</div>
+<div class="section" id="bleedthrough-correction">
+<h2>Bleedthrough Correction<a class="headerlink" href="#bleedthrough-correction" title="Permalink to this headline">¶</a></h2>
+<p>Perform bleedthrough correction:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">flyqma.bleedthrough.correction</span> <span class="kn">import</span> <span class="n">LayerCorrection</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">correction</span> <span class="o">=</span> <span class="n">LayerCorrection</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">correction</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>See the bleedthrough correction <a class="reference internal" href="modules/bleedthrough.html#bleedthrough-docs"><span class="std std-ref">documentation</span></a> for additional details and a complete list of available parameters.</p>
+</div>
+<div class="section" id="data-aggregation">
+<h2>Data Aggregation<a class="headerlink" href="#data-aggregation" title="Permalink to this headline">¶</a></h2>
+<p>Aggregate all measurement data from an experiment:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">experiment</span><span class="o">.</span><span class="n">aggregate_measurements</span><span class="p">()</span>
+</pre></div>
+</div>
+<p><strong>The processed cell measurement data are now ready for analysis!</strong></p>
+</div>
+<div class="section" id="additional-examples">
+<h2>Additional Examples<a class="headerlink" href="#additional-examples" title="Permalink to this headline">¶</a></h2>
+<p>For real usage examples, please refer to the <a class="reference external" href="https://github.com/sebastianbernasek/flyqma_ms">FlyQMA manuscript</a> and the <a class="reference external" href="https://github.com/sebastianbernasek/pnt_yan_ratio">our study</a> of Pnt and Yan expression in the developing eye.</p>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/graphics/logo.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">INSTALLATION</a></li>
+<li class="toctree-l1"><a class="reference internal" href="start.html">GETTING STARTED</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">EXAMPLE USAGE</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#loading-images">Loading Images</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#roi-selection">ROI Selection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#expression-measurement">Expression Measurement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bleedthrough-correction">Bleedthrough Correction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-aggregation">Data Aggregation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#additional-examples">Additional Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="filestructure.html">FILE STRUCTURE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation.html">DOCUMENTATION</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contact.html">CONTACT</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="start.html" title="previous chapter">Getting Started</a></li>
+      <li>Next: <a href="filestructure.html" title="next chapter">File Structure</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Amaral Lab.
+      
+      |
+      <a href="_sources/usage.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
