@@ -8,10 +8,6 @@
 Fly-QMA
 =======
 
-.. code-block:: bash
-
-   pip install flyqma
-
 
 **Fly-QMA** is part of the **NU FlyEye** platform for studying gene expression in the developing *Drosophila* eye. The Fly-QMA package enables quantitative mosaic analysis (QMA) - that is, it helps compare expression levels between distinct clonal subpopulations within *Drosophila* imaginal discs. While developed for analyzing the eye epithelium, Fly-QMA is also applicable to wing and leg imaginal discs.
 
@@ -30,6 +26,13 @@ Given confocal microscopy data, the package facilitates:
   - **Comparison.** Compare expression levels between subpopulations
 
 To see Fly-QMA in action, check out the `FlyQMA manuscript <https://github.com/sebastianbernasek/flyqma_ms>`_ and `our study <https://github.com/sebastianbernasek/pnt_yan_ratio>`_ of Pnt and Yan expression during retinal patterning in *Drosophila*.
+
+To get started with your own data:
+
+.. code-block:: bash
+
+   pip install flyqma
+
 
 
 .. toctree::
