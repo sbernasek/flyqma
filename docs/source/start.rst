@@ -15,8 +15,8 @@ The fastest way to familiarize yourself with **Fly-QMA** is to start with a work
 Before working with your own microscopy data, we also suggest reading the sections below.
 
 
-Data Format
-------------
+Image Preparation
+-----------------
 
 **Fly-QMA** uses a hierarchical :ref:`file structure <filestructure>` that is organized into three levels:
 
@@ -56,8 +56,8 @@ Each **STACK** directory should contain one or more 2-D images of a unique tissu
    Image segmentation is performed on a layer-by-layer basis. Because cells often span several adjacent layers in a confocal z-stack, individual layers must be spaced far enough apart to avoid measuring the same cells twice. Overlapping layers may also be manually excluded using the provided :ref:`ROI Selector <selection_docs>`.
 
 
-Loading Data
-------------
+Loading Images
+--------------
 
 All measurements and analyses are performed in place. This means that new subdirectories and files are added to a stack directory each time a new segmentation, measurement, annotation, bleedthrough correction, or region of interest selection is saved. Saving one of these operations will overwrite any existing files of the same type.
 
@@ -140,8 +140,8 @@ Upon completion, the segmentation results and corresponding measurements may be 
    └── ... N
 
 
-Data Processing
----------------
+Analysis
+--------
 
 The data stored in the ``layer.measurements`` attribute and ``measurements.hdf`` file reflect raw measurements of mean pixel fluorecence intensity for each identified cell contour. These measurements may then be subject to one or more processing operations such as:
 
