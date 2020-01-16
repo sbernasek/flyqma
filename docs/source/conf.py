@@ -30,7 +30,7 @@ author = 'Sebastian Bernasek'
 # The short X.Y version
 version = ''
 # The full version, including alpha/beta/rc tags
-release = 'v0.1-beta'
+release = 'v0.1'
 
 
 # -- General configuration ---------------------------------------------------

@@ -5,7 +5,7 @@ Fly-QMA
 
 Expression patterns are typically identified by comparing the fluorescence of target gene reporters between groups of cells. Fly-QMA helps quantify these differences in reporter expression. Quantification entails measuring fluorescence intensities by analyzing images of imaginal discs. These measurements may then used to detect and analyze spatial patterns within each image.
 
-Given confocal microscopy data, Fly-QMA provides:
+Given confocal microscopy data, Fly-QMA facilitates:
 
   - **Segmentation.** Detect cell nuclei within each image
 
