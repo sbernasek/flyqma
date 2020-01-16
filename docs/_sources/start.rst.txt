@@ -43,7 +43,7 @@ Each **STACK** directory should contain one or more 2-D images of a unique tissu
    EXPERIMENT
    │
    ├── 0
-   │   └── 0.tif   # 3D image stack
+   │   └── 0.tif   # 3-D image with ZXYC orientation
    │
    ├── 1
    │   └── 1.tif
@@ -52,7 +52,7 @@ Each **STACK** directory should contain one or more 2-D images of a unique tissu
            └── N.tif
 
 
-.. warning (working with Z-stacks...)::
+.. warning::
    Image segmentation is performed on a layer-by-layer basis. Because cells often span several adjacent layers in a confocal z-stack, individual layers must be spaced far enough apart to avoid measuring the same cells twice. Overlapping layers may also be manually excluded using the provided :ref:`ROI Selector <selection_docs>`.
 
 
@@ -80,19 +80,19 @@ This instance will serve as a central hub for measuring and analyzing all of the
 
 The ``experiment.load_stack()`` method includes a ``full`` keyword argument that may be set to False in order to skip loading the stack's ``.tif`` file into memory. This offers some performance benefit when only saved measurement data are needed. Of course, loading the image data is necessary if any segmentation, measurement, region of interest selection, or bleedthrough correction operations are to be performed.
 
-To begin analyzing an image stack, layers must be added to the corresponding stack directory. The ``Stack.initialize()`` method creates a ``layers`` subdirectory containing an additional subdirectory for each layer in the 3D image stack. A stack metadata file is similarly added to the stack directory at this time, resulting in:
+To begin analyzing an image stack, layers must be added to the corresponding stack directory. The ``Stack.initialize()`` method creates a ``layers`` subdirectory containing an additional subdirectory for each **LAYER** in the 3D image stack. A stack metadata file is similarly added to the **STACK** directory at this time, resulting in:
 
 .. code-block:: bash
 
    EXPERIMENT
    │
-   ├── 0                   # First stack directory (individual tissue sample)
-   │   ├── 0.tif           # 3D image stack
+   ├── 0
+   │   ├── 0.tif
    │   ├── metadata.json   # stack metadata (number of layers, image bit depth, etc.)
    │   └── layers
-   │       ├── 0           # first layer directory
+   │       ├── 0           # first LAYER directory
    │       ├── 1
-   │       └── ... M       # Mth layer directory
+   │       └── ... M       # Mth LAYER directory
    │
    ├── 1
    └── ... N
@@ -122,14 +122,14 @@ Upon completion, the segmentation results and corresponding measurements may be 
 
    EXPERIMENT
    │
-   ├── 0                   # First stack directory (individual tissue sample)
-   │   ├── 0.tif           # 3D image
-   │   ├── metadata.json   # stack metadata (number of layers, image bit depth, etc.)
+   ├── 0
+   │   ├── 0.tif
+   │   ├── metadata.json
    │   └── layers
    │       ├── 0
    │       │   ├── metadata.json          # layer metadata (background channel, parameter values, etc.)
    │       │   ├── segmentation
-   │       │   │   ├── labels.npy         # segment labels mask (np.ndarray[int])
+   │       │   │   ├── labels.npy         # segmentation mask (np.ndarray[int])
    │       │   │   └── segmentation.png   # layer image overlayed with segment contours (optional)
    │       │   └── measurements
    │       │       ├── measurements.hdf   # raw expression measurements
