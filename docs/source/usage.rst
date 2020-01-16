@@ -11,8 +11,8 @@ Example Usage
 **Fly-QMA** provides a wide range of functionality for measuring and analyzing reporter fluorescence in mosaic imaginal discs. A brief introduction to some basic operations is provided below. For detailed usage instructions please see the :ref:`documentation <documentation>`.
 
 
-Loading image data
-------------------
+Loading Images
+--------------
 
 Load an experiment from a directory containing subdirectories of ``.tif`` files:
 
@@ -42,8 +42,8 @@ Select an individual layer:
 
 .. _gui:
 
-Region of Interest Selection GUI
---------------------------------
+ROI Selection
+-------------
 
 The Fly-QMA package includes a matplot-lib based GUI for selecting a particular region of interest within an image layer. The interface consists of a grid of images in which rows correspond to layers and columns correspond to each of the available fluorescence channels. To launch the GUI for an individual image stack:
 
@@ -103,8 +103,8 @@ See the ROI selection :ref:`documentation <selection_docs>` for additional detai
 
 
 
-Measuring expression
---------------------
+Expression Measurement
+----------------------
 
 Segment an image layer, measure the segment properties, and save the results:
 
