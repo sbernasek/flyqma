@@ -9,28 +9,26 @@ Fly-QMA
 =======
 
 
-**Fly-QMA** is part of the **NU FlyEye** platform for studying gene expression in the developing *Drosophila* eye. The Fly-QMA package enables quantitative mosaic analysis (QMA) - that is, it helps compare expression levels between distinct clonal subpopulations within *Drosophila* imaginal discs. While developed for analyzing the eye epithelium, Fly-QMA is also applicable to wing and leg imaginal discs.
+**Fly-QMA** is part of the **NU FlyEye** platform for quantitative analysis of *Drosophila* imaginal discs. The package enables Quantitative Mosaic Analysis (QMA) - that is, it helps users quantify and analyze expression patterns in mosaic tissues.
 
-Given confocal microscopy data, the package facilitates:
+Expression patterns are typically identified by comparing the fluorescence of target gene reporters between groups of cells. Fly-QMA helps quantify these differences in reporter expression. Quantification entails measuring fluorescence intensities by analyzing images of imaginal discs. These measurements may then used to detect and analyze spatial patterns within each image.
 
-  - **Segmentation.** Detect cell nuclei within a microscope image
+Given confocal microscopy data, Fly-QMA facilitates:
+
+  - **Segmentation.** Detect cell nuclei within each image
 
   - **Measurement.** Quantify reporter expression levels
 
   - **Bleedthrough Control.** Correct for fluorescence bleedthrough
 
-  - **Annotation.** Identify distinct subpopulations of cells
+  - **Annotation.** Label distinct subpopulations of cells
 
-  - **ROI Definition.** Manually define regions of interest within each image
+  - **ROI Definition.** Manually define regions of interest
 
   - **Comparison.** Compare expression levels between subpopulations
 
 
-To get started, set up an environment with Python 3.6+, then install via ``pip``:
-
-.. code-block:: bash
-
-   pip install flyqma
+To get started, simply ``pip install flyqma``
 
 
 .. toctree::
