@@ -1,0 +1,235 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Analysis Module &#8212; flyqma v0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Contact Us" href="../contact.html" />
+    <link rel="prev" title="Bleedthrough Module" href="bleedthrough.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <a class="reference external image-reference" href="https://amaral.northwestern.edu/"><img alt="nulogo" class="align-right" src="../_images/Northwestern_purple_RGB1.png" style="width: 30%;" /></a>
+<div class="section" id="analysis-module">
+<h1>Analysis Module<a class="headerlink" href="#analysis-module" title="Permalink to this headline">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">flyqma.analysis</span></code> provides several tools for statistically comparing measured fluorescence levels between subpopulations of cells.</p>
+<span class="target" id="module-flyqma.analysis.statistics"></span><dl class="class">
+<dt id="flyqma.analysis.statistics.CloneComparison">
+<em class="property">class </em><code class="descclassname">flyqma.analysis.statistics.</code><code class="descname">CloneComparison</code><span class="sig-paren">(</span><em>measurements</em>, <em>type1</em>, <em>type2</em>, <em>basis</em>, <em>label='genotype'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/analysis/statistics.html#CloneComparison"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.analysis.statistics.CloneComparison" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pairwise statistical comparison between two concurrent cell types.</p>
+<p>Attributes:</p>
+<blockquote>
+<div><p>label (str) - attribute used to define population labels</p>
+<p>type1 (str) - first label</p>
+<p>type2 (str) - second label</p>
+</div></blockquote>
+<p>Inherited attributes:</p>
+<blockquote>
+<div><p>x (pd.DataFrame) - measurements of first population</p>
+<p>y (pd.DataFrame) - measurements of second population</p>
+<p>basis (str) - attribute on which populations are compared</p>
+</div></blockquote>
+<dl class="method">
+<dt id="flyqma.analysis.statistics.CloneComparison.format_axis">
+<code class="descname">format_axis</code><span class="sig-paren">(</span><em>ax</em>, <em>colors=None</em>, <em>mode='violin'</em>, <em>ylabel=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/analysis/statistics.html#CloneComparison.format_axis"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.analysis.statistics.CloneComparison.format_axis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Format axis.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>ax (matplotlib.axes.AxesSubplot)</p>
+<p>colors (dict) - color for each box/violin keyed by label</p>
+<p>mode (str) - type of comparison, either ‘box’, ‘violin’, or ‘strip’</p>
+<p>ylabel (str) - label for y axis</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.analysis.statistics.CloneComparison.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><em>ax=None</em>, <em>colors=None</em>, <em>mode='violin'</em>, <em>ylabel=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/analysis/statistics.html#CloneComparison.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.analysis.statistics.CloneComparison.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Visualize comparison using seaborn box or violinplot.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>ax (matplotlib.axes.AxesSubplot)</p>
+<p>colors (dict) - color for each box/violin keyed by label</p>
+<p>mode (str) - type of comparison, either ‘box’, ‘violin’, or ‘strip’</p>
+<p>ylabel (str) - label for yaxis</p>
+<p>kwargs: keyword arguments for seaborn plotting function</p>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="flyqma.analysis.statistics.PairwiseComparison">
+<em class="property">class </em><code class="descclassname">flyqma.analysis.statistics.</code><code class="descname">PairwiseComparison</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>basis</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/analysis/statistics.html#PairwiseComparison"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.analysis.statistics.PairwiseComparison" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pairwise statistical comparison between measurements of two populations.</p>
+<p>Attributes:</p>
+<blockquote>
+<div><p>x (pd.DataFrame) - measurements of first population</p>
+<p>y (pd.DataFrame) - measurements of second population</p>
+<p>basis (str) - attribute on which populations are compared</p>
+</div></blockquote>
+<dl class="method">
+<dt id="flyqma.analysis.statistics.PairwiseComparison.compare">
+<code class="descname">compare</code><span class="sig-paren">(</span><em>test='MW'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/analysis/statistics.html#PairwiseComparison.compare"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.analysis.statistics.PairwiseComparison.compare" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run statistical test.</p>
+<p>Args:</p>
+<blockquote>
+<div>test (str) - name of test used, one of (‘KS’, ‘t’, ‘MW’)</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div>p (float) - p-value</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="flyqma.analysis.statistics.SummaryStatistics">
+<em class="property">class </em><code class="descclassname">flyqma.analysis.statistics.</code><code class="descname">SummaryStatistics</code><span class="sig-paren">(</span><em>control</em>, <em>perturbation</em>, <em>basis</em>, <em>label='celltype'</em>, <em>test='MW'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/analysis/statistics.html#SummaryStatistics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.analysis.statistics.SummaryStatistics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Summary of comparisons between mutant, heterozygote, and wildtype clones.</p>
+<p>Attributes:</p>
+<blockquote>
+<div><p>measurements (pd.DataFrame) - cell measurement data</p>
+<p>basis (str) - attribute on which clones are compared</p>
+<p>label (str) - attribute used to define population labels</p>
+<p>test (str) - name of test used, one of (‘KS’, ‘t’, ‘MW’)</p>
+</div></blockquote>
+<dl class="method">
+<dt id="flyqma.analysis.statistics.SummaryStatistics.compare_celltype">
+<code class="descname">compare_celltype</code><span class="sig-paren">(</span><em>condition</em>, <em>type1</em>, <em>type2</em>, <em>label='celltype'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/analysis/statistics.html#SummaryStatistics.compare_celltype"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.analysis.statistics.SummaryStatistics.compare_celltype" title="Permalink to this definition">¶</a></dt>
+<dd><p>Args:</p>
+<blockquote>
+<div><p>condition (str) - experimental condition, ‘control’ or ‘perturbation’</p>
+<p>type1 (str) - first cell type</p>
+<p>type2 (str) - second cell type</p>
+<p>label (str) - attribute used to define population labels</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div>p (float) - p value for comparison statistic</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.analysis.statistics.SummaryStatistics.report">
+<code class="descname">report</code><span class="sig-paren">(</span><em>pvals</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/analysis/statistics.html#SummaryStatistics.report"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.analysis.statistics.SummaryStatistics.report" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print summary of statistical comparisons for each condition.</p>
+<p>Args:</p>
+<blockquote>
+<div>pvals (dict) - {comparison: pvalue} pairs</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.analysis.statistics.SummaryStatistics.run">
+<code class="descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/analysis/statistics.html#SummaryStatistics.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.analysis.statistics.SummaryStatistics.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compare mutant vs heterozygous and heterozygous vs wildtype for both the control and perturbation conditions.</p>
+<p>Returns:</p>
+<blockquote>
+<div>pvals (dict) - {comparison: pvalue} pairs</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/graphics/logo.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">INSTALLATION</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../start.html">GETTING STARTED</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">EXAMPLE USAGE</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../documentation.html">DOCUMENTATION</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="data.html">Data Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="measurement.html">Measurement Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="selection.html">Selection Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="annotation.html">Annotation Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bleedthrough.html">Bleedthrough Module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Analysis Module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../contact.html">CONTACT</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../documentation.html">Documentation</a><ul>
+      <li>Previous: <a href="bleedthrough.html" title="previous chapter">Bleedthrough Module</a></li>
+      <li>Next: <a href="../contact.html" title="next chapter">Contact Us</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Amaral Lab.
+      
+      |
+      <a href="../_sources/modules/analysis.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
