@@ -26,10 +26,7 @@ Given confocal microscopy data, the package facilitates:
   - **Comparison.** Compare expression levels between subpopulations
 
 
-Installation
-============
-
-Setup a working environment with Python 3.6+, then install via ``pip``:
+To get started, set up an environment with Python 3.6+, then install via ``pip``:
 
 .. code-block:: bash
 
