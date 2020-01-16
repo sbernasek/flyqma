@@ -37,7 +37,6 @@ To get started, simply ``pip install flyqma``
 
    INSTALLATION <installation>
    GETTING STARTED <start>
-   FILE STRUCTURE <filestructure>
-   DOCUMENTATION <documentation>
    EXAMPLE USAGE <usage>
+   DOCUMENTATION <documentation>
    CONTACT <contact>
