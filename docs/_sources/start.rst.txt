@@ -12,37 +12,35 @@ Getting Started
 
 The fastest way to familiarize yourself with **Fly-QMA** is to start with a working example. We recommend starting with the Fly-QMA `Tutorial <https://github.com/sebastianbernasek/flyqma/blob/master/tutorial.ipynb>`_.
 
-Additionally, we suggest reading the sections below before working with your own microscopy data.
+Before working with your own microscopy data, we also suggest reading the sections below.
 
 
 Data Format
------------
+------------
 
-**Fly-QMA** requires one or more 2-D cross-sectional images of each eye disc. These images may be supplied in 3-D ``.tif`` format, but individual layers must be spaced far enough apart to avoid measuring the same cells twice. Regulary spacing between layers is not required. In the event that some layers do overlap, the region of interest :ref:`Selection GUI <selection_docs>` may be used to exclude duplicate or overlapping layers.
+**Fly-QMA** uses a hierarchical :ref:`file structure <filestructure>` that is organized into three levels:
 
+ 1. **EXPERIMENT**: One or more tissue samples imaged under the same conditions.
 
-.. warning::
-   **Fly-QMA** prioritizes high-throughput data collection by circumventing the time-intensive process of manually labeling individual cell contours. Because cells often span several adjacent layers in a confocal z-stack, and image segmentation is performed on a layer-by-layer basis, users must supply non-overlapping cross-sectional images of the eye field in order to avoid making duplicate measurements of the same cell. Alternatively, overlapping layers may be manually excluded using the included :ref:`Selection GUI <selection_docs>`.
+ 2. **STACK**: All images of a particular tissue sample, such as an individual z-stack.
 
+ 3. **LAYER**: All analysis relevant to a single 2-D image, such as an individual layer.
 
-Data Management
----------------
-
-**Fly-QMA** uses a :ref:`standardized file structure <filestructure>`. Microscopy data should be arranged into a collection of sequentially numbered "stack directories" that reside within a directory unique to a particular set of experimental conditions:
+Microscopy data should be arranged into a collection of sequentially numbered and zero-indexed **STACK** directories that reside within a particular **EXPERIMENT** directory:
 
 .. code-block:: bash
 
-   experiment
+   EXPERIMENT
    │
-   ├── 0         # First stack directory
+   ├── 0         # First STACK
    ├── 1
-   └── ... N     # Nth stack directory
+   └── ... N     # Nth STACK
 
-Each stack directory should contain a single ``.tif`` file depicting a *Drosophila* imaginal disc that has been marked with fluorescent reporters, dissected, and imaged:
+Each **STACK** directory should contain one or more 2-D images of a unique tissue sample. Images must be supplied in ``.tif`` format with ZXYC orientation, and must share the same name as the parent **STACK** directory, e.g. EXPERIMENT/1/1.tif. Each image file may depict a single layer, a regularly-spaced z-stack, or an irregularly-spaced collections of layers.
 
 .. code-block:: bash
 
-   experiment
+   EXPERIMENT
    │
    ├── 0
    │   └── 0.tif   # 3D image stack
@@ -53,7 +51,9 @@ Each stack directory should contain a single ``.tif`` file depicting a *Drosophi
    └── ... N
            └── N.tif
 
-Images may be regularly-spaced 3D z-stacks or irregularly-spaced 3D collections of one or more layers.
+
+.. warning (working with Z-stacks...)::
+   Image segmentation is performed on a layer-by-layer basis. Because cells often span several adjacent layers in a confocal z-stack, individual layers must be spaced far enough apart to avoid measuring the same cells twice. Overlapping layers may also be manually excluded using the provided :ref:`ROI Selector <selection_docs>`.
 
 
 Loading Data
@@ -84,9 +84,9 @@ To begin analyzing an image stack, layers must be added to the corresponding sta
 
 .. code-block:: bash
 
-   experiment
+   EXPERIMENT
    │
-   ├── 0                   # First stack directory (individual eye disc)
+   ├── 0                   # First stack directory (individual tissue sample)
    │   ├── 0.tif           # 3D image stack
    │   ├── metadata.json   # stack metadata (number of layers, image bit depth, etc.)
    │   └── layers
@@ -120,9 +120,9 @@ Upon completion, the segmentation results and corresponding measurements may be 
 
 .. code-block:: bash
 
-   experiment
+   EXPERIMENT
    │
-   ├── 0                   # First stack directory (individual eye disc)
+   ├── 0                   # First stack directory (individual tissue sample)
    │   ├── 0.tif           # 3D image
    │   ├── metadata.json   # stack metadata (number of layers, image bit depth, etc.)
    │   └── layers
@@ -153,7 +153,7 @@ The objects that perform these operations all behave in a similar manner. They a
 
 .. code-block:: bash
 
-    experiment
+    EXPERIMENT
     │
     ├── 0
     │   ├── 0.tif
@@ -183,7 +183,7 @@ Note that annotation models may also be fit to an entire stack, rather than to e
 
 .. code-block:: bash
 
-   experiment
+   EXPERIMENT
    │
    ├── 0
    │   ├── 0.tif

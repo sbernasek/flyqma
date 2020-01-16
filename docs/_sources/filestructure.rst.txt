@@ -10,9 +10,9 @@
 File Structure
 ==============
 
-**Fly-QMA** uses the standardized file structure outlined below. Fly-QMA will adhere to this structure automatically, creating and updating the various subdirectories and files as needed. However, it is also possible to integrate external analysess (such as a segmentation mask) into the Fly-QMA workflow by manually adding them to the standardized file structure.
+**Fly-QMA** uses a standardized file structure, and will automatically adhere to this format by creating and updating  various subdirectories and files as needed. It is also possible to integrate external analyses (such as a segmentation mask) into the Fly-QMA workflow by manually incorporating them in accordance with the standardized file structure outlined below.
 
-The standardized file structure is hierarchically organized into three levels:
+The file structure is hierarchically organized into three levels:
 
  1. **EXPERIMENT**: One or more tissue samples imaged under the same conditions.
 
@@ -35,8 +35,8 @@ Microscopy data should be arranged into a collection of **STACK** directories th
    └── ... N     # Nth STACK directory
 
 
-Z-Stacks
---------
+Image Stacks
+------------
 
 Each **STACK** directory contains various components pertinent to all images within the z-stack. These may include:
 

@@ -99,7 +99,7 @@ A saved GUI may be reopened via the ``GUI.load`` method, at which point further 
    **Example:** A completed selection
 
 
-See the selection :ref:`documentation <selection_docs>` for additional details.
+See the ROI selection :ref:`documentation <selection_docs>` for additional details.
 
 
 
