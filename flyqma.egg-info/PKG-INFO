@@ -1,8 +1,8 @@
-Metadata-Version: 1.0
+Metadata-Version: 1.2
 Name: flyqma
 Version: 0.1.0
 Summary: Quantitative mosaic analysis of clonal subpopulations in the Drosophila eye.
-Home-page: https://github.com/sebastianbernasek/flyqma
+Home-page: https://sebastianbernasek.github.io/flyqma/
 Author: Sebastian Bernasek
 Author-email: sebastian@u.northwestern.com
 License: MIT
@@ -59,3 +59,4 @@ Description: Fly-QMA
         [Sebastian Bernasek](https://github.com/sebastianbernasek)
         
 Platform: UNKNOWN
+Requires-Python: >=3

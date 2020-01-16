@@ -1,4 +1,4 @@
 python setup.py sdist;
-pip uninstall flyqma; 
-pip install dist/flyqma-0.1.0.tar.gz;
-
+twine upload dist/*;
+pip uninstall flyqma;
+pip install flyqma;
