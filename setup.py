@@ -3,6 +3,12 @@ from subprocess import call
 from distutils.core import setup
 from distutils.command.install import install as _install
 from setuptools import find_packages
+from os import path
+
+# read the contents of your README file
+this_directory = path.abspath(path.dirname(__file__))
+with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
+    long_description = f.read()
 
 
 setup(
@@ -15,7 +21,8 @@ setup(
     url='https://sebastianbernasek.github.io/flyqma/',
     license='MIT',
     description='Quantitative mosaic analysis of Drosophila imaginal discs.',
-    long_description=open('README.md').read(),
+    long_description=long_description,
+    long_description_content_type='text/markdown',
     python_requires='>=3',
     install_requires=[
         "tifffile >= 0.15.0",
