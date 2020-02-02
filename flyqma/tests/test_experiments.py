@@ -5,7 +5,7 @@ from flyqma.data import Experiment, Stack
 from .test_io import TestPaths
 
 
-class TestExperiment(TestPaths):
+class Test04_Experiment(TestPaths):
     """
     Tests for Experiment class.
     """
@@ -13,7 +13,7 @@ class TestExperiment(TestPaths):
     @classmethod
     def setUpClass(cls):
         """ Initialize test instance of Experiment. """
-        cls.experiment = Experiment(cls.exp_path)
+        cls.experiment = Experiment(cls.experiment_path)
         cls.experiment.initialize(bit_depth=cls.bit_depth)
 
     @classmethod

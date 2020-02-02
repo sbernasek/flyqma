@@ -3,6 +3,8 @@ from glob import glob
 import numpy as np
 import pandas as pd
 
+from ..utilities import UserPrompts
+
 from .stacks import Stack
 
 
@@ -49,6 +51,10 @@ class Experiment:
         # reset stack iterator count
         self.count = 0
 
+        # check if stacks have been initialized, if not prompt user
+        if not self.is_initialized:
+            self.prompt_initialization()
+
     def __getitem__(self, stack_id):
         """ Load stack. """
         return self.load_stack(stack_id, full=False)
@@ -67,6 +73,26 @@ class Experiment:
             return stack
         else:
             raise StopIteration
+
+    @property
+    def is_initialized(self):
+        """ Returns True if Experiment has been initialized. """
+        for stack_dir in self.stack_dirs.values():
+            if not Stack._check_if_initialized(stack_dir):
+                return False
+        return True
+
+    def prompt_initialization(self):
+        """ Ask user whether to initialize all stack directories. """
+        msg = 'Incomplete stack directories found. Initialize them?'
+        user_response = UserPrompts.boolean_prompt(msg)
+        if user_response:
+            msg = 'Please enter an image bit depth:'
+            bit_depth = UserPrompts.integer_prompt(msg)
+            if bit_depth is not None:
+                self.initialize(bit_depth)
+            else:
+                raise ValueError('User response not recognized, stacks have not been initialized.')
 
     def initialize(self, bit_depth):
         """

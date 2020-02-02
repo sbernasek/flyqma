@@ -9,6 +9,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from ..utilities import IO
+from ..utilities import UserPrompts
 from ..annotation import Annotation
 
 from .layers import Layer
@@ -237,10 +238,12 @@ class Stack(StackIO):
         self.layers_path = join(self.path, 'layers')
         self.annotator_path = join(self.path, 'annotation')
 
-        # initialize stack if layers directory doesn't exist
-        if not isdir(self.layers_path):
-            assert type(bit_depth) == int, 'Please specify a bit_depth.'
-            self.initialize(bit_depth=bit_depth)
+        # initialize stack
+        if not self.is_initialized:
+            if type(bit_depth) == int:
+                self.initialize(bit_depth=bit_depth)
+            else:
+                self.prompt_initialization()
 
         # load metadata
         self.load_metadata()
@@ -279,10 +282,42 @@ class Stack(StackIO):
         else:
             raise StopIteration
 
+    def prompt_initialization(self):
+        """ Ask user whether to initialize all stack directories. """
+        msg = '{:s} directory has not been initialized. Do it now?'.format(self.filename)
+        user_response = UserPrompts.boolean_prompt(msg)
+        if user_response:
+            msg = 'Please enter an image bit depth:'
+            bit_depth = UserPrompts.integer_prompt(msg)
+            if bit_depth is not None:
+                self.initialize(bit_depth=bit_depth)
+            else:
+                raise ValueError('Could not initialize stack because bit depth value was not recognized.')
+
+    @staticmethod
+    def _check_if_initialized(path):
+        """ Returns True if <path> contains an initialized stack directory. """
+        layers_complete = isdir(join(path, 'layers'))
+        metadata_complete = exists(join(path, 'metadata.json'))
+        if not (layers_complete and metadata_complete):
+            return False
+        else:
+            return True
+
+    @property
+    def is_initialized(self):
+        """ Returns True if Stack has been initialized. """
+        return self._check_if_initialized(self.path)
+
     @property
     def included(self):
         """ Indices of included layers. """
         return self.get_included_layers()
+
+    @property
+    def filename(self):
+        """ Stack filename. """
+        return self.path.split('/')[-1]
 
     @property
     def bit_depth(self):

@@ -7,9 +7,9 @@ from flyqma.data.layers import Layer
 from .test_io import TestPaths
 
 
-class TestStack(TestPaths):
+class Test02_Stack(TestPaths):
     """
-    Tests for Stack class.
+    Tests for Stack class instantiated from stack directory.
     """
 
     @classmethod
@@ -47,7 +47,42 @@ class TestStack(TestPaths):
             success = False
         self.assertTrue(success)
 
-    def test05_aggregation(self):
+    # def test05_load_segmentation_mask(self):
+    #     """ Load stack image. """
+    #     self.stack.load_image()
+    #     self.assertTrue(self.stack.stack is not None)
+
+    # def test05_train_annotator(self):
+    #     """ Load stack image. """
+    #     self.stack.load_image()
+    #     self.assertTrue(self.stack.stack is not None)
+
+    # def test06_apply_annotator(self):
+    #     """ Load stack image. """
+    #     self.stack.load_image()
+    #     self.assertTrue(self.stack.stack is not None)
+
+    # def test07_load_roi_mask(self):
+    #     """ Load stack image. """
+    #     self.stack.load_image()
+    #     self.assertTrue(self.stack.stack is not None)
+
+    # def test07_launch_roi_selector(self):
+    #     """ Load stack image. """
+    #     self.stack.load_image()
+    #     self.assertTrue(self.stack.stack is not None)
+
+    # def test07_launch_roi_selector(self):
+    #     """ Load stack image. """
+    #     self.stack.load_image()
+    #     self.assertTrue(self.stack.stack is not None)
+
+    # def test08_bleedthrough_correction(self):
+    #     """ Load stack image. """
+    #     self.stack.load_image()
+    #     self.assertTrue(self.stack.stack is not None)
+
+    def test09_aggregation(self):
         """ Collect measurements from all layers in stack. """
         data = self.stack.aggregate_measurements(raw=True)
         self.assertTrue(isinstance(data, DataFrame))
