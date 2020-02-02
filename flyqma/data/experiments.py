@@ -60,13 +60,25 @@ class Experiment:
 
     def __next__(self):
         """ Return next stack. """
-        if self.count < len(self.stacks):
+        if self.count < len(self.stack_ids):
             stack_id = self.stack_ids[self.count]
             stack = self.__getitem__(stack_id)
             self.count += 1
             return stack
         else:
             raise StopIteration
+
+    def initialize(self, bit_depth):
+        """
+        Initialize a collection of image stacks.
+
+        Args:
+
+            bit_depth (int) - bit depth of raw tif (e.g. 12 or 16). Value will be read from the stack metadata if None is provided. An error is raised if no value is found.
+
+        """
+        for stack_id in self.stack_ids:
+            _ = self.load_stack(stack_id, full=False, bit_depth=bit_depth)
 
     def load_stack(self, stack_id, full=False, **kwargs):
         """
