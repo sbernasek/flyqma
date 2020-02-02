@@ -36,8 +36,9 @@ class ImageScalar:
 
         """
         self.im = im
-        self.shape = im.shape[:2]
-        self.mask = np.ones_like(self.im, dtype=bool)
+        if im is not None:
+            self.shape = im.shape[:2]
+            self.mask = np.ones_like(self.im, dtype=bool)
         self.labels = labels
 
     def show(self,
@@ -69,6 +70,8 @@ class ImageScalar:
             fig (matplotlib.figures.Figure)
 
         """
+
+        assert self.im is not None, 'Image not loaded.'
 
         if ax is None:
             fig, ax = plt.subplots(figsize=figsize)

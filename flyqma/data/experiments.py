@@ -14,9 +14,9 @@ class Experiment:
 
         path (str) - path to experiment directory
 
-        _id (int) - experiment ID
+        _id (str) - name of experiment
 
-        stack_ids (list) - unique stack ids within experiment
+        stack_ids (list of str) - unique stack ids within experiment
 
         stack_dirs (dict) - {stack_id: stack_directory} tuples
 
@@ -74,7 +74,7 @@ class Experiment:
 
         Args:
 
-            stack_id (str or int) - stack to be loaded
+            stack_id (str or int) - desired stack
 
             full (bool) - if True, load full 3D image from tif file
 
@@ -105,7 +105,7 @@ class Experiment:
 
         Returns:
 
-            data (pd.Dataframe) - curated cell measurement data
+            data (pd.Dataframe) - curated cell measurement data, which is None if no measurement data are found
 
         """
 
@@ -114,6 +114,8 @@ class Experiment:
         for stack_id in self.stack_ids:
             stack = self.load_stack(stack_id, full=False)
             measurements = stack.aggregate_measurements(raw=raw)
+            if measurements is None:
+                continue
 
             # add stack index
             measurements['stack'] = stack._id
@@ -122,6 +124,10 @@ class Experiment:
 
             data.append(measurements)
             assert stack_id == stack._id, 'Stack IDs do not match.'
+
+        # return None if no data are found
+        if len(data) == 0:
+            return None
 
         # aggregate measurements
         data = pd.concat(data, join='outer', sort=False)

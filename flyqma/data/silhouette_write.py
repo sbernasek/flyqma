@@ -7,15 +7,15 @@ from scipy.spatial import qhull
 from skimage.measure import regionprops
 import PIL
 
-from flyeye.data.silhouette import SilhouetteData
+from .silhouette_read import ReadSilhouetteData
 
 from ..utilities import IO
 from ..validation.arguments import str2bool
 
 
-class SilhouetteIO:
+class WriteSilhouette:
     """
-    Methods for converting a stack to Silhouette readable format.
+    Methods for writing a stack to Silhouette readable format.
 
     The Silhouette container includes a FEED file:
 
@@ -30,7 +30,7 @@ class SilhouetteIO:
     @property
     def silhouette_path(self):
         """ Path to Silhouette directory. """
-        return join(self.path, '{:d}.silhouette'.format(self._id))
+        return join(self.path, '{:s}.silhouette'.format(self._id))
 
     def load_silhouette_labels(self):
         """
@@ -43,7 +43,7 @@ class SilhouetteIO:
         """
 
         # load silhouette data
-        silhouette = SilhouetteData(self.silhouette_path, recompile=True)
+        silhouette = ReadSilhouetteData(self.silhouette_path, recompile=True)
 
         # convert labels to numeric scale
         label_to_value = dict(M=0, H=1, W=2)
@@ -55,7 +55,7 @@ class SilhouetteIO:
     @property
     def _feed(self):
         return {
-            "layer_ids": list(range(self.depth)),
+            "layer_ids": list(range(self.stack_depth)),
             "orientation": {
                 "flip_about_xy": False,
                 "flip_about_yz": False},
@@ -116,9 +116,9 @@ class SilhouetteIO:
                 channel_dict=channel_dict)
 
 
-class SilhouetteLayerIO:
+class WriteSilhouetteLayer:
     """
-    Methods for converting a layer to Silhouette readable format. A layer file is structured as follows:
+    Methods for writing a Layer to Silhouette readable format. A layer file is structured as follows:
 
     LAYER_ID.json :
 
@@ -176,7 +176,7 @@ class SilhouetteLayerIO:
         # identify key maps for RGB channels
         mean_dict = {self._to_key(k): v for k, v in channel_dict.items()}
         std_dict = {k+'_std': v+'_std' for k, v in mean_dict.items()}
-        keys = ['ch{:d}'.format(x) for x in range(self.colordepth)] + list(mean_dict.values())
+        keys = ['ch{:d}'.format(x) for x in range(self.color_depth)] + list(mean_dict.values())
 
         # append RGB mean intensities to dataframe
         data[list(mean_dict.values())] = data[list(mean_dict.keys())]

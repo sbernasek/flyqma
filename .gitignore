@@ -19,3 +19,4 @@ notebooks/development/
 *.out
 *.toc
 todo.txt
+.eggs/

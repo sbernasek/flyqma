@@ -13,10 +13,10 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='flyqma',
-    version='0.2',
+    version='0.3',
     author='Sebastian Bernasek',
     author_email='sebastian@u.northwestern.edu',
-    packages=find_packages(exclude=('tests',)),
+    packages=find_packages(exclude=('tests', 'scripts', 'validation')),
     scripts=[],
     url='https://sebastianbernasek.github.io/flyqma/',
     license='MIT',
@@ -26,19 +26,21 @@ setup(
     python_requires='>=3',
     install_requires=[
         "tifffile >= 0.15.0",
-        "scipy >= 1.1.0",
+        "scipy >= 1.4.0",
         "scikit-image >= 0.14.0",
         "scikit-learn >= 0.19.2",
-        "statsmodels == 0.9.0",
+        "statsmodels >= 0.11.0",
         "pandas >= 0.23.3",
-        #"pillow >= 5.2.0",
         "tables >= 3.4.4",
         "seaborn >= 0.9.0",
         "networkx >= 2.1",
-        "infomap >= 1.0.0b8",
         "dill >= 0.2.8.2",
-        "cython >= 0.22.1",
         "joblib >= 0.9.0b4",
-        "pyyaml"
-    ]
+        "pyyaml",
+        #"cython >= 0.22.1",
+        #"pillow >= 5.2.0",
+        #"infomap >= 1.0.0b8"
+    ],
+    tests_require=['nose'],
+    test_suite='nose.collector'
 )

@@ -1,7 +1,7 @@
 import warnings
 from os.path import join, exists, abspath, isdir
-from os import mkdir
-from shutil import move
+from os import mkdir, remove
+from shutil import move, rmtree
 from glob import glob
 import gc
 import numpy as np
@@ -12,14 +12,18 @@ from ..utilities import IO
 from ..annotation import Annotation
 
 from .layers import Layer
-from .silhouette import SilhouetteIO
+from .silhouette_write import WriteSilhouette
+
+# filter numpy warnings
+warnings.filterwarnings("ignore", message="numpy.dtype size changed")
+warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
 
 
-class StackIO(SilhouetteIO):
+class StackIO(WriteSilhouette):
     """ Methods for saving and loading a Stack instance. """
 
     @staticmethod
-    def from_tif(filepath, bits=16):
+    def from_tif(filepath, bit_depth):
         """
         Initialize stack from tif <filepath>.
 
@@ -27,7 +31,7 @@ class StackIO(SilhouetteIO):
 
             path (str) - path to tif image file
 
-            bits (int) - bit depth
+            bit_depth (int) - bit depth of raw tif (e.g. 12 or 16)
 
         Returns:
 
@@ -44,10 +48,10 @@ class StackIO(SilhouetteIO):
         mkdir(path)
         move(filepath, join( path, '{:s}.tif'.format(_id)))
 
-        return Stack(path, bits=bits)
+        return Stack(path, bit_depth=bit_depth)
 
     @staticmethod
-    def from_silhouette(filepath, bits=16):
+    def from_silhouette(filepath, bit_depth):
         """
         Initialize stack from silhouette <filepath>.
 
@@ -55,7 +59,7 @@ class StackIO(SilhouetteIO):
 
             path (str) - path to silhouette file
 
-            bits (int) - bit depth
+            bit_depth (int) - bit depth of raw tif (e.g. 12 or 16)
 
         Returns:
 
@@ -63,18 +67,17 @@ class StackIO(SilhouetteIO):
 
         """
 
-        raise UserWarning('INCOMPLETE FUNCTIONALITY: TIF FILE REQUIRED.')
+        raise UserWarning('INCOMPLETE METHOD: TIF FILE REQUIRED.')
 
         path, ext = filepath.rsplit('.', maxsplit=1)
-        if ext.lower() != 'silhouette':
-            raise ValueError('Silhouette extension not recognized.')
+        assert ext.lower() == 'silhouette', 'Silhouette file not found.'
         _id = path.split('/')[-1]
 
         # make directory
         mkdir(path)
-        move(filepath, join( path, '{:s}.silhouette'.format(_id)))
+        move(filepath, join(path, '{:s}.silhouette'.format(_id)))
 
-        return Stack(path, bits=bits)
+        return Stack(path, bit_depth=bit_depth)
 
     def save(self):
         """ Save stack metadata and annotator. """
@@ -110,7 +113,7 @@ class StackIO(SilhouetteIO):
 
         # load tif, normalize pixel intensities, and convert to NWHC format
         stack = self._read_tif(self.tif_path)
-        stack = self._pixel_norm(stack, self.metadata['bits'])
+        stack = self._pixel_norm(stack, self.bit_depth)
         stack = self._to_NWHC(stack)
         self.stack = stack
 
@@ -171,13 +174,17 @@ class Stack(StackIO):
 
         path (str) - path to stack directory
 
-        _id (str or int) - stack ID
+        _id (str) - stack ID
 
         stack (np.ndarray[float]) - 3D RGB image stack
 
         shape (tuple) - stack dimensions, (depth, X, Y, 3)
 
-        depth (int) - number of layers in stack
+        bit_depth (int) - bit depth of raw tif image
+
+        stack_depth (int) - number of layers in stack
+
+        color_depth (int) - number of fluorescence channels in stack
 
         annotator (Annotation) - object that assigns labels to measurements
 
@@ -191,7 +198,7 @@ class Stack(StackIO):
 
     """
 
-    def __init__(self, path, bits=16):
+    def __init__(self, path, bit_depth=None):
         """
         Initialize stack from stack directory <path>.
 
@@ -199,7 +206,7 @@ class Stack(StackIO):
 
             path (str) - path to stack directory
 
-            bits (int) - bit depth
+            bit_depth (int) - bit depth of raw tif (e.g. 12 or 16). Value will be read from the stack metadata if None is provided. An error is raised if no value is found.
 
         """
 
@@ -208,26 +215,43 @@ class Stack(StackIO):
 
         # check if path is directly to a silhouette file
         if '.silhouette' in path.lower():
-            raise ValueError('This is a silhouette file, use the Stack.from_silhouette constructor.')
+            raise ValueError('Please use the Stack.from_silhouette constructor.')
         elif '.tif' in path.lower():
-            raise ValueError('This is a tif file, use the Stack.from_tif constructor.')
+            raise ValueError('Please use the Stack.from_tif constructor.')
 
         # set path to stack directory
         self._id = path.rsplit('/', maxsplit=1)[-1]
         self.path = abspath(path)
         self.stack = None
 
-        # set paths
-        self.tif_path = join(path, '{:s}.tif'.format(self._id))
+        # find image file (defaults to stack name, otherwise first tif found)
+        tifs = list(glob(join(path, '*.tif'), recursive=False))
+        assert len(tifs) > 0, 'No tif image files found in stack directory.'
+        default_path = join(path, '{:s}.tif'.format(self._id))
+        if default_path in tifs:
+            self.tif_path = default_path
+        else:
+            self.tif_path = tifs[0]
+
+        # set layer and annotator directory paths
         self.layers_path = join(self.path, 'layers')
         self.annotator_path = join(self.path, 'annotation')
 
         # initialize stack if layers directory doesn't exist
         if not isdir(self.layers_path):
-            self.initialize(bits=bits)
+            assert type(bit_depth) == int, 'Please specify a bit_depth.'
+            self.initialize(bit_depth=bit_depth)
 
         # load metadata
         self.load_metadata()
+
+        # if bit_depth was provided, make sure it's consistent
+        if bit_depth is None:
+            msg = 'bit_depth was neither specified nor found in the metadata.'
+            assert 'bits' in self.metadata.keys(), msg
+        else:
+            msg = 'Specified bit depth is inconsistent with existing metadata.'
+            assert self.bit_depth == bit_depth, msg
 
         # load annotator
         self.annotator = None
@@ -261,13 +285,18 @@ class Stack(StackIO):
         return self.get_included_layers()
 
     @property
-    def depth(self):
+    def bit_depth(self):
+        """ Bit depth of raw image. """
+        return self.metadata['bits']
+
+    @property
+    def stack_depth(self):
         """ Number of layers in stack. """
         return self.metadata['depth']
 
     @property
-    def colordepth(self):
-        """ Number of color channels in stack. """
+    def color_depth(self):
+        """ Number of fluorescence channels in stack. """
         return self.metadata['colordepth']
 
     @property
@@ -277,16 +306,16 @@ class Stack(StackIO):
 
     def get_included_layers(self):
         """ Returns indices of included layers. """
-        layers = [self.load_layer(i, graph=False) for i in range(self.depth)]
+        layers = [self.load_layer(i, graph=False) for i in range(self.stack_depth)]
         return [layer._id for layer in layers if layer.include]
 
-    def initialize(self, bits=16):
+    def initialize(self, bit_depth):
         """
         Initialize stack directory.
 
         Args:
 
-            bits (int) - tif resolution
+            bit_depth (int) - bit depth of raw tif (e.g. 12 or 16)
 
         """
 
@@ -294,12 +323,14 @@ class Stack(StackIO):
         if not exists(self.layers_path):
             mkdir(self.layers_path)
 
-        # load stack (to determine shape)
-        stack = self._read_tif(self.tif_path) / (2**bits)
+        # load stack (to determine shape), and check bit depth
+        raw = self._read_tif(self.tif_path)
+        assert raw.max() <= (2**bit_depth), 'Pixels exceed bit_depth.'
+        stack = raw / (2**bit_depth)
 
         # make metadata file
         io = IO()
-        self.metadata = dict(bits=bits, depth=stack.shape[0], params={})
+        self.metadata = dict(bits=bit_depth, depth=stack.shape[0], params={})
         io.write_json(join(self.path, 'metadata.json'), self.metadata)
 
         # load image
@@ -307,10 +338,20 @@ class Stack(StackIO):
             self.load_image()
 
         # initialize layers
-        for layer_id in range(self.depth):
+        for layer_id in range(self.stack_depth):
             layer_path = join(self.layers_path, '{:d}'.format(layer_id))
             layer = Layer(layer_path)
             layer.initialize()
+
+    def restore_directory(self):
+        """ Restore stack directory to original state. """
+        metadata_path = join(self.path, 'metadata.json')
+        for path in (metadata_path, self.layers_path):
+            if exists(path):
+                if isdir(path):
+                    rmtree(path)
+                else:
+                    remove(path)
 
     def segment(self, channel,
                 preprocessing_kws={},
@@ -333,6 +374,9 @@ class Stack(StackIO):
             min_area (int) - threshold for minimum segment size, px
 
         """
+
+        # make sure image is loaded
+        assert self.stack is not None, 'Image data not found. Use the load_image() method to read image data into memory.'
 
         for layer in self:
             _ = layer.segment(channel,
@@ -408,7 +452,7 @@ class Stack(StackIO):
 
         Returns:
 
-            data (pd.Dataframe) - processed cell measurement data
+            data (pd.Dataframe) - processed cell measurement data, which is None if no data are found
 
         """
 
@@ -420,6 +464,9 @@ class Stack(StackIO):
                                     process=process,
                                     full=False)
 
+            if layer.data is None:
+                continue
+
             # get raw or processed measurements
             if raw:
                 layer_data = layer.measurements
@@ -428,6 +475,10 @@ class Stack(StackIO):
 
             layer_data['layer'] = layer._id
             data.append(layer_data)
+
+        # return None if no data are found
+        if len(data) == 0:
+            return None
 
         # aggregate measurement data
         data = pd.concat(data, join='outer', sort=False)

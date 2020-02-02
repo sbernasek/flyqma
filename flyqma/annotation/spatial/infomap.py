@@ -1,5 +1,9 @@
 import numpy as np
-import infomap
+
+try:
+    import infomap
+except ImportError:
+    raise UserWarning('No infomap package found. In order to use the community-based annotation scheme you must install it via PyPI.')
 
 
 class InfoMap:

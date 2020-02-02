@@ -28,7 +28,7 @@ from ..bleedthrough import LayerCorrection
 
 # import image base class
 from .images import ImageMultichromatic
-from .silhouette import SilhouetteLayerIO
+from .silhouette_write import WriteSilhouetteLayer
 
 # import default parameters
 from .defaults import Defaults
@@ -196,7 +196,7 @@ class LayerVisualization:
                                 **kwargs)
 
 
-class LayerIO(SilhouetteLayerIO):
+class LayerIO(WriteSilhouetteLayer):
     """
     Methods for saving and loading Layer objects and their subcomponents.
     """
@@ -457,7 +457,7 @@ class Layer(LayerIO, ImageMultichromatic, LayerVisualization):
 
         path (str) - path to layer directory
 
-        _id (int) - layer ID
+        _id (int) - layer ID, must be an integer value
 
         subdirs (dict) - {name: path} pairs for all subdirectories
 
@@ -483,7 +483,9 @@ class Layer(LayerIO, ImageMultichromatic, LayerVisualization):
 
     Properties:
 
-        colordepth (int) - number of color channels
+        color_depth (int) - number of fluorescence channels
+
+        num_cells (int) - number of cells detected by segmentation
 
     """
 
@@ -523,16 +525,18 @@ class Layer(LayerIO, ImageMultichromatic, LayerVisualization):
         else:
             self.include = True
 
+        # initialize measurement data
+        self.data = None
+
         # set annotator
         self.annotator = annotator
 
         # load labels and instantiate image
-        if im is not None:
-            self.load_labels()
-            super().__init__(im, labels=self.labels)
+        self.load_labels()
+        super().__init__(im, labels=self.labels)
 
     @property
-    def colordepth(self):
+    def color_depth(self):
         """ Number of color channels. """
         return self.im.shape[-1]
 
@@ -540,6 +544,11 @@ class Layer(LayerIO, ImageMultichromatic, LayerVisualization):
     def bg_key(self):
         """ DataFrame key for background channel. """
         return self._to_key(self.metadata['bg'])
+
+    @property
+    def num_cells(self):
+        """ Number of cells detected by segmentation. """
+        return len(self.data) if self.data is not None else None
 
     def initialize(self):
         """
@@ -632,7 +641,7 @@ class Layer(LayerIO, ImageMultichromatic, LayerVisualization):
         bg = self.metadata['bg']
 
         # apply normalization to each foreground channel
-        for fg in range(self.colordepth):
+        for fg in range(self.color_depth):
             if fg == bg:
                 continue
             fg_key = self._to_key(fg)

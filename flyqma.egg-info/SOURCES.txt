@@ -46,7 +46,8 @@ flyqma/data/defaults.py
 flyqma/data/experiments.py
 flyqma/data/images.py
 flyqma/data/layers.py
-flyqma/data/silhouette.py
+flyqma/data/silhouette_read.py
+flyqma/data/silhouette_write.py
 flyqma/data/stacks.py
 flyqma/measurement/__init__.py
 flyqma/measurement/measure.py
@@ -61,6 +62,9 @@ flyqma/scripts/update_format.py
 flyqma/selection/__init__.py
 flyqma/selection/gui.py
 flyqma/selection/interface.py
+flyqma/tests/__init__.py
+flyqma/tests/test_io.py
+flyqma/tests/test_stacks.py
 flyqma/utilities/__init__.py
 flyqma/utilities/io.py
 flyqma/utilities/kde.py
