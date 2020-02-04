@@ -298,12 +298,11 @@
 
 <dl class="method">
 <dt id="flyqma.data.layers.Layer.define_roi">
-<code class="sig-name descname">define_roi</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">roi_mask_path=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer.define_roi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer.define_roi" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">define_roi</code><span class="sig-paren">(</span><em class="sig-param">data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer.define_roi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer.define_roi" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds a “selected” attribute to measurements dataframe. The attribute is True for cells that fall within the ROI.</p>
 <p>Args:</p>
 <blockquote>
 <div><p>data (pd.DataFrame) - processed measurement data</p>
-<p>roi_mask_path (str) - path to ROI mask, stored in a 2D boolean array container with the same dimensions as the layer image.</p>
 </div></blockquote>
 </dd></dl>
 
@@ -311,6 +310,32 @@
 <dt id="flyqma.data.layers.Layer.has_trained_annotator">
 <em class="property">property </em><code class="sig-name descname">has_trained_annotator</code><a class="headerlink" href="#flyqma.data.layers.Layer.has_trained_annotator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns True if trained annotator is available.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.Layer.import_roi_mask">
+<code class="sig-name descname">import_roi_mask</code><span class="sig-paren">(</span><em class="sig-param">path</em>, <em class="sig-param">save=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer.import_roi_mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer.import_roi_mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Import external ROI mask and use it to label measurement data.</p>
+<p>Provided mask must contain a 2-D boolean array with the same dimensions as the raw image. True values denote the ROI. The mask may only contain a single contiguous ROI.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>path (str) - path to ROI mask</p>
+<p>save (bool) - if True, copy ROI mask to stack directory</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.Layer.import_segmentation_mask">
+<code class="sig-name descname">import_segmentation_mask</code><span class="sig-paren">(</span><em class="sig-param">path</em>, <em class="sig-param">channel</em>, <em class="sig-param">save=True</em>, <em class="sig-param">save_image=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer.import_segmentation_mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer.import_segmentation_mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Import external segmentation mask and use it to generate measurements.</p>
+<p>Provided mask must contain a 2-D array of positive integers in which a values of zero denotes the image background.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>path (str) - path to segmentation mask</p>
+<p>channel (int) - fluorescence channel used for segmentation</p>
+<p>save (bool) - if True, copy segmentation to stack directory</p>
+<p>save_image (bool) - if True, save segmentation image</p>
+</div></blockquote>
 </dd></dl>
 
 <dl class="method">
@@ -329,6 +354,12 @@
 <dl class="method">
 <dt id="flyqma.data.layers.Layer.is_measured">
 <em class="property">property </em><code class="sig-name descname">is_measured</code><a class="headerlink" href="#flyqma.data.layers.Layer.is_measured" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if measurement data are available.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.Layer.is_segmented">
+<em class="property">property </em><code class="sig-name descname">is_segmented</code><a class="headerlink" href="#flyqma.data.layers.Layer.is_segmented" title="Permalink to this definition">¶</a></dt>
 <dd><p>True if measurement data are available.</p>
 </dd></dl>
 
@@ -421,7 +452,7 @@
 </div></blockquote>
 <p>Returns:</p>
 <blockquote>
-<div><p>background (ImageScalar) - background image post-processing</p>
+<div><p>background (ImageScalar) - background image (after processing)</p>
 </div></blockquote>
 </dd></dl>
 

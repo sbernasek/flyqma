@@ -35,28 +35,53 @@
   <a class="reference external image-reference" href="https://amaral.northwestern.edu/"><img alt="nulogo" class="align-right" src="_images/Northwestern_purple_RGB.png" style="width: 30%;" /></a>
 <div class="section" id="example-usage">
 <h1>Example Usage<a class="headerlink" href="#example-usage" title="Permalink to this headline">¶</a></h1>
-<p><strong>Fly-QMA</strong> provides a wide range of functionality for measuring and analyzing reporter fluorescence in mosaic imaginal discs. A brief introduction to some basic operations is provided below. For detailed usage instructions please see the <a class="reference internal" href="documentation.html#documentation"><span class="std std-ref">documentation</span></a>.</p>
+<p><strong>Fly-QMA</strong> provides a wide range of functionality for measuring and analyzing mosaic imaginal discs. A brief introduction to some basic operations is provided below. For API details please see the <a class="reference internal" href="documentation.html#documentation"><span class="std std-ref">documentation</span></a>.</p>
 <div class="section" id="loading-images">
 <h2>Loading Images<a class="headerlink" href="#loading-images" title="Permalink to this headline">¶</a></h2>
-<p>Load an experiment from a directory containing subdirectories of <code class="docutils literal notranslate"><span class="pre">.tif</span></code> files:</p>
+<p>We recommend first organizing your images in accordance with our recommended hierarchical <a class="reference internal" href="filestructure.html#filestructure"><span class="std std-ref">file structure</span></a>. In the examples below, <code class="docutils literal notranslate"><span class="pre">./data</span></code> would contain several subdirectories, each of which contains a single <code class="docutils literal notranslate"><span class="pre">.tif</span></code> file. Once everything is in place, get started by creating an <code class="docutils literal notranslate"><span class="pre">Experiment</span></code> instance. This will serve as the entry-point for managing your data in Fly-QMA.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">flyqma.data</span> <span class="kn">import</span> <span class="n">experiments</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="s1">&#39;./data&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">experiment</span> <span class="o">=</span> <span class="n">experiments</span><span class="o">.</span><span class="n">Experiment</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Select an individual image stack:</p>
+<p>Lower levels of the data hierarchy may then be accessed in a top-down manner. Methods acting upon lower level instances are executed in place, meaning you won’t lose progress by iterating across instances or by coming back to a given instance at a different time.</p>
+<p>Select a specific image stack:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">stack_id</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">stack</span> <span class="o">=</span> <span class="n">experiment</span><span class="p">[</span><span class="n">stack_id</span><span class="p">]</span>
 </pre></div>
 </div>
-<p>Select an individual layer:</p>
+<p>Select a specific layer:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">layer_id</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">layer</span> <span class="o">=</span> <span class="n">stack</span><span class="p">[</span><span class="n">layer_id</span><span class="p">]</span>
 </pre></div>
 </div>
+<p>Select a specific fluorescence channel:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">channel_id</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">channel</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">channel_id</span><span class="p">)</span>
+</pre></div>
 </div>
-<div class="section" id="roi-selection">
-<span id="gui"></span><h2>ROI Selection<a class="headerlink" href="#roi-selection" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="segmenting-an-image">
+<h2>Segmenting an Image<a class="headerlink" href="#segmenting-an-image" title="Permalink to this headline">¶</a></h2>
+<p>Segment an image layer, measure the segment properties, and save the results:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">background_channel</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">layer</span><span class="o">.</span><span class="n">segment</span><span class="p">(</span><span class="n">background_channel</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">layer</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>See the measurement <a class="reference internal" href="modules/measurement.html#measurement-docs"><span class="std std-ref">documentation</span></a> for additional details and parameters needed to customize the segmentation routine to suit your data.</p>
+</div>
+<div class="section" id="importing-a-segmentation-mask">
+<h2>Importing a Segmentation Mask<a class="headerlink" href="#importing-a-segmentation-mask" title="Permalink to this headline">¶</a></h2>
+<p>Fly-QMA also supports importing an externally generated segmentation mask in which integer values denote segment membership on a pixel-by-pixel basis. The discrete mask must be a two-dimensional array whose dimensions match those of the raw microscope image. Use the <code class="docutils literal notranslate"><span class="pre">save=True</span></code> argument to incorporate the segmentation indefinitely.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">segmentation_mask_path</span> <span class="o">=</span> <span class="s1">&#39;./segmentation.npy&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">background_channel</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">layer</span><span class="o">.</span><span class="n">import_segmentation_mask</span><span class="p">(</span><span class="n">segmentation_mask_path</span><span class="p">,</span> <span class="n">background_channel</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="defining-a-roi">
+<span id="gui"></span><h2>Defining a ROI<a class="headerlink" href="#defining-a-roi" title="Permalink to this headline">¶</a></h2>
 <p>The Fly-QMA package includes a matplot-lib based GUI for selecting a particular region of interest within an image layer. The interface consists of a grid of images in which rows correspond to layers and columns correspond to each of the available fluorescence channels. To launch the GUI for an individual image stack:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">flyqma.selection.gui</span> <span class="kn">import</span> <span class="n">GUI</span>
 
@@ -90,14 +115,13 @@ Q: <span class="nb">exit</span> GUI
 <p>A saved GUI may be reopened via the <code class="docutils literal notranslate"><span class="pre">GUI.load</span></code> method, at which point further adjustments may be made to each layer.</p>
 <p>See the ROI selection <a class="reference internal" href="modules/selection.html#selection-docs"><span class="std std-ref">documentation</span></a> for additional details.</p>
 </div>
-<div class="section" id="expression-measurement">
-<h2>Expression Measurement<a class="headerlink" href="#expression-measurement" title="Permalink to this headline">¶</a></h2>
-<p>Segment an image layer, measure the segment properties, and save the results:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">layer</span><span class="o">.</span><span class="n">segment</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">layer</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+<div class="section" id="importing-a-roi-mask">
+<h2>Importing a ROI Mask<a class="headerlink" href="#importing-a-roi-mask" title="Permalink to this headline">¶</a></h2>
+<p>Fly-QMA also supports importing an externally generated mask in which binary values define the ROI. The binary mask must be a two-dimensional array whose dimensions match those of the raw microscope image. Use the <code class="docutils literal notranslate"><span class="pre">save=True</span></code> argument to incorporate the ROI indefinitely.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">roi_mask_path</span> <span class="o">=</span> <span class="s1">&#39;./roi_mask.npy&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">layer</span><span class="o">.</span><span class="n">import_roi_mask</span><span class="p">(</span><span class="n">roi_mask_path</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>See the measurement <a class="reference internal" href="modules/measurement.html#measurement-docs"><span class="std std-ref">documentation</span></a> for additional details and parameters needed to customize the segmentation routine to suit your data.</p>
 </div>
 <div class="section" id="bleedthrough-correction">
 <h2>Bleedthrough Correction<a class="headerlink" href="#bleedthrough-correction" title="Permalink to this headline">¶</a></h2>
@@ -150,8 +174,10 @@ Q: <span class="nb">exit</span> GUI
 <li class="toctree-l1"><a class="reference internal" href="start.html">GETTING STARTED</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">EXAMPLE USAGE</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#loading-images">Loading Images</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#roi-selection">ROI Selection</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#expression-measurement">Expression Measurement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#segmenting-an-image">Segmenting an Image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#importing-a-segmentation-mask">Importing a Segmentation Mask</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#defining-a-roi">Defining a ROI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#importing-a-roi-mask">Importing a ROI Mask</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#bleedthrough-correction">Bleedthrough Correction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#data-aggregation">Data Aggregation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#additional-examples">Additional Examples</a></li>

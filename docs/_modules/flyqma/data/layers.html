@@ -774,7 +774,7 @@
         <span class="n">vertices</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">sort_clockwise</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">borders</span><span class="o">.</span><span class="n">nonzero</span><span class="p">()))</span>
         <span class="k">return</span> <span class="n">vertices</span><span class="o">.</span><span class="n">T</span></div>
 
-<div class="viewcode-block" id="Layer.define_roi"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.layers.Layer.define_roi">[docs]</a>    <span class="k">def</span> <span class="nf">define_roi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">roi_mask_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Layer.define_roi"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.layers.Layer.define_roi">[docs]</a>    <span class="k">def</span> <span class="nf">define_roi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Adds a &quot;selected&quot; attribute to measurements dataframe. The attribute is True for cells that fall within the ROI.</span>
 
@@ -782,26 +782,58 @@
 
 <span class="sd">            data (pd.DataFrame) - processed measurement data</span>
 
-<span class="sd">            roi_mask_path (str) - path to ROI mask, stored in a 2D boolean array container with the same dimensions as the layer image.</span>
-
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">include</span><span class="p">:</span>
 
-            <span class="c1"># if path is provided, read the provided mask</span>
-            <span class="k">if</span> <span class="n">roi_mask_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">roi_vertices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_roi_mask</span><span class="p">(</span><span class="n">roi_mask_path</span><span class="p">)</span>
-
-            <span class="c1"># load ROI vertices from file</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">io</span> <span class="o">=</span> <span class="n">IO</span><span class="p">()</span>
-                <span class="n">roi_vertices</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">read_npy</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subdirs</span><span class="p">[</span><span class="s1">&#39;selection&#39;</span><span class="p">],</span><span class="s1">&#39;selection.npy&#39;</span><span class="p">))</span>
+            <span class="c1"># load ROI vertices</span>
+            <span class="n">io</span> <span class="o">=</span> <span class="n">IO</span><span class="p">()</span>
+            <span class="n">roi_vertices</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">read_npy</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subdirs</span><span class="p">[</span><span class="s1">&#39;selection&#39;</span><span class="p">],</span><span class="s1">&#39;selection.npy&#39;</span><span class="p">))</span>
 
             <span class="c1"># apply mask</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_apply_roi_vertices</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xykey</span><span class="p">,</span> <span class="n">roi_vertices</span><span class="p">)</span>
 
         <span class="k">else</span><span class="p">:</span>
             <span class="n">data</span><span class="p">[</span><span class="s1">&#39;selected&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="Layer.import_roi_mask"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.layers.Layer.import_roi_mask">[docs]</a>    <span class="k">def</span> <span class="nf">import_roi_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Import external ROI mask and use it to label measurement data.</span>
+
+<span class="sd">        Provided mask must contain a 2-D boolean array with the same dimensions as the raw image. True values denote the ROI. The mask may only contain a single contiguous ROI.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            path (str) - path to ROI mask</span>
+
+<span class="sd">            save (bool) - if True, copy ROI mask to stack directory</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">),</span> <span class="s1">&#39;File does not exist.&#39;</span>
+
+        <span class="c1"># read mask and make sure it&#39;s valid</span>
+        <span class="n">io</span> <span class="o">=</span> <span class="n">IO</span><span class="p">()</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">read_npy</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">mask</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="o">&gt;=</span><span class="mi">0</span> <span class="ow">and</span> <span class="n">mask</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="o">&lt;=</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;Mask is not boolean.&#39;</span>
+        <span class="k">assert</span> <span class="n">mask</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s1">&#39;Mask dimensions are incorrect.&#39;</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
+
+        <span class="c1"># convert mask to vertices and apply to measurement data</span>
+        <span class="n">vertices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mask_to_vertices</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_apply_roi_vertices</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xykey</span><span class="p">,</span> <span class="n">vertices</span><span class="p">)</span>
+
+        <span class="c1"># save ROI mask to stack directory</span>
+        <span class="k">if</span> <span class="n">save</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">make_subdir</span><span class="p">(</span><span class="s1">&#39;selection&#39;</span><span class="p">)</span>
+            <span class="n">selection_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">subdirs</span><span class="p">[</span><span class="s1">&#39;selection&#39;</span><span class="p">]</span>
+            <span class="n">io</span> <span class="o">=</span> <span class="n">IO</span><span class="p">()</span>
+            <span class="n">io</span><span class="o">.</span><span class="n">write_npy</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">selection_path</span><span class="p">,</span> <span class="s1">&#39;selection.npy&#39;</span><span class="p">),</span> <span class="n">vertices</span><span class="p">)</span>
+            <span class="n">md</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">include</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">io</span><span class="o">.</span><span class="n">write_json</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">selection_path</span><span class="p">,</span> <span class="s1">&#39;md.json&#39;</span><span class="p">),</span> <span class="n">md</span><span class="p">)</span>
+
+            <span class="c1"># update measurements</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">save_processed_data</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="Layer.apply_correction"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.layers.Layer.apply_correction">[docs]</a>    <span class="k">def</span> <span class="nf">apply_correction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1076,7 +1108,7 @@
 
 <span class="sd">        Returns:</span>
 
-<span class="sd">            background (ImageScalar) - background image post-processing</span>
+<span class="sd">            background (ImageScalar) - background image (after processing)</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -1090,7 +1122,8 @@
         <span class="n">segmentation_kw</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">preprocessing_kws</span><span class="o">=</span><span class="n">preprocessing_kws</span><span class="p">,</span>
                                <span class="n">seed_kws</span><span class="o">=</span><span class="n">seed_kws</span><span class="p">,</span>
                                <span class="n">seg_kws</span><span class="o">=</span><span class="n">seg_kws</span><span class="p">,</span>
-                               <span class="n">min_area</span><span class="o">=</span><span class="n">min_area</span><span class="p">)</span>
+                               <span class="n">min_area</span><span class="o">=</span><span class="n">min_area</span><span class="p">,</span>
+                               <span class="n">imported</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">][</span><span class="s1">&#39;segmentation_kw&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">segmentation_kw</span>
 
         <span class="c1"># extract and preprocess background</span>
@@ -1111,6 +1144,57 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">measure</span><span class="p">()</span>
 
         <span class="k">return</span> <span class="n">background</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_segmented</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; True if measurement data are available. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">measurements</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="Layer.import_segmentation_mask"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.layers.Layer.import_segmentation_mask">[docs]</a>    <span class="k">def</span> <span class="nf">import_segmentation_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span>
+                            <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                            <span class="n">save_image</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Import external segmentation mask and use it to generate measurements.</span>
+
+<span class="sd">        Provided mask must contain a 2-D array of positive integers in which a values of zero denotes the image background.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            path (str) - path to segmentation mask</span>
+
+<span class="sd">            channel (int) - fluorescence channel used for segmentation</span>
+
+<span class="sd">            save (bool) - if True, copy segmentation to stack directory</span>
+
+<span class="sd">            save_image (bool) - if True, save segmentation image</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">),</span> <span class="s1">&#39;File does not exist.&#39;</span>
+
+        <span class="n">io</span> <span class="o">=</span> <span class="n">IO</span><span class="p">()</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">read_npy</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+        <span class="n">int_types</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">mask</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">in</span> <span class="n">int_types</span><span class="p">,</span> <span class="s1">&#39;Mask does not contain integers.&#39;</span>
+        <span class="k">assert</span> <span class="n">mask</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="s1">&#39;Mask dimensions are incorrect.&#39;</span>
+        <span class="k">assert</span> <span class="n">mask</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;Mask contains values less than zero.&#39;</span>
+
+        <span class="c1"># set segmentation mask and generate measurements</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">labels</span> <span class="o">=</span> <span class="n">mask</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;bg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">channel</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">measure</span><span class="p">()</span>
+
+        <span class="c1"># optionally copy mask to stack directory</span>
+        <span class="k">if</span> <span class="n">save</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">][</span><span class="s1">&#39;segmentation_kw&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">imported</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">save_metadata</span><span class="p">()</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">make_subdir</span><span class="p">(</span><span class="s1">&#39;segmentation&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">save_segmentation</span><span class="p">(</span><span class="n">save_image</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">make_subdir</span><span class="p">(</span><span class="s1">&#39;measurements&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">save_measurements</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="Layer.measure"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.layers.Layer.measure">[docs]</a>    <span class="k">def</span> <span class="nf">measure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
