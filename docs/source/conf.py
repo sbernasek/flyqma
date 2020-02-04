@@ -97,6 +97,11 @@ html_theme_options = {
     #'logo_name': False,
     #'logo_text_align': 'center',
 
+    #github
+    'github_user': 'sebastianbernasek',
+    'github_repo': 'flyqma',
+    'github_banner': True,
+
     # sidebar
     'sidebar_collapse': True,
     'page_width': '1000px',
