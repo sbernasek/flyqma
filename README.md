@@ -39,7 +39,7 @@ See the [Fly-QMA tutorial](https://github.com/sebastianbernasek/flyqma/blob/mast
 Examples
 ========
 
-For additional examples of complete projects utilizing Fly-QMA and the entire **NU FlyEye** platform, check out:
+For examples of complete projects utilizing Fly-QMA and the entire **NU FlyEye** platform, check out:
 
- - [Our Fly-QMA manuscript](https://github.com/sebastianbernasek/flyqma_ms)
- - [Our study](https://github.com/sebastianbernasek/pnt_yan_ratio) of Pnt and Yan expression during retinal patterning in *Drosophila*.
+ - [Our Fly-QMA manuscript](https://doi.org/10.1101/775783)
+ - [Our study](https://doi.org/10.1101/430744) of Pnt and Yan expression during retinal patterning in *Drosophila*.
