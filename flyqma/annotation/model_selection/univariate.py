@@ -98,6 +98,7 @@ class UnivariateModelSelection(SelectionIO, ModelSelectionVisualization):
     def __init__(self, values, attribute,
                  min_num_components=3,
                  max_num_components=8,
+                 num_labels=3,
                  models=None):
         """
         Perform model selection by choosing the model that minimizes BIC score.
@@ -112,6 +113,8 @@ class UnivariateModelSelection(SelectionIO, ModelSelectionVisualization):
 
             max_num_components (int) - maximum number of components in mixture
 
+            num_labels (int) - maximum number of unique labels to be assigned
+
             models (dict) - pre-fitted Classification instances keyed by number of components
 
         """
@@ -120,6 +123,7 @@ class UnivariateModelSelection(SelectionIO, ModelSelectionVisualization):
         self.attribute = attribute
         self.min_num_components = min_num_components
         self.max_num_components = max_num_components
+        self.num_labels = num_labels
         self.num_components = range(min_num_components, max_num_components+1)
 
         # fit models
@@ -128,11 +132,11 @@ class UnivariateModelSelection(SelectionIO, ModelSelectionVisualization):
         self._models = models
 
     @staticmethod
-    def fit_model(values, num_components, **kwargs):
+    def fit_model(values, num_components, num_labels, **kwargs):
         """ Fit model with specified number of components. """
         return UnivariateMixtureClassifier(values,
                                     num_components=num_components,
-                                    num_labels=num_components,
+                                    num_labels=num_labels,
                                     **kwargs)
 
     def fit_models(self):
@@ -145,7 +149,9 @@ class UnivariateModelSelection(SelectionIO, ModelSelectionVisualization):
         # fit models
         models_dict = {}
         for num_components in self.num_components:
-            model = self.fit_model(self.values, num_components, **kwargs)
+            model = self.fit_model(self.values,
+                                   num_components,
+                                   self.num_labels, **kwargs)
             models_dict[num_components] = model
 
         return models_dict
@@ -156,7 +162,8 @@ class UnivariateModelSelection(SelectionIO, ModelSelectionVisualization):
         return {
             'attribute': self.attribute,
             'min_num_components': self.min_num_components,
-            'max_num_components': self.max_num_components}
+            'max_num_components': self.max_num_components,
+            'num_labels': self.num_labels}
 
     @property
     def models(self):

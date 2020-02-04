@@ -265,7 +265,7 @@ class Stack(StackIO):
 
     def __getitem__(self, layer_id):
         """ Load layer. """
-        return self.load_layer(layer_id, graph=True, process=False, full=True)
+        return self.load_layer(layer_id, graph=True, use_cache=True, full=True)
 
     def __iter__(self):
         """ Iterate across included layers. """
@@ -308,6 +308,16 @@ class Stack(StackIO):
     def is_initialized(self):
         """ Returns True if Stack has been initialized. """
         return self._check_if_initialized(self.path)
+
+    @property
+    def is_segmented(self):
+        """ True if segmentation is complete. """
+        return self.aggregate_measurements() is not None
+
+    @property
+    def is_annotated(self):
+        """ True if annotation is complete. """
+        return self.annotator is not None
 
     @property
     def included(self):
@@ -423,7 +433,11 @@ class Stack(StackIO):
             # save layer measurements and segmentation
             layer.save()
 
-    def train_annotator(self, attribute, save=False, logratio=True, **kwargs):
+    def train_annotator(self, attribute,
+                        save=False,
+                        logratio=True,
+                        num_labels=3,
+                        **kwargs):
         """
         Train an Annotation model on all layers in this stack.
 
@@ -434,6 +448,8 @@ class Stack(StackIO):
             save (bool) - if True, save annotator and model selection routine
 
             logratio (bool) - if True, weight edges by relative attribute value
+
+            num_labels (int) - number of allowable unique labels
 
             kwargs: keyword arguments for Annotation, including:
 
@@ -449,6 +465,10 @@ class Stack(StackIO):
 
         """
 
+        # make sure measurement data are available
+        if not self.is_segmented:
+            raise RuntimeError('Measurement data not available, please run segmentation first.')
+
         # build graph for each layer
         graphs = []
         for layer_id in self.included:
@@ -461,7 +481,7 @@ class Stack(StackIO):
                 layer.save_metadata()
 
         # train annotator
-        annotator = Annotation(attribute, **kwargs)
+        annotator = Annotation(attribute, num_labels=num_labels, **kwargs)
         selector = annotator.train(*graphs)
         self.annotator = annotator
 
@@ -472,22 +492,30 @@ class Stack(StackIO):
 
             # annotate measurements
             for layer in self:
-                layer.annotate(layer.data)
+                layer.annotate()
                 layer.save_processed_data()
 
-    def aggregate_measurements(self, raw=False, process=False):
+    def aggregate_measurements(self,
+                               selected_only=False,
+                               exclude_boundary=False,
+                               raw=False,
+                               use_cache=True):
         """
         Aggregate measurements from each included layer.
 
         Args:
 
+            selected_only (bool) - if True, exclude cells not marked for inclusion
+
+            exclude_boundary (bool) - if True, exclude cells on clone boundaries
+
             raw (bool) - if True, aggregate raw measurements
 
-            process (bool) - if True, apply processing to raw measurements
+            use_cache (bool) - if True, used available cached measurement data
 
         Returns:
 
-            data (pd.Dataframe) - processed cell measurement data, which is None if no data are found
+            data (pd.Dataframe) - measurement data (None if unavailable)
 
         """
 
@@ -495,11 +523,12 @@ class Stack(StackIO):
         data = []
         for layer_id in self.included:
             layer = self.load_layer(layer_id,
-                                    graph=process,
-                                    process=process,
+                                    graph=(not use_cache),
+                                    use_cache=use_cache,
                                     full=False)
 
-            if layer.data is None:
+            # skip layers without measurements
+            if not layer.is_measured:
                 continue
 
             # get raw or processed measurements
@@ -510,6 +539,7 @@ class Stack(StackIO):
 
             layer_data['layer'] = layer._id
             data.append(layer_data)
+            assert layer_id == layer._id, 'Layer IDs do not match.'
 
         # return None if no data are found
         if len(data) == 0:
@@ -519,13 +549,23 @@ class Stack(StackIO):
         data = pd.concat(data, join='outer', sort=False)
         data = data.set_index(['layer', 'segment_id'])
 
+        # exclude cells outside the ROI
+        if selected_only:
+            assert 'selected' in data.columns, 'ROI not defined.'
+            data = data[data.selected]
+
+        # exclude cells on the border of labeled regions
+        if exclude_boundary:
+            assert 'boundary' in data.columns, 'Cannot exclude boundary regions because no regions have been defined. Annotate the stack then try again.'
+            data = data[~data.boundary]
+
         # load manual labels from silhouette
         if exists(self.silhouette_path):
             data = data.join(self.load_silhouette_labels())
 
         return data
 
-    def load_layer(self, layer_id=0, graph=True, process=False, full=True):
+    def load_layer(self, layer_id=0, graph=True, use_cache=True, full=True):
         """
         Load individual layer.
 
@@ -535,7 +575,7 @@ class Stack(StackIO):
 
             graph (bool) - if True, load layer graph
 
-            process (bool) - if True, re-process the layer measurement data
+            use_cache (bool) - if True, use cached layer measurement data
 
             full (bool) - if True, load fully labeled RGB image
 
@@ -558,6 +598,6 @@ class Stack(StackIO):
         layer = Layer(layer_path, im, self.annotator)
 
         # load layer
-        layer.load(process=process, graph=graph)
+        layer.load(use_cache=use_cache, graph=graph)
 
         return layer

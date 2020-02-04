@@ -12,8 +12,9 @@ class BivariateModelSelection(UnivariateModelSelection):
         return BivariateMixtureClassifier.load(path)
 
     @staticmethod
-    def fit_model(values, num_components, **kwargs):
+    def fit_model(values, num_components, num_labels, **kwargs):
         """ Fit model with specified number of components. """
         return BivariateMixtureClassifier(values,
                                         num_components=num_components,
+                                        num_labels=num_labels,
                                         **kwargs)

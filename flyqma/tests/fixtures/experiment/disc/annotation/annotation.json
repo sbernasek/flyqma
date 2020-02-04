@@ -1,0 +1,8 @@
+{
+	"attribute": "ch0",
+	"max_num_components": 3,
+	"min_num_components": 3,
+	"num_labels": 3,
+	"sampler_kwargs": {},
+	"sampler_type": "radial"
+}

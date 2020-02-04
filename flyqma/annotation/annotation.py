@@ -90,8 +90,6 @@ class Annotation(AnnotationIO):
 
         attribute (str) - attribute used to determine labels
 
-    Parameters:
-
         sampler_type (str) - either 'radial', 'neighbors', 'community'
 
         sampler_kwargs (dict) - keyword arguments for sampler
@@ -99,6 +97,10 @@ class Annotation(AnnotationIO):
         min_num_components (int) - minimum number of mixture components
 
         max_num_components (int) - maximum number of mixture components
+
+        num_labels (int) - maximum number of unique labels to be assigned
+
+    Parameters:
 
         kwargs: keyword arguments for Classifier
 
@@ -108,7 +110,8 @@ class Annotation(AnnotationIO):
                  sampler_type='radial',
                  sampler_kwargs={},
                  min_num_components=3,
-                 max_num_components=10):
+                 max_num_components=10,
+                 num_labels=3):
         """
         Instantiate annotation object.
 
@@ -124,12 +127,15 @@ class Annotation(AnnotationIO):
 
             max_num_components (int) - maximum number of mixture components
 
+            num_labels (int) - maximum number of unique labels to be assigned
+
         """
         self.attribute = attribute
         self.sampler_type = sampler_type
         self.sampler_kwargs = sampler_kwargs
         self.min_num_components = min_num_components
         self.max_num_components = max_num_components
+        self.num_labels = num_labels
 
     def __call__(self, graph, **kwargs):
         """ Returns labels for a graph of measurements. """
@@ -221,7 +227,8 @@ class Annotation(AnnotationIO):
         selector = BivariateModelSelection(data,
             keys,
             min_num_components=self.min_num_components,
-            max_num_components=self.max_num_components)
+            max_num_components=self.max_num_components,
+            num_labels=self.num_labels)
 
         # store BIC-optimal model
         self.classifier = selector.BIC_optimal

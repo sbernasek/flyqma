@@ -1,4 +1,4 @@
-from unittest import TestCase
+from unittest.mock import patch
 from os.path import join, exists
 
 from flyqma.data import Experiment, Stack
@@ -7,14 +7,15 @@ from .test_io import TestPaths
 
 class Test04_Experiment(TestPaths):
     """
-    Tests for Experiment class.
+    Tests for Experiment instance.
     """
 
     @classmethod
     def setUpClass(cls):
         """ Initialize test instance of Experiment. """
-        cls.experiment = Experiment(cls.experiment_path)
-        cls.experiment.initialize(bit_depth=cls.bit_depth)
+        with patch('builtins.input', side_effect=['yes', 12]):
+            experiment = Experiment(cls.experiment_path)
+        cls.experiment = experiment
 
     @classmethod
     def tearDownClass(cls):

@@ -12,19 +12,15 @@ class GUI(StackInterface):
 
     Key actions:
 
-        Z: remove last added point
+        T: remove last added point
 
-        M: reset all points in layer
+        Y: reset all points in layer
 
-        S: save selection
+        E: exclude entire layer
 
-        X: disconnect and exit GUI
+        W: save ROI data
 
-        N: mark layer as neurons+cones and exclude
-
-        D: mark layer as duplicate and exclude
-
-        E: mark layer as exemplar
+        Q: disconnect and exit GUI
 
     """
 
@@ -115,54 +111,40 @@ class GUI(StackInterface):
         """
         Key actions.
 
-            Z: remove last added point
+            T: remove last added point
 
-            M: reset all points in layer
+            Y: reset all points in layer
 
-            S: save selection
+            E: exclude entire layer
 
-            X: disconnect and exit GUI
+            W: save ROI data
 
-            N: mark layer as neurons+cones and exclude
-
-            D: mark layer as duplicate and exclude
-
-            E: mark layer as exemplar
+            Q: disconnect and exit GUI
 
         """
 
         row = self.which_layer(event)
 
         # save and disconnect
-        if event.key == 's':
+        if event.key == 'w':
             self.save()
 
         # save and disconnect
-        if event.key == 'x':
+        elif event.key == 'q':
             try:
                 self.exit()
             except Exception as error:
                 self.traceback.append(error)
 
-        # mark as excluded and exit
-        elif event.key == 'n':
-            row.include = False
-            row.overlay('NEURONS\n&\nCONES')
-
-        # mark as duplicate and exit
-        elif event.key == 'd':
-            row.include = False
-            row.duplicate = True
-            row.overlay('DUPLICATE')
-
-        # mark as exemplar
+        # mark for exclusion
         elif event.key == 'e':
-            row.exemplar = True
+            row.include = False
+            row.overlay('EXCLUDED')
 
         # undo
-        elif event.key == 'z':
+        elif event.key == 't':
             row.undo()
 
         # clear
-        elif event.key == 'm':
+        elif event.key == 'y':
             row.clear()

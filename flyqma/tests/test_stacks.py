@@ -1,4 +1,5 @@
-from unittest import TestCase
+from unittest.mock import patch
+
 from os.path import join, exists
 from pandas import DataFrame
 
@@ -9,13 +10,15 @@ from .test_io import TestPaths
 
 class Test02_Stack(TestPaths):
     """
-    Tests for Stack class instantiated from stack directory.
+    Tests for Stack instance.
     """
 
     @classmethod
     def setUpClass(cls):
         """ Initialize test instance of Stack. """
-        cls.stack = Stack(cls.stack_path, bit_depth=cls.bit_depth)
+        with patch('builtins.input', side_effect=['yes', 12]):
+            stack = Stack(cls.stack_path, bit_depth=cls.bit_depth)
+        cls.stack = stack
 
     @classmethod
     def tearDownClass(cls):
@@ -47,42 +50,28 @@ class Test02_Stack(TestPaths):
             success = False
         self.assertTrue(success)
 
-    # def test05_load_segmentation_mask(self):
-    #     """ Load stack image. """
-    #     self.stack.load_image()
-    #     self.assertTrue(self.stack.stack is not None)
+    def test05_train_annotator(self):
+        """ Train clone annotation model on entire stack. """
+        try:
+            self.stack.train_annotator('ch0', save=True, max_num_components=3)
+            success = True
+        except:
+            success = False
+        self.assertTrue(success)
 
-    # def test05_train_annotator(self):
-    #     """ Load stack image. """
-    #     self.stack.load_image()
-    #     self.assertTrue(self.stack.stack is not None)
+    def test06_apply_annotator(self):
+        """ Annotate a single layer within the stack. """
+        layer = self.stack[0]
+        layer.build_graph('ch0')
+        layer.annotate()
+        self.assertTrue('genotype' in layer.data.columns)
 
-    # def test06_apply_annotator(self):
-    #     """ Load stack image. """
-    #     self.stack.load_image()
-    #     self.assertTrue(self.stack.stack is not None)
-
-    # def test07_load_roi_mask(self):
-    #     """ Load stack image. """
-    #     self.stack.load_image()
-    #     self.assertTrue(self.stack.stack is not None)
-
-    # def test07_launch_roi_selector(self):
-    #     """ Load stack image. """
-    #     self.stack.load_image()
-    #     self.assertTrue(self.stack.stack is not None)
-
-    # def test07_launch_roi_selector(self):
-    #     """ Load stack image. """
-    #     self.stack.load_image()
-    #     self.assertTrue(self.stack.stack is not None)
-
-    # def test08_bleedthrough_correction(self):
-    #     """ Load stack image. """
-    #     self.stack.load_image()
-    #     self.assertTrue(self.stack.stack is not None)
-
-    def test09_aggregation(self):
-        """ Collect measurements from all layers in stack. """
+    def test07_aggregate_raw_data(self):
+        """ Collect raw measurements from all layers. """
         data = self.stack.aggregate_measurements(raw=True)
+        self.assertTrue(isinstance(data, DataFrame))
+
+    def test07_aggregate_data_excluding_boundary(self):
+        """ Collect measurements from all layers, excluding boundaries. """
+        data = self.stack.aggregate_measurements(exclude_boundary=True)
         self.assertTrue(isinstance(data, DataFrame))

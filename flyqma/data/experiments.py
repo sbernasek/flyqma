@@ -129,17 +129,20 @@ class Experiment:
     def aggregate_measurements(self,
                                selected_only=False,
                                exclude_boundary=False,
-                               raw=False):
+                               raw=False,
+                               use_cache=True):
         """
         Aggregate measurements from each stack.
 
         Args:
 
-            selected_only (bool) - if True, exclude cells not marked for inclusion
+            selected_only (bool) - if True, exclude cells outside the ROI
 
-            exclude_boundary (bool) - if True, exclude cells on clone boundaries
+            exclude_boundary (bool) - if True, exclude cells on the border of labeled regions
 
-            raw (bool) - if True, aggregate raw measurements from included discs
+            raw (bool) - if True, use raw measurements from included discs
+
+            use_cache (bool) - if True, used available cached measurement data
 
         Returns:
 
@@ -151,7 +154,12 @@ class Experiment:
         data = []
         for stack_id in self.stack_ids:
             stack = self.load_stack(stack_id, full=False)
-            measurements = stack.aggregate_measurements(raw=raw)
+            measurements = stack.aggregate_measurements(
+                selected_only=selected_only,
+                exclude_boundary=exclude_boundary,
+                raw=raw,
+                use_cache=use_cache)
+
             if measurements is None:
                 continue
 

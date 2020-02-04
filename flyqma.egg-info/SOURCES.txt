@@ -65,6 +65,7 @@ flyqma/selection/interface.py
 flyqma/tests/__init__.py
 flyqma/tests/test_experiments.py
 flyqma/tests/test_io.py
+flyqma/tests/test_layer.py
 flyqma/tests/test_stacks.py
 flyqma/utilities/__init__.py
 flyqma/utilities/event_handling.py

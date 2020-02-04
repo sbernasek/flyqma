@@ -56,12 +56,14 @@ class PairwiseComparison:
         x, y = self.x[self.basis], self.y[self.basis]
 
         # perform statistical test
-        if test == 'KS':
+        if test.lower() == 'ks':
             k, p = ks_2samp(x, y)
-        elif test == 't':
+        elif test.lower() == 't':
             k, p = ttest_ind(x, y)
-        else:
+        elif test.lower() == 'mw':
             k, p = mannwhitneyu(x, y, alternative='two-sided')
+        else:
+            raise ValueError('Test {:s} not recognized.'.format(test))
 
         return p
 
@@ -89,7 +91,8 @@ class CloneComparison(PairwiseComparison):
     """
 
     def __init__(self, measurements, type1, type2, basis,
-                 label='genotype'):
+                 label='celltype',
+                 concurrent_only=False):
         """
         Instantiate comparison between two concurrent cell types.
 
@@ -97,13 +100,15 @@ class CloneComparison(PairwiseComparison):
 
             measurements (pd.DataFrame) - cell measurement data
 
-            type1 (str) - first label
+            type1 (str or int) - first label
 
-            type2 (str) - second label
+            type2 (str or int) - second label
 
             basis (str) - attribute on which populations are compared
 
             label (str) - attribute used to define population labels
+
+            concurrent_only (bool) - if True, only
 
         """
 
@@ -113,13 +118,13 @@ class CloneComparison(PairwiseComparison):
         self.type2 = type2
 
         # select concurrent cells of each type
-        ind = np.logical_and(measurements['concurrent_'+str(type1)],
-                             measurements['concurrent_'+str(type2)])
+        ind = np.logical_and(measurements['concurrent_'+str(self.type1)],
+                             measurements['concurrent_'+str(self.type2)])
         measurements = measurements[ind]
 
         # split into two populations
-        x = measurements[measurements[label] == type1]
-        y = measurements[measurements[label] == type2]
+        x = measurements[measurements[label] == self.type1]
+        y = measurements[measurements[label] == self.type2]
 
         # instantiate comparison
         super().__init__(x, y, basis=basis)
@@ -186,7 +191,11 @@ class CloneComparison(PairwiseComparison):
         # format axis
         self.format_axis(ax, colors=colors, mode=mode, ylabel=ylabel)
 
-    def format_axis(self, ax, colors=None, mode='violin', ylabel=None):
+    def format_axis(self, ax,
+                    colors=None,
+                    axis_labels=None,
+                    mode='violin',
+                    ylabel=None):
         """
         Format axis.
 
@@ -196,19 +205,13 @@ class CloneComparison(PairwiseComparison):
 
             colors (dict) - color for each box/violin keyed by label
 
+            axis_labels (dict) - axis label for each box/violin keyed by label
+
             mode (str) - type of comparison, either 'box', 'violin', or 'strip'
 
             ylabel (str) - label for y axis
 
         """
-
-        # define labels and corresponding fill colors
-        labels = {'m': '−/−', 'h': '−/+', 'w': '+/+',
-                  '0': '−/−', '1': '−/+', '2': '+/+'}
-
-        if colors is None:
-            colors = {'m': '−/−', 'h': '−/+', 'w': '+/+',
-                      '0': 'y', '1': 'm', '2': 'c'}
 
         # format axes
         ax.grid(False)
@@ -224,21 +227,25 @@ class CloneComparison(PairwiseComparison):
 
         # format xticks
         ticklabels = []
+
         for i, label in enumerate(ax.get_xticklabels()):
 
             # set violin/box color
-            if mode == 'violin':
-                polys[i].set_color(colors[label.get_text()[0]])
-            else:
-                ax.artists[i].set_facecolor(colors[label.get_text()[0]])
+            if colors is not None:
+                if mode == 'violin':
+                    polys[i].set_color(colors[label.get_text()[0]])
+                else:
+                    ax.artists[i].set_facecolor(colors[label.get_text()[0]])
 
-            # set tick label as genotype
-            label.set_text(labels[label.get_text()[0]])
-            ticklabels.append(label)
+            # set tick label as celltype
+            if axis_labels is not None:
+                label.set_text(axis_labels[label.get_text()[0]])
+                ticklabels.append(label)
 
         # format xlabels
         ax.set_xlabel('')
-        _ = ax.set_xticklabels(ticklabels, ha='center')
+        if axis_labels is not None:
+            _ = ax.set_xticklabels(ticklabels, ha='center')
 
         # set ylabel
         if ylabel is not None:
@@ -340,3 +347,13 @@ class SummaryStatistics:
         print('Control: 1x vs 2x: {:0.4f}'.format(pvals['c_hw']))
         print('Perturbation: 0x vs 1x: {:0.4f}'.format(pvals['p_mh']))
         print('Perturbation: 1x vs 2x: {:0.4f}'.format(pvals['p_hw']))
+
+
+
+# # define labels and corresponding fill colors
+# axis_labels = {'m': '−/−', 'h': '−/+', 'w': '+/+',
+#           '0': '−/−', '1': '−/+', '2': '+/+'}
+
+# if colors is None:
+#     colors = {'m': '−/−', 'h': '−/+', 'w': '+/+',
+#               '0': 'y', '1': 'm', '2': 'c'}

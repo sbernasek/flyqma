@@ -5,6 +5,7 @@ import gc
 from copy import deepcopy
 import pandas as pd
 import numpy as np
+from scipy.ndimage import binary_erosion
 import matplotlib.pyplot as plt
 from matplotlib.path import Path
 from collections import Counter
@@ -386,13 +387,13 @@ class LayerIO(WriteSilhouetteLayer):
         """
         return LayerCorrection.load(self)
 
-    def load(self, process=False, graph=True):
+    def load(self, use_cache=True, graph=True):
         """
         Load layer.
 
         Args:
 
-            process (bool) - if True, re-process the measurement data
+            use_cache (bool) - if True, use cached measurement data, otherwise re-process the measurement data
 
             graph (bool) - if True, load weighted graph
 
@@ -410,7 +411,7 @@ class LayerIO(WriteSilhouetteLayer):
             return None
 
         # check whether annotation exists
-        if 'annotation' in self.subdirs.keys() and process:
+        if 'annotation' in self.subdirs.keys() and not use_cache:
 
             if self.annotator is not None:
                 raise UserWarning('Layer was instantiated with a stack-level annotation instance, but a second annotation instance was found within the layer directory. Resolve this conflict before continuing.')
@@ -423,7 +424,7 @@ class LayerIO(WriteSilhouetteLayer):
             self.load_measurements()
 
         # if processing measurements, ensure that graph is built
-        if process:
+        if not use_cache:
             graph = True
 
         # build graph
@@ -431,13 +432,15 @@ class LayerIO(WriteSilhouetteLayer):
             graph_weighted_by = self.metadata['params']['graph_weighted_by']
             graph_kw = self.metadata['params']['graph_kw']
             self.build_graph(graph_weighted_by, **graph_kw)
+        else:
+            self.graph = None
 
-        # check whether measurements are available
+        # check whether cached measurements are available
         if 'measurements' in self.subdirs.keys():
             path = join(self.subdirs['measurements'], 'processed.hdf')
 
             # load processed data
-            if not process and exists(path):
+            if use_cache and exists(path):
                 self.load_processed_data()
 
             # otherwise, process raw measurement data
@@ -526,6 +529,7 @@ class Layer(LayerIO, ImageMultichromatic, LayerVisualization):
             self.include = True
 
         # initialize measurement data
+        self.measurements = None
         self.data = None
 
         # set annotator
@@ -549,6 +553,11 @@ class Layer(LayerIO, ImageMultichromatic, LayerVisualization):
     def num_cells(self):
         """ Number of cells detected by segmentation. """
         return len(self.data) if self.data is not None else None
+
+    @property
+    def is_measured(self):
+        """ True if measurement data are available. """
+        return self.measurements is not None
 
     def initialize(self):
         """
@@ -605,27 +614,47 @@ class Layer(LayerIO, ImageMultichromatic, LayerVisualization):
 
         # load and apply selection
         if 'selection' in self.subdirs.keys():
-            self.apply_selection(data)
+            self.define_roi(data)
 
         # load and apply correction
         if 'correction' in self.subdirs.keys():
             self.apply_correction(data)
 
-        # annotate measurements (opt to load labels rather than annotate again)
-        self.annotate(data)
+        # annotate measurements
+        if self.has_trained_annotator and self.graph is not None:
+
+            # apply trained annotator to label distinct celltypes
+            self._apply_annotation(data, label='genotype')
+
+            # mark boundaries between labeled regions
+            self._mark_boundaries(data, basis='genotype', max_edges=1)
+
+            # mark regions in which each label is found
+            self._apply_concurrency(data, basis='genotype')
 
         return data
 
-    def annotate(self, data=None):
-        """ Apply annotation to <data>. """
+    def annotate(self):
+        """
+        Annotate measurement data in place, also labeling boundaries between labeled regions and marking regions in which each label occurs.
+        """
 
-        if data is None:
-            data = self.data
+        # make sure graph is available
+        msg = 'Graph not found. Call the .build_graph() method then try again.'
+        assert self.graph is not None, msg
 
-        if self.annotator is not None and self.graph is not None:
-            self._apply_annotation(data)
-            self.mark_boundaries(data, basis='genotype', max_edges=1)
-            self.apply_concurrency(data, basis='genotype')
+        # make sure annotator is available
+        msg = 'Trained annotator not found. Call the .train_annotator() method then try again.'
+        assert self.has_trained_annotator, msg
+
+        # apply trained annotator to label distinct celltypes
+        self._apply_annotation(self.data)
+
+        # mark boundaries between labeled regions
+        self._mark_boundaries(self.data, basis='genotype', max_edges=1)
+
+        # mark regions in which each label is found
+        self._apply_concurrency(self.data, basis='genotype')
 
     def apply_normalization(self, data):
         """
@@ -647,31 +676,99 @@ class Layer(LayerIO, ImageMultichromatic, LayerVisualization):
             fg_key = self._to_key(fg)
             data['{:s}_normalized'.format(fg_key)] = data[fg_key]/data[self.bg_key]
 
-    def apply_selection(self, data):
+    @staticmethod
+    def _apply_roi_vertices(data, xykey, roi_vertices):
         """
-        Adds a "selected" attribute to the measurements dataframe. The attribute is true for cells that fall within the selection boundary.
+        Label cells within a specified region of interest.
 
         Args:
 
-            data (pd.DataFrame) - processed cell measurement data
+            data (pd.DataFrame) - cell measurement data
+
+            roi_vertices (np.ndarray[int], N x 2) - vertices bounding ROI
 
         """
-
-        # load selection boundary
-        io = IO()
-        bounds = io.read_npy(join(self.subdirs['selection'], 'selection.npy'))
 
         # add selected attribute to cell measurement data
         data['selected'] = False
 
+        # construct matplotlib path object
+        path = Path(roi_vertices, closed=False)
+
+        # mark cells as within or outside the selection boundary
+        xy_positions = data[xykey].values
+        data['selected'] = path.contains_points(xy_positions)
+
+    @classmethod
+    def read_roi_mask(cls, path):
+        """
+        Read ROI mask from file and return array of region vertices.
+
+        Args:
+
+            path (str) - path to ROI mask in np.ndarray[bool] format
+
+        Returns:
+
+            vertices (np.ndarray[int]) - N x 2 array of vertices
+
+        """
+        io = IO()
+        roi_mask = io.read_npy(path)
+        return cls.mask_to_vertices(roi_mask)
+
+    @staticmethod
+    def sort_clockwise(xycoords):
+        """ Returns clockwise-sorted xy coordinates. """
+        return xycoords[:, np.argsort(np.arctan2(*(xycoords.T - xycoords.mean(axis=1)).T))]
+
+    @classmethod
+    def mask_to_vertices(cls, mask):
+        """
+        Convert boolean mask to a list of vertices defining the border around the largest contiguous region.
+
+        Args:
+
+            mask (np.ndarray[bool]) - ROI mask, where True denotes the region. Note that the mask may only contain one contiguous component.
+
+        Returns:
+
+            vertices (np.ndarray[int]) - N x 2 array of vertices
+
+        """
+
+        borders = (mask != binary_erosion(mask, structure=np.ones((3, 3))))
+        vertices = cls.sort_clockwise(np.asarray(borders.nonzero()))
+        return vertices.T
+
+    def define_roi(self, data, roi_mask_path=None):
+        """
+        Adds a "selected" attribute to measurements dataframe. The attribute is True for cells that fall within the ROI.
+
+        Args:
+
+            data (pd.DataFrame) - processed measurement data
+
+            roi_mask_path (str) - path to ROI mask, stored in a 2D boolean array container with the same dimensions as the layer image.
+
+        """
+
         if self.include:
 
-            # construct matplotlib path object
-            path = Path(bounds, closed=False)
+            # if path is provided, read the provided mask
+            if roi_mask_path is not None:
+                roi_vertices = self.read_roi_mask(roi_mask_path)
 
-            # mark cells as within or outside the selection boundary
-            cell_positions = data[self.xykey].values
-            data['selected'] = path.contains_points(cell_positions)
+            # load ROI vertices from file
+            else:
+                io = IO()
+                roi_vertices = io.read_npy(join(self.subdirs['selection'],'selection.npy'))
+
+            # apply mask
+            self._apply_roi_vertices(data, self.xykey, roi_vertices)
+
+        else:
+            data['selected'] = False
 
     def apply_correction(self, data):
         """
@@ -735,6 +832,7 @@ class Layer(LayerIO, ImageMultichromatic, LayerVisualization):
     def train_annotator(self, attribute,
                         save=False,
                         logratio=True,
+                        num_labels=3,
                         **kwargs):
         """
         Train an Annotation model on the measurements in this layer.
@@ -746,6 +844,8 @@ class Layer(LayerIO, ImageMultichromatic, LayerVisualization):
             save (bool) - if True, save model selection routine
 
             logratio (bool) - if True, weight edges by relative attribute value
+
+            num_labels (int) - number of allowable unique labels
 
             kwargs: keyword arguments for Annotation, including:
 
@@ -766,7 +866,7 @@ class Layer(LayerIO, ImageMultichromatic, LayerVisualization):
         """
 
         # instantiate annotator
-        self.annotator = Annotation(attribute, **kwargs)
+        self.annotator = Annotation(attribute, num_labels=num_labels, **kwargs)
 
         # build graph and use it to train annotator
         self.build_graph(attribute, logratio=logratio)
@@ -779,6 +879,11 @@ class Layer(LayerIO, ImageMultichromatic, LayerVisualization):
             selector.save(self.subdirs['annotation'])
 
         return selector
+
+    @property
+    def has_trained_annotator(self):
+        """ Returns True if trained annotator is available. """
+        return self.annotator is not None
 
     def _apply_annotation(self, data,
                           label='genotype',
@@ -795,8 +900,7 @@ class Layer(LayerIO, ImageMultichromatic, LayerVisualization):
             kwargs: keyword arguments for Annotator.annotate()
 
         """
-        if self.annotator is not None and self.graph is not None:
-            data[label] = self.annotator(self.graph, **kwargs)
+        data[label] = self.annotator(self.graph, **kwargs)
 
     def apply_annotation(self, label='genotype', **kwargs):
         """
@@ -811,10 +915,13 @@ class Layer(LayerIO, ImageMultichromatic, LayerVisualization):
         """
         self._apply_annotation(self.data, label=label, **kwargs)
 
-    def apply_concurrency(self, data, basis='genotype',
-                          min_pop=5, max_distance=10):
+    @staticmethod
+    def _apply_concurrency(data, basis='genotype',
+                          min_pop=5,
+                          max_distance=10,
+                          **kwargs):
         """
-        Add boolean 'concurrent_<cell type>' field to cell measurement data for each unique cell type.
+        Add boolean 'concurrent_<basis>' field to cell measurement data for each unique value of <basis> attribute.
 
         Args:
 
@@ -826,26 +933,64 @@ class Layer(LayerIO, ImageMultichromatic, LayerVisualization):
 
             max_distance (float) - maximum distance threshold for inclusion
 
-        """
-        assign_concurrency = ConcurrencyLabeler(attribute=basis,
-                                                label_values=(0,1,2),
-                                                min_pop=min_pop,
-                                                max_distance=max_distance)
-        assign_concurrency(data)
+            kwargs: keyword arguments for ConcurrencyLabeler
 
-    def mark_boundaries(self, data, basis='genotype', max_edges=0):
         """
-        Mark clone boundaries by assigning a boundary label to all cells that share an edge with another cell from a different clone.
+
+        assert basis in data.columns, 'Attribute {:s} not found.'.format(basis)
+
+        labeler = ConcurrencyLabeler(attribute=basis,
+                                    min_pop=min_pop,
+                                    max_distance=max_distance,
+                                    **kwargs)
+        labeler(data)
+
+    def apply_concurrency(self, basis='genotype',
+                          min_pop=5,
+                          max_distance=10,
+                          **kwargs):
+        """
+        Add boolean 'concurrent_<basis>' field to measurement data for each unique value of <basis> attribute.
+
+        Args:
+
+            basis (str) - attribute on which concurrency is established
+
+            min_pop (int) - minimum population size for inclusion of cell type
+
+            max_distance (float) - maximum distance threshold for inclusion
+
+            kwargs: keyword arguments for ConcurrencyLabeler
+
+        """
+
+        self._apply_concurrency(self.data,
+                                basis=basis,
+                                min_pop=min_pop,
+                                max_distance=max_distance,
+                                **kwargs)
+
+    def _mark_boundaries(self, data, basis='genotype', max_edges=0):
+        """
+        Mark boundaries between cells with disparate labels by assigning a boundary label to all cells that share an edge with another cell with a different label.
 
         Args:
 
             data (pd.DataFrame) - processed cell measurement data
 
-            basis (str) - labels used to identify clones
+            basis (str) - attribute used to define label
 
             max_edges (int) - maximum number of edges for interior cells
 
         """
+
+        # make sure graph is available
+        msg = 'Graph not found, call .build_graph() method then try again.'
+        assert self.graph is not None, msg
+
+        # make sure basis attribute is available
+        msg = 'Attribute {:s} not found in measurement data.'.format(basis)
+        assert basis in data.columns, msg
 
         # assign genotype to edges
         assign_genotype = np.vectorize(dict(data[basis]).get)
@@ -862,6 +1007,19 @@ class Layer(LayerIO, ImageMultichromatic, LayerVisualization):
         boundary_nodes = [n for n, c in edge_counts.items() if c>max_edges]
         data['boundary'] = False
         data.loc[boundary_nodes, 'boundary'] = True
+
+    def mark_boundaries(self, basis='genotype', max_edges=0):
+        """
+        Mark boundaries between cells with disparate labels by assigning a boundary label to all cells that share an edge with another cell with a different label.
+
+        Args:
+
+            basis (str) - attribute used to define label
+
+            max_edges (int) - maximum number of edges for interior cells
+
+        """
+        self._mark_boundaries(self.data, basis=basis, max_edges=max_edges)
 
     def segment(self, channel,
                 preprocessing_kws={},

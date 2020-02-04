@@ -119,10 +119,6 @@ class LayerInterface(LayerVisualization):
 
         include (bool) - flag for layer inclusion
 
-        duplicate (bool) - flag for duplicate layer
-
-        exemplar (bool) - flag for exemplary layer
-
         active_polyhon (bool) - if True, polygon is currently active
 
         pts (list) - selection boundary points
@@ -157,8 +153,6 @@ class LayerInterface(LayerVisualization):
 
         # set layer attributes
         self.include = True
-        self.duplicate = False
-        self.exemplar = False
 
         # no initial polygon
         self.active_polygon = False
@@ -178,8 +172,6 @@ class LayerInterface(LayerVisualization):
         # load selection metadata
         md = io.read_json(join(self.path, 'md.json'))
         self.include = md['include']
-        self.duplicate = md['duplicate']
-        self.exemplar = md['exemplar']
 
         # add markers
         for pt in self.pts:
@@ -191,26 +183,27 @@ class LayerInterface(LayerVisualization):
             self.add_polygon()
             self.active_polygon = True
 
-        # mark if neurons/cones
-        if self.include==False and self.duplicate==False:
-            self.overlay('NEURONS\n&\nCONES')
-
-        # mark if duplicate
-        if self.include==False and self.duplicate==True:
-            self.overlay('DUPLICATE')
+        # mark excluded layers
+        if self.include==False:
+            self.overlay('EXCLUDED')
 
     def save(self):
         """ Save selected points and selection metadata to file. """
+
+        # if no region was specified, use corners (e.g. include everything)
+        if len(self.pts) <= 2:
+            w,h = self.layer.shape
+            self.pts = [ [0,0], [w, 0], [w, h], [0, h] ]
+
         io = IO()
         pts = np.array(self.pts)
         io.write_npy(join(self.path, 'selection.npy'), pts)
-        md = dict(include=self.include,
-                  duplicate=self.duplicate,
-                  exemplar=self.exemplar)
+        md = dict(include=self.include)
         io.write_json(join(self.path, 'md.json'), md)
 
         # update measurements
-        self.layer.apply_selection(self.layer.data)
+        self.layer.load_inclusion()
+        self.layer.define_roi(self.layer.data)
         self.layer.save_processed_data()
 
     def clear(self):
@@ -274,11 +267,6 @@ class StackInterface:
         self.path = stack.path
         self.build_interface(stack)
 
-    def load(self):
-        """ Load from existing selection data. """
-        for interface in layer_to_interface.values():
-            interface.load()
-
     def build_interface(self, stack):
         """
         Build interface by adding interface for each layer.
@@ -290,7 +278,7 @@ class StackInterface:
         """
 
         # create figure
-        nrows, ncols = stack.depth, stack.colordepth
+        nrows, ncols = stack.stack_depth, stack.color_depth
         figsize = (2.25 * ncols, 2.25 * nrows)
         self.fig = plt.figure(figsize=figsize)
         gs = GridSpec(nrows=nrows, ncols=ncols, wspace=.01, hspace=.01)
@@ -300,7 +288,10 @@ class StackInterface:
         self.ax_to_layer = {}
 
         # build interface for each layer
-        for i, layer in enumerate(stack):
+        for i in range(stack.stack_depth):
+
+            # iterator excludes discs marked for excludion
+            layer = stack[i]
 
             # create all axes for current layer
             axes = [self.fig.add_subplot(gs[i*ncols+j]) for j in range(ncols)]
@@ -316,5 +307,4 @@ class StackInterface:
             if i == 0:
                 for j, ax in enumerate(axes):
                     ch_label = 'Channel {:d}'.format(j)
-                    d_label = 'Disc {:d}'.format(stack._id)
-                    ax.set_title('\n'.join([d_label, ch_label]), fontsize=14)
+                    ax.set_title(ch_label, fontsize=14)
