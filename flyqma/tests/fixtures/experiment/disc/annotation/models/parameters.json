@@ -1,9 +1,0 @@
-{
-	"attribute": [
-		"ch0",
-		"ch0_radial"
-	],
-	"max_num_components": 3,
-	"min_num_components": 3,
-	"num_labels": 3
-}

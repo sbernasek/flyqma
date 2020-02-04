@@ -53,7 +53,12 @@ class BackgroundExtraction:
 
         # re-run image preprocessing to obtain foreground threshold
         seg_params = self.layer.metadata['params']['segmentation_kw']
-        preprocessing_kws = seg_params['preprocessing_kws']
+
+        if 'preprocessing_kws' in seg_params.keys():
+            preprocessing_kws = seg_params['preprocessing_kws']
+        else:
+            preprocessing_kws = None
+
         if preprocessing_kws is not None:
             bg = self.layer.get_channel(self.layer.metadata['bg'])
             _ = bg.preprocess(**preprocessing_kws)
@@ -63,7 +68,7 @@ class BackgroundExtraction:
             bg_mask = (self.layer.labels!=0)
 
         # dilate foreground
-        bg_mask = self.dilate_foreground(bg.mask, niters)
+        bg_mask = self.dilate_foreground(bg_mask, niters)
 
         return bg_mask
 

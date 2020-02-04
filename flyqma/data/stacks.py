@@ -390,8 +390,13 @@ class Stack(StackIO):
 
     def restore_directory(self):
         """ Restore stack directory to original state. """
-        metadata_path = join(self.path, 'metadata.json')
-        for path in (metadata_path, self.layers_path):
+
+        dirs = [
+            self.layers_path,
+            join(self.path, 'annotation'),
+            join(self.path, 'metadata.json')]
+
+        for path in dirs:
             if exists(path):
                 if isdir(path):
                     rmtree(path)
@@ -528,7 +533,7 @@ class Stack(StackIO):
                                     full=False)
 
             # skip layers without measurements
-            if not layer.is_measured:
+            if not layer.is_segmented:
                 continue
 
             # get raw or processed measurements

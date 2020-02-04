@@ -448,96 +448,21 @@ class LayerIO(WriteSilhouetteLayer):
                 self.data = self.process_measurements(self.measurements)
 
 
-class Layer(LayerIO, ImageMultichromatic, LayerVisualization):
+class LayerProperties:
     """
-    Object represents a single imaged layer.
-
-    Attributes:
-
-        measurements (pd.DataFrame) - raw cell measurement data
-
-        data (pd.DataFrame) - processed cell measurement data
-
-        path (str) - path to layer directory
-
-        _id (int) - layer ID, must be an integer value
-
-        subdirs (dict) - {name: path} pairs for all subdirectories
-
-        metadata (dict) - layer metadata
-
-        labels (np.ndarray[int]) - segment ID mask
-
-        annotator (Annotation) - object that assigns labels to measurements
-
-        graph (Graph) - graph connecting cell centroids
-
-        include (bool) - if True, layer was manually marked for inclusion
-
-    Inherited attributes:
-
-        im (np.ndarray[float]) - 3D array of pixel values
-
-        shape (array like) - image dimensions
-
-        mask (np.ndarray[bool]) - image mask
-
-        labels (np.ndarray[int]) - segment ID mask
-
-    Properties:
+    Properties for Layer class:
 
         color_depth (int) - number of fluorescence channels
 
         num_cells (int) - number of cells detected by segmentation
 
+        bg_key (str) - key for channel used to generate segmentation
+
+        is_segmented (bool) - if True, layer has been segmented
+
+        has_trained_annotator (bool) - if True, layer has a trained annotator
+
     """
-
-    def __init__(self, path, im=None, annotator=None):
-        """
-        Instantiate layer.
-
-        Args:
-
-            path (str) - path to layer directory
-
-            im (np.ndarray[float]) - 3D array of pixel values
-
-            annotator (Annotation) - object that assigns labels to measurements
-
-        """
-
-        # set layer ID
-        layer_id = int(path.rsplit('/', maxsplit=1)[-1])
-        self._id = layer_id
-        self.xykey = ['centroid_x', 'centroid_y']
-
-        # set path and subdirectories
-        self.path = path
-
-        # make layers directory
-        if not exists(self.path):
-            self.initialize()
-        self.find_subdirs()
-
-        # load inclusion; defaults to True
-        if 'selection' in self.subdirs.keys():
-            if len(listdir(self.subdirs['selection'])) == 0:
-                self.include = True
-            else:
-                self.load_inclusion()
-        else:
-            self.include = True
-
-        # initialize measurement data
-        self.measurements = None
-        self.data = None
-
-        # set annotator
-        self.annotator = annotator
-
-        # load labels and instantiate image
-        self.load_labels()
-        super().__init__(im, labels=self.labels)
 
     @property
     def color_depth(self):
@@ -545,116 +470,108 @@ class Layer(LayerIO, ImageMultichromatic, LayerVisualization):
         return self.im.shape[-1]
 
     @property
-    def bg_key(self):
-        """ DataFrame key for background channel. """
-        return self._to_key(self.metadata['bg'])
-
-    @property
     def num_cells(self):
         """ Number of cells detected by segmentation. """
         return len(self.data) if self.data is not None else None
 
     @property
-    def is_measured(self):
+    def bg_key(self):
+        """ DataFrame key for background channel. """
+        return self._to_key(self.metadata['bg'])
+
+    @property
+    def is_segmented(self):
         """ True if measurement data are available. """
         return self.measurements is not None
 
-    def initialize(self):
+    @property
+    def has_trained_annotator(self):
+        """ Returns True if trained annotator is available. """
+        return self.annotator is not None
+
+
+class LayerMeasurement:
+    """
+
+    Measurement related methods for Layer class.
+
+    """
+
+    def segment(self, channel,
+                preprocessing_kws={},
+                seed_kws={},
+                seg_kws={},
+                min_area=250):
         """
-
-        Initialize layer directory by:
-
-            - Creating a layer directory
-            - Removing existing segmentation directory
-            - Saving metadata to file
-
-        """
-
-        # make layers directory
-        if not exists(self.path):
-            mkdir(self.path)
-        self.subdirs = {}
-
-        # remove existing segmentation/annotation/measurement directories
-        for key in ('segmentation', 'measurements', 'annotation'):
-            if key in self.subdirs.keys():
-                rmtree(self.subdirs[key])
-
-        # make metadata file
-        segmentation_kw = dict(preprocessing_kws={}, seed_kws={}, seg_kws={})
-        params = dict(segmentation_kw=segmentation_kw, graph_kw={})
-        metadata = dict(bg=None, params=params)
-
-        # save metadata
-        IO().write_json(join(self.path, 'metadata.json'), metadata)
-
-    def process_measurements(self, measurements):
-        """
-        Augment measurements by:
-            1. incorporating manual selection boundary
-            2. correcting for fluorescence bleedthrough
-            3. assigning measurement labels
-            4. marking clone boundaries
-            5. assigning label concurrency information
-
-        Operations 3-5 require construction of a WeightedGraph object.
+        Identify nuclear contours by running watershed segmentation on specified background channel.
 
         Args:
 
-            measurements (pd.DataFrame) - raw measurement data
+            channel (int) - channel index on which to segment image
+
+            preprocessing_kws (dict) - keyword arguments for image preprocessing
+
+            seed_kws (dict) - keyword arguments for seed detection
+
+            seg_kws (dict) - keyword arguments for segmentation
+
+            min_area (int) - threshold for minimum segment size, px
 
         Returns:
 
-            data (pd.DataFrame) - processed measurement data
+            background (ImageScalar) - background image (after processing)
 
         """
 
-        # copy raw measurements
-        data = deepcopy(self.measurements)
+        # append default parameter values
+        preprocessing_kws = defaults('preprocessing', preprocessing_kws)
+        seed_kws = defaults('seeds', seed_kws)
+        seg_kws = defaults('segmentation', seg_kws)
 
-        # load and apply selection
-        if 'selection' in self.subdirs.keys():
-            self.define_roi(data)
+        # store parameters in metadata
+        self.metadata['bg'] = channel
+        segmentation_kw = dict(preprocessing_kws=preprocessing_kws,
+                               seed_kws=seed_kws,
+                               seg_kws=seg_kws,
+                               min_area=min_area,
+                               imported=False)
+        self.metadata['params']['segmentation_kw'] = segmentation_kw
 
-        # load and apply correction
-        if 'correction' in self.subdirs.keys():
-            self.apply_correction(data)
+        # extract and preprocess background
+        background = self.get_channel(channel)
+        background.preprocess(**preprocessing_kws)
 
-        # annotate measurements
-        if self.has_trained_annotator and self.graph is not None:
+        # run segmentation
+        seg = Segmentation(background, seed_kws=seed_kws, seg_kws=seg_kws)
 
-            # apply trained annotator to label distinct celltypes
-            self._apply_annotation(data, label='genotype')
+        # exclude small segments
+        seg.exclude_small_segments(min_area=min_area)
 
-            # mark boundaries between labeled regions
-            self._mark_boundaries(data, basis='genotype', max_edges=1)
+        # update segment labels
+        self.labels = seg.labels
+        background.labels = seg.labels
 
-            # mark regions in which each label is found
-            self._apply_concurrency(data, basis='genotype')
+        # update cell measurements
+        self.measure()
 
-        return data
+        return background
 
-    def annotate(self):
+    def measure(self):
         """
-        Annotate measurement data in place, also labeling boundaries between labeled regions and marking regions in which each label occurs.
+        Measure properties of cell segments. Raw measurements are stored under in the 'measurements' attribute, while processed measurements are stored in the 'data' attribute.
         """
 
-        # make sure graph is available
-        msg = 'Graph not found. Call the .build_graph() method then try again.'
-        assert self.graph is not None, msg
+        # measure segment properties
+        measurements = Measurements(self.im, self.labels)
+        measurements = measurements.build_dataframe()
 
-        # make sure annotator is available
-        msg = 'Trained annotator not found. Call the .train_annotator() method then try again.'
-        assert self.has_trained_annotator, msg
+        # assign layer id, apply normalization, and save measurements
+        measurements['layer'] = self._id
+        self.apply_normalization(measurements)
+        self.measurements = measurements
 
-        # apply trained annotator to label distinct celltypes
-        self._apply_annotation(self.data)
-
-        # mark boundaries between labeled regions
-        self._mark_boundaries(self.data, basis='genotype', max_edges=1)
-
-        # mark regions in which each label is found
-        self._apply_concurrency(self.data, basis='genotype')
+        # process raw measurement data
+        self.data = self.process_measurements(measurements)
 
     def apply_normalization(self, data):
         """
@@ -675,6 +592,60 @@ class Layer(LayerIO, ImageMultichromatic, LayerVisualization):
                 continue
             fg_key = self._to_key(fg)
             data['{:s}_normalized'.format(fg_key)] = data[fg_key]/data[self.bg_key]
+
+    def import_segmentation_mask(self, path, channel,
+                                save=True,
+                                save_image=True):
+            """
+            Import external segmentation mask and use it to generate measurements.
+
+            Provided mask must contain a 2-D array of positive integers in which a values of zero denotes the image background.
+
+            Args:
+
+                path (str) - path to segmentation mask
+
+                channel (int) - fluorescence channel used for segmentation
+
+                save (bool) - if True, copy segmentation to stack directory
+
+                save_image (bool) - if True, save segmentation image
+
+            """
+
+            assert exists(path), 'File does not exist.'
+
+            io = IO()
+            mask = io.read_npy(path)
+
+            int_types = (int, np.int32, np.int64)
+            assert mask.dtype in int_types, 'Mask does not contain integers.'
+            assert mask.shape == self.shape, 'Mask dimensions are incorrect.'
+            assert mask.min() >= 0, 'Mask contains values less than zero.'
+
+            # set segmentation mask and generate measurements
+            self.labels = mask
+            self.metadata['bg'] = channel
+            self.measure()
+
+            # optionally copy mask to stack directory
+            if save:
+                self.metadata['params']['segmentation_kw']=dict(imported=True)
+                self.save_metadata()
+
+                self.make_subdir('segmentation')
+                self.save_segmentation(save_image)
+
+                self.make_subdir('measurements')
+                self.save_measurements()
+
+
+class LayerROI:
+    """
+
+    ROI related methods for Layer class.
+
+    """
 
     @staticmethod
     def _apply_roi_vertices(data, xykey, roi_vertices):
@@ -698,24 +669,6 @@ class Layer(LayerIO, ImageMultichromatic, LayerVisualization):
         # mark cells as within or outside the selection boundary
         xy_positions = data[xykey].values
         data['selected'] = path.contains_points(xy_positions)
-
-    @classmethod
-    def read_roi_mask(cls, path):
-        """
-        Read ROI mask from file and return array of region vertices.
-
-        Args:
-
-            path (str) - path to ROI mask in np.ndarray[bool] format
-
-        Returns:
-
-            vertices (np.ndarray[int]) - N x 2 array of vertices
-
-        """
-        io = IO()
-        roi_mask = io.read_npy(path)
-        return cls.mask_to_vertices(roi_mask)
 
     @staticmethod
     def sort_clockwise(xycoords):
@@ -741,7 +694,46 @@ class Layer(LayerIO, ImageMultichromatic, LayerVisualization):
         vertices = cls.sort_clockwise(np.asarray(borders.nonzero()))
         return vertices.T
 
-    def define_roi(self, data, roi_mask_path=None):
+    def import_roi_mask(self, path, save=True):
+        """
+        Import external ROI mask and use it to label measurement data.
+
+        Provided mask must contain a 2-D boolean array with the same dimensions as the raw image. True values denote the ROI. The mask may only contain a single contiguous ROI.
+
+        Args:
+
+            path (str) - path to ROI mask
+
+            save (bool) - if True, copy ROI mask to stack directory
+
+        """
+
+        assert exists(path), 'File does not exist.'
+
+        # read mask and make sure it's valid
+        io = IO()
+        mask = io.read_npy(path)
+        assert mask.min()>=0 and mask.max()<=1, 'Mask is not boolean.'
+        assert mask.shape == self.shape, 'Mask dimensions are incorrect.'
+        mask = mask.astype(bool)
+
+        # convert mask to vertices and apply to measurement data
+        vertices = self.mask_to_vertices(mask)
+        self._apply_roi_vertices(self.data, self.xykey, vertices)
+
+        # save ROI mask to stack directory
+        if save:
+            self.make_subdir('selection')
+            selection_path = self.subdirs['selection']
+            io = IO()
+            io.write_npy(join(selection_path, 'selection.npy'), vertices)
+            md = dict(include=True)
+            io.write_json(join(selection_path, 'md.json'), md)
+
+            # update measurements
+            self.save_processed_data()
+
+    def define_roi(self, data):
         """
         Adds a "selected" attribute to measurements dataframe. The attribute is True for cells that fall within the ROI.
 
@@ -749,26 +741,28 @@ class Layer(LayerIO, ImageMultichromatic, LayerVisualization):
 
             data (pd.DataFrame) - processed measurement data
 
-            roi_mask_path (str) - path to ROI mask, stored in a 2D boolean array container with the same dimensions as the layer image.
-
         """
 
         if self.include:
 
-            # if path is provided, read the provided mask
-            if roi_mask_path is not None:
-                roi_vertices = self.read_roi_mask(roi_mask_path)
-
-            # load ROI vertices from file
-            else:
-                io = IO()
-                roi_vertices = io.read_npy(join(self.subdirs['selection'],'selection.npy'))
+            # load ROI vertices
+            io = IO()
+            path = join(self.subdirs['selection'],'selection.npy')
+            roi_vertices = io.read_npy(path)
 
             # apply mask
             self._apply_roi_vertices(data, self.xykey, roi_vertices)
 
         else:
             data['selected'] = False
+
+
+class LayerCorrection:
+    """
+
+    Bleedthrough correction related methods for Layer class.
+
+    """
 
     def apply_correction(self, data):
         """
@@ -804,30 +798,35 @@ class Layer(LayerIO, ImageMultichromatic, LayerVisualization):
         data[yvar+'c'] = data[yvar] - trend
         data[yvar+'c_normalized'] = data[yvar+'c'] / data[bgvar]
 
-    def build_graph(self, weighted_by, **graph_kw):
+
+class LayerAnnotation:
+    """
+
+    Annotation related methods for Layer class.
+
+    """
+
+    def annotate(self):
         """
-        Compile weighted graph connecting adjacent cells.
-
-        Args:
-
-            weighted_by (str) - attribute used to weight edges
-
-            graph_kw: keyword arguments, including:
-
-                xykey (list) - attribute keys for node x/y positions
-
-                logratio (bool) - if True, weight edges by log ratio
-
-                distance (bool) - if True, weights edges by distance
-
+        Annotate measurement data in place, also labeling boundaries between labeled regions and marking regions in which each label occurs.
         """
 
-        # store metadata for graph reconstruction
-        self.metadata['params']['graph_weighted_by'] = weighted_by
-        self.metadata['params']['graph_kw'] = graph_kw
+        # make sure graph is available
+        msg = 'Graph not found. Call the .build_graph() method then try again.'
+        assert self.graph is not None, msg
 
-        # build graph
-        self.graph = WeightedGraph(self.measurements, weighted_by, **graph_kw)
+        # make sure annotator is available
+        msg = 'Trained annotator not found. Call the .train_annotator() method then try again.'
+        assert self.has_trained_annotator, msg
+
+        # apply trained annotator to label distinct celltypes
+        self._apply_annotation(self.data)
+
+        # mark boundaries between labeled regions
+        self._mark_boundaries(self.data, basis='genotype', max_edges=1)
+
+        # mark regions in which each label is found
+        self._apply_concurrency(self.data, basis='genotype')
 
     def train_annotator(self, attribute,
                         save=False,
@@ -879,11 +878,6 @@ class Layer(LayerIO, ImageMultichromatic, LayerVisualization):
             selector.save(self.subdirs['annotation'])
 
         return selector
-
-    @property
-    def has_trained_annotator(self):
-        """ Returns True if trained annotator is available. """
-        return self.annotator is not None
 
     def _apply_annotation(self, data,
                           label='genotype',
@@ -1021,77 +1015,207 @@ class Layer(LayerIO, ImageMultichromatic, LayerVisualization):
         """
         self._mark_boundaries(self.data, basis=basis, max_edges=max_edges)
 
-    def segment(self, channel,
-                preprocessing_kws={},
-                seed_kws={},
-                seg_kws={},
-                min_area=250):
+
+class Layer(LayerIO,
+            ImageMultichromatic,
+            LayerVisualization,
+            LayerProperties,
+            LayerMeasurement,
+            LayerROI,
+            LayerCorrection,
+            LayerAnnotation):
+    """
+    Object represents a single imaged layer.
+
+    Attributes:
+
+        measurements (pd.DataFrame) - raw cell measurement data
+
+        data (pd.DataFrame) - processed cell measurement data
+
+        path (str) - path to layer directory
+
+        _id (int) - layer ID, must be an integer value
+
+        subdirs (dict) - {name: path} pairs for all subdirectories
+
+        metadata (dict) - layer metadata
+
+        labels (np.ndarray[int]) - segment ID mask
+
+        annotator (Annotation) - object that assigns labels to measurements
+
+        graph (Graph) - graph connecting cell centroids
+
+        include (bool) - if True, layer was manually marked for inclusion
+
+    Inherited attributes:
+
+        im (np.ndarray[float]) - 3D array of pixel values
+
+        shape (array like) - image dimensions
+
+        mask (np.ndarray[bool]) - image mask
+
+        labels (np.ndarray[int]) - segment ID mask
+
+    Properties:
+
+        color_depth (int) - number of fluorescence channels
+
+        num_cells (int) - number of cells detected by segmentation
+
+        bg_key (str) - key for channel used to generate segmentation
+
+        is_segmented (bool) - if True, layer has been segmented
+
+        has_trained_annotator (bool) - if True, layer has a trained annotator
+
+    """
+
+    def __init__(self, path, im=None, annotator=None):
         """
-        Identify nuclear contours by running watershed segmentation on specified background channel.
+        Instantiate layer.
 
         Args:
 
-            channel (int) - channel index on which to segment image
+            path (str) - path to layer directory
 
-            preprocessing_kws (dict) - keyword arguments for image preprocessing
+            im (np.ndarray[float]) - 3D array of pixel values
 
-            seed_kws (dict) - keyword arguments for seed detection
+            annotator (Annotation) - object that assigns labels to measurements
 
-            seg_kws (dict) - keyword arguments for segmentation
+        """
 
-            min_area (int) - threshold for minimum segment size, px
+        # set layer ID
+        layer_id = int(path.rsplit('/', maxsplit=1)[-1])
+        self._id = layer_id
+        self.xykey = ['centroid_x', 'centroid_y']
+
+        # set path and subdirectories
+        self.path = path
+
+        # make layers directory
+        if not exists(self.path):
+            self.initialize()
+        self.find_subdirs()
+
+        # load inclusion; defaults to True
+        if 'selection' in self.subdirs.keys():
+            if len(listdir(self.subdirs['selection'])) == 0:
+                self.include = True
+            else:
+                self.load_inclusion()
+        else:
+            self.include = True
+
+        # initialize measurement data
+        self.measurements = None
+        self.data = None
+
+        # set annotator
+        self.annotator = annotator
+
+        # load labels and instantiate image
+        self.load_labels()
+        super().__init__(im, labels=self.labels)
+
+    def initialize(self):
+        """
+
+        Initialize layer directory by:
+
+            - Creating a layer directory
+            - Removing existing segmentation directory
+            - Saving metadata to file
+
+        """
+
+        # make layers directory
+        if not exists(self.path):
+            mkdir(self.path)
+        self.subdirs = {}
+
+        # remove existing segmentation/annotation/measurement directories
+        for key in ('segmentation', 'measurements', 'annotation'):
+            if key in self.subdirs.keys():
+                rmtree(self.subdirs[key])
+
+        # make metadata file
+        segmentation_kw = dict(preprocessing_kws={}, seed_kws={}, seg_kws={})
+        params = dict(segmentation_kw=segmentation_kw, graph_kw={})
+        metadata = dict(bg=None, params=params)
+
+        # save metadata
+        IO().write_json(join(self.path, 'metadata.json'), metadata)
+
+    def process_measurements(self, measurements):
+        """
+        Augment measurements by:
+            1. incorporating manual selection boundary
+            2. correcting for fluorescence bleedthrough
+            3. assigning measurement labels
+            4. marking clone boundaries
+            5. assigning label concurrency information
+
+        Operations 3-5 require construction of a WeightedGraph object.
+
+        Args:
+
+            measurements (pd.DataFrame) - raw measurement data
 
         Returns:
 
-            background (ImageScalar) - background image post-processing
+            data (pd.DataFrame) - processed measurement data
 
         """
 
-        # append default parameter values
-        preprocessing_kws = defaults('preprocessing', preprocessing_kws)
-        seed_kws = defaults('seeds', seed_kws)
-        seg_kws = defaults('segmentation', seg_kws)
+        # copy raw measurements
+        data = deepcopy(measurements)
 
-        # store parameters in metadata
-        self.metadata['bg'] = channel
-        segmentation_kw = dict(preprocessing_kws=preprocessing_kws,
-                               seed_kws=seed_kws,
-                               seg_kws=seg_kws,
-                               min_area=min_area)
-        self.metadata['params']['segmentation_kw'] = segmentation_kw
+        # load and apply selection
+        if 'selection' in self.subdirs.keys():
+            self.define_roi(data)
 
-        # extract and preprocess background
-        background = self.get_channel(channel)
-        background.preprocess(**preprocessing_kws)
+        # load and apply correction
+        if 'correction' in self.subdirs.keys():
+            self.apply_correction(data)
 
-        # run segmentation
-        seg = Segmentation(background, seed_kws=seed_kws, seg_kws=seg_kws)
+        # annotate measurements
+        if self.has_trained_annotator and self.graph is not None:
 
-        # exclude small segments
-        seg.exclude_small_segments(min_area=min_area)
+            # apply trained annotator to label distinct celltypes
+            self._apply_annotation(data, label='genotype')
 
-        # update segment labels
-        self.labels = seg.labels
-        background.labels = seg.labels
+            # mark boundaries between labeled regions
+            self._mark_boundaries(data, basis='genotype', max_edges=1)
 
-        # update cell measurements
-        self.measure()
+            # mark regions in which each label is found
+            self._apply_concurrency(data, basis='genotype')
 
-        return background
+        return data
 
-    def measure(self):
+    def build_graph(self, weighted_by, **graph_kw):
         """
-        Measure properties of cell segments. Raw measurements are stored under in the 'measurements' attribute, while processed measurements are stored in the 'data' attribute.
+        Compile weighted graph connecting adjacent cells.
+
+        Args:
+
+            weighted_by (str) - attribute used to weight edges
+
+            graph_kw: keyword arguments, including:
+
+                xykey (list) - attribute keys for node x/y positions
+
+                logratio (bool) - if True, weight edges by log ratio
+
+                distance (bool) - if True, weights edges by distance
+
         """
 
-        # measure segment properties
-        measurements = Measurements(self.im, self.labels)
-        measurements = measurements.build_dataframe()
+        # store metadata for graph reconstruction
+        self.metadata['params']['graph_weighted_by'] = weighted_by
+        self.metadata['params']['graph_kw'] = graph_kw
 
-        # assign layer id, apply normalization, and save measurements
-        measurements['layer'] = self._id
-        self.apply_normalization(measurements)
-        self.measurements = measurements
-
-        # process raw measurement data
-        self.data = self.process_measurements(self.measurements)
+        # build graph
+        self.graph = WeightedGraph(self.measurements, weighted_by, **graph_kw)

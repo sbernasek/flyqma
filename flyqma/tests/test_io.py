@@ -14,7 +14,8 @@ class TestPaths(TestCase):
     stack_path = join(experiment_path, 'disc')
     #silhouette_path = join(self.fixtures_path, 'disc.silhouette')
     tif_path = join(fixtures_path, 'disc.tif')
-    roi_mask_path = join(fixtures_path, 'roi.npy')
+    roi_mask_path = join(fixtures_path, 'roi_mask.npy')
+    segmentation_mask_path = join(fixtures_path, 'segmentation_mask.npy')
 
 
 class Test01_Instantiation(TestPaths):
