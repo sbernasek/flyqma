@@ -150,7 +150,7 @@ Aggregate all measurement data from an experiment:
 
 
 
-Additional Examples
--------------------
+Usage Examples
+--------------
 
-For real usage examples, please refer to the `FlyQMA manuscript <https://github.com/sebastianbernasek/flyqma_ms>`_ and the `our study <https://github.com/sebastianbernasek/pnt_yan_ratio>`_ of Pnt and Yan expression in the developing eye.
+For real usage examples, please refer to the `FlyQMA manuscript <https://doi.org/10.1101/775783>`_ and the `our study <https://doi.org/10.1101/430744>`_ of Pnt and Yan expression in the developing eye.
