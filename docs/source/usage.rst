@@ -96,7 +96,7 @@ Regions of interest are selected by drawing a selection boundary that encloses t
    :align: center
    :alt: example gui
 
-   **Example:** Selection boundary for two layers.
+   **Example:** ROI boundaries for two layers, one of which is excluded.
 
 The GUI offers some basic key commands:
 
