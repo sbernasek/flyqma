@@ -84,7 +84,7 @@ When a selection is saved, a boolean *selected* attribute is added to the layer'
 
 .. code-block:: bash
 
-   E: *exclude* entire layer
+   E: exclude entire layer
 
 Layers marked *excluded* will be masked by a transparent overlay. When these layers are saved, the *selected* attribute is set to False for all of their constituent cell measurements.
 
