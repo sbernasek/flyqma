@@ -55,7 +55,7 @@ The Fly-QMA package includes a matplot-lib based GUI for selecting a particular 
    >>> stack = experiment.load_stack(stack_ind, full=True)
 
    >>> # create the GUI interface (a still image)
-   >>> gui = GUI.load(stack)
+   >>> gui = GUI(stack)
 
    >>> # connect interface to user input
    >>> gui.connect()
@@ -64,40 +64,31 @@ The Fly-QMA package includes a matplot-lib based GUI for selecting a particular 
 Regions of interest are selected by drawing a selection boundary that encloses them. A selection boundary is defined by a series of sequentially-added points. Click on a layer image to add a point to that layer's selection boundary. Points may be added to any of a layer's fluorescence channels, and will automatically appear withing all other fluorescence channels for that layer. The most recently added point appears as a large red dot, while all other points appear as small yellow dots. Once three or more dots are present in an image layer, the current selection boundary is displayed with a yellow line. Once completed, a given layer might look like:
 
 
-.. figure:: graphics/example_path.jpg
+.. figure:: graphics/example_gui.png
    :scale: 100 %
    :align: center
-   :alt: selection boundary
+   :alt: example gui
 
-   **Example:** Selection boundary for a layer
+   **Example:** Selection boundary for two layers.
 
 The GUI offers some basic key commands:
 
 .. code-block:: bash
 
-   Z: remove last added point
-   M: remove all points in layer
-   S: save selection (for all layers in stack)
-   X: exit GUI
+   T: remove last added point
+   Y: remove all points in layer
+   W: save ROI selection
+   Q: exit GUI
 
-When a selection is saved, a boolean *selected* attribute is added to the layer's cell measurement data indicating whether or not a given cell lies within the layer's selection path. The *selected* attribute may then be used to filter the measurement data during subsequent analysis. The GUI also allows the user to mark entire layers for exclusion using two additional key commands:
+When a selection is saved, a boolean *selected* attribute is added to the layer's cell measurement data indicating whether or not a given cell lies within the layer's selection path. The *selected* attribute may then be used to filter the measurement data during subsequent analysis. The GUI also allows the user to mark entire layers for exclusion using an additional key commands:
 
 .. code-block:: bash
 
-   D: mark layer as *excluded*
+   E: *exclude* entire layer
 
 Layers marked *excluded* will be masked by a transparent overlay. When these layers are saved, the *selected* attribute is set to False for all of their constituent cell measurements.
 
 A saved GUI may be reopened via the ``GUI.load`` method, at which point further adjustments may be made to each layer.
-
-
-.. figure:: graphics/example_gui.jpg
-   :scale: 100 %
-   :align: center
-   :alt: example gui
-
-   **Example:** A completed selection
-
 
 See the ROI selection :ref:`documentation <selection_docs>` for additional details.
 

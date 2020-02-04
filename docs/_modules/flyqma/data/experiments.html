@@ -1,19 +1,17 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>flyqma.data.experiments &#8212; flyqma v0.2 documentation</title>
+    <meta charset="utf-8" />
+    <title>flyqma.data.experiments &#8212; flyqma v0.3 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -33,12 +31,14 @@
           <div class="body" role="main">
             
   <h1>Source code for flyqma.data.experiments</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">abspath</span><span class="p">,</span> <span class="n">isdir</span>
-<span class="kn">from</span> <span class="nn">glob</span> <span class="k">import</span> <span class="n">glob</span>
+<span></span><span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">abspath</span><span class="p">,</span> <span class="n">isdir</span>
+<span class="kn">from</span> <span class="nn">glob</span> <span class="kn">import</span> <span class="n">glob</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
-<span class="kn">from</span> <span class="nn">.stacks</span> <span class="k">import</span> <span class="n">Stack</span>
+<span class="kn">from</span> <span class="nn">..utilities</span> <span class="kn">import</span> <span class="n">UserPrompts</span>
+
+<span class="kn">from</span> <span class="nn">.stacks</span> <span class="kn">import</span> <span class="n">Stack</span>
 
 
 <div class="viewcode-block" id="Experiment"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.experiments.Experiment">[docs]</a><span class="k">class</span> <span class="nc">Experiment</span><span class="p">:</span>
@@ -49,9 +49,9 @@
 
 <span class="sd">        path (str) - path to experiment directory</span>
 
-<span class="sd">        _id (int) - experiment ID</span>
+<span class="sd">        _id (str) - name of experiment</span>
 
-<span class="sd">        stack_ids (list) - unique stack ids within experiment</span>
+<span class="sd">        stack_ids (list of str) - unique stack ids within experiment</span>
 
 <span class="sd">        stack_dirs (dict) - {stack_id: stack_directory} tuples</span>
 
@@ -59,7 +59,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Instantiate experiment object.</span>
 
@@ -84,18 +84,22 @@
         <span class="c1"># reset stack iterator count</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
 
-    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stack_id</span><span class="p">):</span>
+        <span class="c1"># check if stacks have been initialized, if not prompt user</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_initialized</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">prompt_initialization</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stack_id</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Load stack. &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_stack</span><span class="p">(</span><span class="n">stack_id</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Iterate across stacks. &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">return</span> <span class="bp">self</span>
 
-    <span class="k">def</span> <span class="nf">__next__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__next__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Return next stack. &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stacks</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stack_ids</span><span class="p">):</span>
             <span class="n">stack_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stack_ids</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">count</span><span class="p">]</span>
             <span class="n">stack</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">(</span><span class="n">stack_id</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -103,13 +107,45 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">StopIteration</span>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_initialized</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns True if Experiment has been initialized. &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">stack_dir</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stack_dirs</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">Stack</span><span class="o">.</span><span class="n">_check_if_initialized</span><span class="p">(</span><span class="n">stack_dir</span><span class="p">):</span>
+                <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+<div class="viewcode-block" id="Experiment.prompt_initialization"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.experiments.Experiment.prompt_initialization">[docs]</a>    <span class="k">def</span> <span class="nf">prompt_initialization</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Ask user whether to initialize all stack directories. &quot;&quot;&quot;</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Incomplete stack directories found. Initialize them?&#39;</span>
+        <span class="n">user_response</span> <span class="o">=</span> <span class="n">UserPrompts</span><span class="o">.</span><span class="n">boolean_prompt</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">user_response</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Please enter an image bit depth:&#39;</span>
+            <span class="n">bit_depth</span> <span class="o">=</span> <span class="n">UserPrompts</span><span class="o">.</span><span class="n">integer_prompt</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">bit_depth</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">bit_depth</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;User response not recognized, stacks have not been initialized.&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Experiment.initialize"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.experiments.Experiment.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bit_depth</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize a collection of image stacks.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            bit_depth (int) - bit depth of raw tif (e.g. 12 or 16). Value will be read from the stack metadata if None is provided. An error is raised if no value is found.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">stack_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stack_ids</span><span class="p">:</span>
+            <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_stack</span><span class="p">(</span><span class="n">stack_id</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">bit_depth</span><span class="o">=</span><span class="n">bit_depth</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="Experiment.load_stack"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.experiments.Experiment.load_stack">[docs]</a>    <span class="k">def</span> <span class="nf">load_stack</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stack_id</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Load 3D RGB image stack.</span>
 
 <span class="sd">        Args:</span>
 
-<span class="sd">            stack_id (str or int) - stack to be loaded</span>
+<span class="sd">            stack_id (str or int) - desired stack</span>
 
 <span class="sd">            full (bool) - if True, load full 3D image from tif file</span>
 
@@ -126,21 +162,24 @@
 <div class="viewcode-block" id="Experiment.aggregate_measurements"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.experiments.Experiment.aggregate_measurements">[docs]</a>    <span class="k">def</span> <span class="nf">aggregate_measurements</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                                <span class="n">selected_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                                <span class="n">exclude_boundary</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                               <span class="n">raw</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+                               <span class="n">raw</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                               <span class="n">use_cache</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Aggregate measurements from each stack.</span>
 
 <span class="sd">        Args:</span>
 
-<span class="sd">            selected_only (bool) - if True, exclude cells not marked for inclusion</span>
+<span class="sd">            selected_only (bool) - if True, exclude cells outside the ROI</span>
 
-<span class="sd">            exclude_boundary (bool) - if True, exclude cells on clone boundaries</span>
+<span class="sd">            exclude_boundary (bool) - if True, exclude cells on the border of labeled regions</span>
 
-<span class="sd">            raw (bool) - if True, aggregate raw measurements from included discs</span>
+<span class="sd">            raw (bool) - if True, use raw measurements from included discs</span>
+
+<span class="sd">            use_cache (bool) - if True, used available cached measurement data</span>
 
 <span class="sd">        Returns:</span>
 
-<span class="sd">            data (pd.Dataframe) - curated cell measurement data</span>
+<span class="sd">            data (pd.Dataframe) - curated cell measurement data, which is None if no measurement data are found</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -148,7 +187,14 @@
         <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">stack_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">stack_ids</span><span class="p">:</span>
             <span class="n">stack</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_stack</span><span class="p">(</span><span class="n">stack_id</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-            <span class="n">measurements</span> <span class="o">=</span> <span class="n">stack</span><span class="o">.</span><span class="n">aggregate_measurements</span><span class="p">(</span><span class="n">raw</span><span class="o">=</span><span class="n">raw</span><span class="p">)</span>
+            <span class="n">measurements</span> <span class="o">=</span> <span class="n">stack</span><span class="o">.</span><span class="n">aggregate_measurements</span><span class="p">(</span>
+                <span class="n">selected_only</span><span class="o">=</span><span class="n">selected_only</span><span class="p">,</span>
+                <span class="n">exclude_boundary</span><span class="o">=</span><span class="n">exclude_boundary</span><span class="p">,</span>
+                <span class="n">raw</span><span class="o">=</span><span class="n">raw</span><span class="p">,</span>
+                <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">measurements</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
 
             <span class="c1"># add stack index</span>
             <span class="n">measurements</span><span class="p">[</span><span class="s1">&#39;stack&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stack</span><span class="o">.</span><span class="n">_id</span>
@@ -157,6 +203,10 @@
 
             <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">measurements</span><span class="p">)</span>
             <span class="k">assert</span> <span class="n">stack_id</span> <span class="o">==</span> <span class="n">stack</span><span class="o">.</span><span class="n">_id</span><span class="p">,</span> <span class="s1">&#39;Stack IDs do not match.&#39;</span>
+
+        <span class="c1"># return None if no data are found</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
 
         <span class="c1"># aggregate measurements</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">join</span><span class="o">=</span><span class="s1">&#39;outer&#39;</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -212,17 +262,23 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
         </div>
       </div>
       <div class="clearer"></div>

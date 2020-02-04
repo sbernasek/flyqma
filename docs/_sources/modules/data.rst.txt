@@ -58,6 +58,9 @@ Silhouette Interface
 
 Fly-QMA provides several tools for seemlessly exchanging data with NU FlyEye Silhouette.
 
-.. automodule:: flyqma.data.silhouette
+.. automodule:: flyqma.data.silhouette_read
+   :members:
+
+.. automodule:: flyqma.data.silhouette_write
    :members:
 

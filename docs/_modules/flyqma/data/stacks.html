@@ -1,19 +1,17 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>flyqma.data.stacks &#8212; flyqma v0.2 documentation</title>
+    <meta charset="utf-8" />
+    <title>flyqma.data.stacks &#8212; flyqma v0.3 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -34,27 +32,32 @@
             
   <h1>Source code for flyqma.data.stacks</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">warnings</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span><span class="p">,</span> <span class="n">abspath</span><span class="p">,</span> <span class="n">isdir</span>
-<span class="kn">from</span> <span class="nn">os</span> <span class="k">import</span> <span class="n">mkdir</span>
-<span class="kn">from</span> <span class="nn">shutil</span> <span class="k">import</span> <span class="n">move</span>
-<span class="kn">from</span> <span class="nn">glob</span> <span class="k">import</span> <span class="n">glob</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span><span class="p">,</span> <span class="n">abspath</span><span class="p">,</span> <span class="n">isdir</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">mkdir</span><span class="p">,</span> <span class="n">remove</span>
+<span class="kn">from</span> <span class="nn">shutil</span> <span class="kn">import</span> <span class="n">move</span><span class="p">,</span> <span class="n">rmtree</span>
+<span class="kn">from</span> <span class="nn">glob</span> <span class="kn">import</span> <span class="n">glob</span>
 <span class="kn">import</span> <span class="nn">gc</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
-<span class="kn">from</span> <span class="nn">..utilities</span> <span class="k">import</span> <span class="n">IO</span>
-<span class="kn">from</span> <span class="nn">..annotation</span> <span class="k">import</span> <span class="n">Annotation</span>
+<span class="kn">from</span> <span class="nn">..utilities</span> <span class="kn">import</span> <span class="n">IO</span>
+<span class="kn">from</span> <span class="nn">..utilities</span> <span class="kn">import</span> <span class="n">UserPrompts</span>
+<span class="kn">from</span> <span class="nn">..annotation</span> <span class="kn">import</span> <span class="n">Annotation</span>
 
-<span class="kn">from</span> <span class="nn">.layers</span> <span class="k">import</span> <span class="n">Layer</span>
-<span class="kn">from</span> <span class="nn">.silhouette</span> <span class="k">import</span> <span class="n">SilhouetteIO</span>
+<span class="kn">from</span> <span class="nn">.layers</span> <span class="kn">import</span> <span class="n">Layer</span>
+<span class="kn">from</span> <span class="nn">.silhouette_write</span> <span class="kn">import</span> <span class="n">WriteSilhouette</span>
+
+<span class="c1"># filter numpy warnings</span>
+<span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">&quot;numpy.dtype size changed&quot;</span><span class="p">)</span>
+<span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">&quot;numpy.ufunc size changed&quot;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="StackIO"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.stacks.StackIO">[docs]</a><span class="k">class</span> <span class="nc">StackIO</span><span class="p">(</span><span class="n">SilhouetteIO</span><span class="p">):</span>
+<div class="viewcode-block" id="StackIO"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.stacks.StackIO">[docs]</a><span class="k">class</span> <span class="nc">StackIO</span><span class="p">(</span><span class="n">WriteSilhouette</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Methods for saving and loading a Stack instance. &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="StackIO.from_tif"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.stacks.StackIO.from_tif">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">from_tif</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">bits</span><span class="o">=</span><span class="mi">16</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">from_tif</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">bit_depth</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize stack from tif &lt;filepath&gt;.</span>
 
@@ -62,7 +65,7 @@
 
 <span class="sd">            path (str) - path to tif image file</span>
 
-<span class="sd">            bits (int) - bit depth</span>
+<span class="sd">            bit_depth (int) - bit depth of raw tif (e.g. 12 or 16)</span>
 
 <span class="sd">        Returns:</span>
 
@@ -79,10 +82,10 @@
         <span class="n">mkdir</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="n">move</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">join</span><span class="p">(</span> <span class="n">path</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{:s}</span><span class="s1">.tif&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">_id</span><span class="p">)))</span>
 
-        <span class="k">return</span> <span class="n">Stack</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">bits</span><span class="o">=</span><span class="n">bits</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">Stack</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">bit_depth</span><span class="o">=</span><span class="n">bit_depth</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="StackIO.from_silhouette"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.stacks.StackIO.from_silhouette">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">from_silhouette</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">bits</span><span class="o">=</span><span class="mi">16</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">from_silhouette</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">bit_depth</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize stack from silhouette &lt;filepath&gt;.</span>
 
@@ -90,7 +93,7 @@
 
 <span class="sd">            path (str) - path to silhouette file</span>
 
-<span class="sd">            bits (int) - bit depth</span>
+<span class="sd">            bit_depth (int) - bit depth of raw tif (e.g. 12 or 16)</span>
 
 <span class="sd">        Returns:</span>
 
@@ -98,18 +101,17 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="k">raise</span> <span class="ne">UserWarning</span><span class="p">(</span><span class="s1">&#39;INCOMPLETE FUNCTIONALITY: TIF FILE REQUIRED.&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">UserWarning</span><span class="p">(</span><span class="s1">&#39;INCOMPLETE METHOD: TIF FILE REQUIRED.&#39;</span><span class="p">)</span>
 
         <span class="n">path</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">filepath</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="n">maxsplit</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">ext</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">!=</span> <span class="s1">&#39;silhouette&#39;</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Silhouette extension not recognized.&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">ext</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;silhouette&#39;</span><span class="p">,</span> <span class="s1">&#39;Silhouette file not found.&#39;</span>
         <span class="n">_id</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
         <span class="c1"># make directory</span>
         <span class="n">mkdir</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-        <span class="n">move</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">join</span><span class="p">(</span> <span class="n">path</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{:s}</span><span class="s1">.silhouette&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">_id</span><span class="p">)))</span>
+        <span class="n">move</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{:s}</span><span class="s1">.silhouette&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">_id</span><span class="p">)))</span>
 
-        <span class="k">return</span> <span class="n">Stack</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">bits</span><span class="o">=</span><span class="n">bits</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">Stack</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">bit_depth</span><span class="o">=</span><span class="n">bit_depth</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="StackIO.save"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.stacks.StackIO.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Save stack metadata and annotator. &quot;&quot;&quot;</span>
@@ -145,7 +147,7 @@
 
         <span class="c1"># load tif, normalize pixel intensities, and convert to NWHC format</span>
         <span class="n">stack</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_tif</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tif_path</span><span class="p">)</span>
-        <span class="n">stack</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pixel_norm</span><span class="p">(</span><span class="n">stack</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;bits&#39;</span><span class="p">])</span>
+        <span class="n">stack</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pixel_norm</span><span class="p">(</span><span class="n">stack</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bit_depth</span><span class="p">)</span>
         <span class="n">stack</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_NWHC</span><span class="p">(</span><span class="n">stack</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stack</span> <span class="o">=</span> <span class="n">stack</span>
 
@@ -206,13 +208,17 @@
 
 <span class="sd">        path (str) - path to stack directory</span>
 
-<span class="sd">        _id (str or int) - stack ID</span>
+<span class="sd">        _id (str) - stack ID</span>
 
 <span class="sd">        stack (np.ndarray[float]) - 3D RGB image stack</span>
 
 <span class="sd">        shape (tuple) - stack dimensions, (depth, X, Y, 3)</span>
 
-<span class="sd">        depth (int) - number of layers in stack</span>
+<span class="sd">        bit_depth (int) - bit depth of raw tif image</span>
+
+<span class="sd">        stack_depth (int) - number of layers in stack</span>
+
+<span class="sd">        color_depth (int) - number of fluorescence channels in stack</span>
 
 <span class="sd">        annotator (Annotation) - object that assigns labels to measurements</span>
 
@@ -226,7 +232,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">bits</span><span class="o">=</span><span class="mi">16</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">bit_depth</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize stack from stack directory &lt;path&gt;.</span>
 
@@ -234,7 +240,7 @@
 
 <span class="sd">            path (str) - path to stack directory</span>
 
-<span class="sd">            bits (int) - bit depth</span>
+<span class="sd">            bit_depth (int) - bit depth of raw tif (e.g. 12 or 16). Value will be read from the stack metadata if None is provided. An error is raised if no value is found.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -243,26 +249,45 @@
 
         <span class="c1"># check if path is directly to a silhouette file</span>
         <span class="k">if</span> <span class="s1">&#39;.silhouette&#39;</span> <span class="ow">in</span> <span class="n">path</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;This is a silhouette file, use the Stack.from_silhouette constructor.&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Please use the Stack.from_silhouette constructor.&#39;</span><span class="p">)</span>
         <span class="k">elif</span> <span class="s1">&#39;.tif&#39;</span> <span class="ow">in</span> <span class="n">path</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;This is a tif file, use the Stack.from_tif constructor.&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Please use the Stack.from_tif constructor.&#39;</span><span class="p">)</span>
 
         <span class="c1"># set path to stack directory</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_id</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="n">maxsplit</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stack</span> <span class="o">=</span> <span class="kc">None</span>
 
-        <span class="c1"># set paths</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">tif_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{:s}</span><span class="s1">.tif&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">))</span>
+        <span class="c1"># find image file (defaults to stack name, otherwise first tif found)</span>
+        <span class="n">tifs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">glob</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;*.tif&#39;</span><span class="p">),</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">tifs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;No tif image files found in stack directory.&#39;</span>
+        <span class="n">default_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{:s}</span><span class="s1">.tif&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_id</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">default_path</span> <span class="ow">in</span> <span class="n">tifs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tif_path</span> <span class="o">=</span> <span class="n">default_path</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tif_path</span> <span class="o">=</span> <span class="n">tifs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># set layer and annotator directory paths</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">layers_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;layers&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">annotator_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;annotation&#39;</span><span class="p">)</span>
 
-        <span class="c1"># initialize stack if layers directory doesn&#39;t exist</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">isdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layers_path</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">bits</span><span class="o">=</span><span class="n">bits</span><span class="p">)</span>
+        <span class="c1"># initialize stack</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_initialized</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">bit_depth</span><span class="p">)</span> <span class="o">==</span> <span class="nb">int</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">bit_depth</span><span class="o">=</span><span class="n">bit_depth</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">prompt_initialization</span><span class="p">()</span>
 
         <span class="c1"># load metadata</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">load_metadata</span><span class="p">()</span>
+
+        <span class="c1"># if bit_depth was provided, make sure it&#39;s consistent</span>
+        <span class="k">if</span> <span class="n">bit_depth</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;bit_depth was neither specified nor found in the metadata.&#39;</span>
+            <span class="k">assert</span> <span class="s1">&#39;bits&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">msg</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Specified bit depth is inconsistent with existing metadata.&#39;</span>
+            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">bit_depth</span> <span class="o">==</span> <span class="n">bit_depth</span><span class="p">,</span> <span class="n">msg</span>
 
         <span class="c1"># load annotator</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">annotator</span> <span class="o">=</span> <span class="kc">None</span>
@@ -271,16 +296,16 @@
         <span class="c1"># reset layer iterator count</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
 
-    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer_id</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer_id</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Load layer. &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_layer</span><span class="p">(</span><span class="n">layer_id</span><span class="p">,</span> <span class="n">graph</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">process</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_layer</span><span class="p">(</span><span class="n">layer_id</span><span class="p">,</span> <span class="n">graph</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Iterate across included layers. &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">return</span> <span class="bp">self</span>
 
-    <span class="k">def</span> <span class="nf">__next__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__next__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Return next included layer. &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">count</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">included</span><span class="p">):</span>
             <span class="n">layer_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">included</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">count</span><span class="p">]</span>
@@ -290,19 +315,66 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">StopIteration</span>
 
+<div class="viewcode-block" id="Stack.prompt_initialization"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.stacks.Stack.prompt_initialization">[docs]</a>    <span class="k">def</span> <span class="nf">prompt_initialization</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Ask user whether to initialize all stack directories. &quot;&quot;&quot;</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{:s}</span><span class="s1"> directory has not been initialized. Do it now?&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+        <span class="n">user_response</span> <span class="o">=</span> <span class="n">UserPrompts</span><span class="o">.</span><span class="n">boolean_prompt</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">user_response</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Please enter an image bit depth:&#39;</span>
+            <span class="n">bit_depth</span> <span class="o">=</span> <span class="n">UserPrompts</span><span class="o">.</span><span class="n">integer_prompt</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">bit_depth</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">bit_depth</span><span class="o">=</span><span class="n">bit_depth</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Could not initialize stack because bit depth value was not recognized.&#39;</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_check_if_initialized</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns True if &lt;path&gt; contains an initialized stack directory. &quot;&quot;&quot;</span>
+        <span class="n">layers_complete</span> <span class="o">=</span> <span class="n">isdir</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;layers&#39;</span><span class="p">))</span>
+        <span class="n">metadata_complete</span> <span class="o">=</span> <span class="n">exists</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;metadata.json&#39;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">layers_complete</span> <span class="ow">and</span> <span class="n">metadata_complete</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_initialized</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns True if Stack has been initialized. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_if_initialized</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_segmented</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; True if segmentation is complete. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">aggregate_measurements</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_annotated</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; True if annotation is complete. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">annotator</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">included</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Indices of included layers. &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_included_layers</span><span class="p">()</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">depth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">filename</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Stack filename. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">bit_depth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Bit depth of raw image. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;bits&#39;</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">stack_depth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Number of layers in stack. &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;depth&#39;</span><span class="p">]</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">colordepth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Number of color channels in stack. &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">color_depth</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Number of fluorescence channels in stack. &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;colordepth&#39;</span><span class="p">]</span>
 
     <span class="nd">@property</span>
@@ -312,16 +384,16 @@
 
 <div class="viewcode-block" id="Stack.get_included_layers"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.stacks.Stack.get_included_layers">[docs]</a>    <span class="k">def</span> <span class="nf">get_included_layers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Returns indices of included layers. &quot;&quot;&quot;</span>
-        <span class="n">layers</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">load_layer</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">graph</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">depth</span><span class="p">)]</span>
+        <span class="n">layers</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">load_layer</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">graph</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stack_depth</span><span class="p">)]</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">layer</span><span class="o">.</span><span class="n">_id</span> <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">layers</span> <span class="k">if</span> <span class="n">layer</span><span class="o">.</span><span class="n">include</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="Stack.initialize"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.stacks.Stack.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bits</span><span class="o">=</span><span class="mi">16</span><span class="p">):</span>
+<div class="viewcode-block" id="Stack.initialize"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.stacks.Stack.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bit_depth</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize stack directory.</span>
 
 <span class="sd">        Args:</span>
 
-<span class="sd">            bits (int) - tif resolution</span>
+<span class="sd">            bit_depth (int) - bit depth of raw tif (e.g. 12 or 16)</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -329,12 +401,14 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layers_path</span><span class="p">):</span>
             <span class="n">mkdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layers_path</span><span class="p">)</span>
 
-        <span class="c1"># load stack (to determine shape)</span>
-        <span class="n">stack</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_tif</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tif_path</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="n">bits</span><span class="p">)</span>
+        <span class="c1"># load stack (to determine shape), and check bit depth</span>
+        <span class="n">raw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_read_tif</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tif_path</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">raw</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="n">bit_depth</span><span class="p">),</span> <span class="s1">&#39;Pixels exceed bit_depth.&#39;</span>
+        <span class="n">stack</span> <span class="o">=</span> <span class="n">raw</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="n">bit_depth</span><span class="p">)</span>
 
         <span class="c1"># make metadata file</span>
         <span class="n">io</span> <span class="o">=</span> <span class="n">IO</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">bits</span><span class="o">=</span><span class="n">bits</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="n">stack</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">params</span><span class="o">=</span><span class="p">{})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">bits</span><span class="o">=</span><span class="n">bit_depth</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="n">stack</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">params</span><span class="o">=</span><span class="p">{})</span>
         <span class="n">io</span><span class="o">.</span><span class="n">write_json</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;metadata.json&#39;</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">)</span>
 
         <span class="c1"># load image</span>
@@ -342,10 +416,20 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">load_image</span><span class="p">()</span>
 
         <span class="c1"># initialize layers</span>
-        <span class="k">for</span> <span class="n">layer_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">depth</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">layer_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stack_depth</span><span class="p">):</span>
             <span class="n">layer_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layers_path</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{:d}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">layer_id</span><span class="p">))</span>
             <span class="n">layer</span> <span class="o">=</span> <span class="n">Layer</span><span class="p">(</span><span class="n">layer_path</span><span class="p">)</span>
             <span class="n">layer</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Stack.restore_directory"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.stacks.Stack.restore_directory">[docs]</a>    <span class="k">def</span> <span class="nf">restore_directory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Restore stack directory to original state. &quot;&quot;&quot;</span>
+        <span class="n">metadata_path</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;metadata.json&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="p">(</span><span class="n">metadata_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers_path</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">isdir</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+                    <span class="n">rmtree</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">remove</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Stack.segment"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.stacks.Stack.segment">[docs]</a>    <span class="k">def</span> <span class="nf">segment</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span>
                 <span class="n">preprocessing_kws</span><span class="o">=</span><span class="p">{},</span>
@@ -369,6 +453,9 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
 
+        <span class="c1"># make sure image is loaded</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">stack</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;Image data not found. Use the load_image() method to read image data into memory.&#39;</span>
+
         <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
             <span class="n">_</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">segment</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span>
                 <span class="n">preprocessing_kws</span><span class="o">=</span><span class="n">preprocessing_kws</span><span class="p">,</span>
@@ -379,7 +466,11 @@
             <span class="c1"># save layer measurements and segmentation</span>
             <span class="n">layer</span><span class="o">.</span><span class="n">save</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="Stack.train_annotator"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.stacks.Stack.train_annotator">[docs]</a>    <span class="k">def</span> <span class="nf">train_annotator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">logratio</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="Stack.train_annotator"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.stacks.Stack.train_annotator">[docs]</a>    <span class="k">def</span> <span class="nf">train_annotator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute</span><span class="p">,</span>
+                        <span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                        <span class="n">logratio</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">num_labels</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                        <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Train an Annotation model on all layers in this stack.</span>
 
@@ -390,6 +481,8 @@
 <span class="sd">            save (bool) - if True, save annotator and model selection routine</span>
 
 <span class="sd">            logratio (bool) - if True, weight edges by relative attribute value</span>
+
+<span class="sd">            num_labels (int) - number of allowable unique labels</span>
 
 <span class="sd">            kwargs: keyword arguments for Annotation, including:</span>
 
@@ -405,6 +498,10 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
 
+        <span class="c1"># make sure measurement data are available</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_segmented</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;Measurement data not available, please run segmentation first.&#39;</span><span class="p">)</span>
+
         <span class="c1"># build graph for each layer</span>
         <span class="n">graphs</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">layer_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">included</span><span class="p">:</span>
@@ -417,7 +514,7 @@
                 <span class="n">layer</span><span class="o">.</span><span class="n">save_metadata</span><span class="p">()</span>
 
         <span class="c1"># train annotator</span>
-        <span class="n">annotator</span> <span class="o">=</span> <span class="n">Annotation</span><span class="p">(</span><span class="n">attribute</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">annotator</span> <span class="o">=</span> <span class="n">Annotation</span><span class="p">(</span><span class="n">attribute</span><span class="p">,</span> <span class="n">num_labels</span><span class="o">=</span><span class="n">num_labels</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">selector</span> <span class="o">=</span> <span class="n">annotator</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="o">*</span><span class="n">graphs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">annotator</span> <span class="o">=</span> <span class="n">annotator</span>
 
@@ -428,22 +525,30 @@
 
             <span class="c1"># annotate measurements</span>
             <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
-                <span class="n">layer</span><span class="o">.</span><span class="n">annotate</span><span class="p">(</span><span class="n">layer</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+                <span class="n">layer</span><span class="o">.</span><span class="n">annotate</span><span class="p">()</span>
                 <span class="n">layer</span><span class="o">.</span><span class="n">save_processed_data</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="Stack.aggregate_measurements"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.stacks.Stack.aggregate_measurements">[docs]</a>    <span class="k">def</span> <span class="nf">aggregate_measurements</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">process</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="Stack.aggregate_measurements"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.stacks.Stack.aggregate_measurements">[docs]</a>    <span class="k">def</span> <span class="nf">aggregate_measurements</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                               <span class="n">selected_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                               <span class="n">exclude_boundary</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                               <span class="n">raw</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                               <span class="n">use_cache</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Aggregate measurements from each included layer.</span>
 
 <span class="sd">        Args:</span>
 
+<span class="sd">            selected_only (bool) - if True, exclude cells not marked for inclusion</span>
+
+<span class="sd">            exclude_boundary (bool) - if True, exclude cells on clone boundaries</span>
+
 <span class="sd">            raw (bool) - if True, aggregate raw measurements</span>
 
-<span class="sd">            process (bool) - if True, apply processing to raw measurements</span>
+<span class="sd">            use_cache (bool) - if True, used available cached measurement data</span>
 
 <span class="sd">        Returns:</span>
 
-<span class="sd">            data (pd.Dataframe) - processed cell measurement data</span>
+<span class="sd">            data (pd.Dataframe) - measurement data (None if unavailable)</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -451,9 +556,13 @@
         <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">layer_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">included</span><span class="p">:</span>
             <span class="n">layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_layer</span><span class="p">(</span><span class="n">layer_id</span><span class="p">,</span>
-                                    <span class="n">graph</span><span class="o">=</span><span class="n">process</span><span class="p">,</span>
-                                    <span class="n">process</span><span class="o">=</span><span class="n">process</span><span class="p">,</span>
+                                    <span class="n">graph</span><span class="o">=</span><span class="p">(</span><span class="ow">not</span> <span class="n">use_cache</span><span class="p">),</span>
+                                    <span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span>
                                     <span class="n">full</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+            <span class="c1"># skip layers without measurements</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">layer</span><span class="o">.</span><span class="n">is_measured</span><span class="p">:</span>
+                <span class="k">continue</span>
 
             <span class="c1"># get raw or processed measurements</span>
             <span class="k">if</span> <span class="n">raw</span><span class="p">:</span>
@@ -463,10 +572,25 @@
 
             <span class="n">layer_data</span><span class="p">[</span><span class="s1">&#39;layer&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">_id</span>
             <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">layer_data</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">layer_id</span> <span class="o">==</span> <span class="n">layer</span><span class="o">.</span><span class="n">_id</span><span class="p">,</span> <span class="s1">&#39;Layer IDs do not match.&#39;</span>
+
+        <span class="c1"># return None if no data are found</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
 
         <span class="c1"># aggregate measurement data</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">join</span><span class="o">=</span><span class="s1">&#39;outer&#39;</span><span class="p">,</span> <span class="n">sort</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">set_index</span><span class="p">([</span><span class="s1">&#39;layer&#39;</span><span class="p">,</span> <span class="s1">&#39;segment_id&#39;</span><span class="p">])</span>
+
+        <span class="c1"># exclude cells outside the ROI</span>
+        <span class="k">if</span> <span class="n">selected_only</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="s1">&#39;selected&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="s1">&#39;ROI not defined.&#39;</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">data</span><span class="o">.</span><span class="n">selected</span><span class="p">]</span>
+
+        <span class="c1"># exclude cells on the border of labeled regions</span>
+        <span class="k">if</span> <span class="n">exclude_boundary</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="s1">&#39;boundary&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="s1">&#39;Cannot exclude boundary regions because no regions have been defined. Annotate the stack then try again.&#39;</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="o">~</span><span class="n">data</span><span class="o">.</span><span class="n">boundary</span><span class="p">]</span>
 
         <span class="c1"># load manual labels from silhouette</span>
         <span class="k">if</span> <span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">silhouette_path</span><span class="p">):</span>
@@ -474,7 +598,7 @@
 
         <span class="k">return</span> <span class="n">data</span></div>
 
-<div class="viewcode-block" id="Stack.load_layer"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.stacks.Stack.load_layer">[docs]</a>    <span class="k">def</span> <span class="nf">load_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer_id</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">graph</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">process</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="Stack.load_layer"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.stacks.Stack.load_layer">[docs]</a>    <span class="k">def</span> <span class="nf">load_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer_id</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">graph</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">full</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Load individual layer.</span>
 
@@ -484,7 +608,7 @@
 
 <span class="sd">            graph (bool) - if True, load layer graph</span>
 
-<span class="sd">            process (bool) - if True, re-process the layer measurement data</span>
+<span class="sd">            use_cache (bool) - if True, use cached layer measurement data</span>
 
 <span class="sd">            full (bool) - if True, load fully labeled RGB image</span>
 
@@ -507,7 +631,7 @@
         <span class="n">layer</span> <span class="o">=</span> <span class="n">Layer</span><span class="p">(</span><span class="n">layer_path</span><span class="p">,</span> <span class="n">im</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">annotator</span><span class="p">)</span>
 
         <span class="c1"># load layer</span>
-        <span class="n">layer</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">process</span><span class="o">=</span><span class="n">process</span><span class="p">,</span> <span class="n">graph</span><span class="o">=</span><span class="n">graph</span><span class="p">)</span>
+        <span class="n">layer</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">use_cache</span><span class="o">=</span><span class="n">use_cache</span><span class="p">,</span> <span class="n">graph</span><span class="o">=</span><span class="n">graph</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">layer</span></div></div>
 </pre></div>
@@ -552,17 +676,23 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
         </div>
       </div>
       <div class="clearer"></div>

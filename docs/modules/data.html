@@ -1,0 +1,1268 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Data Module &#8212; flyqma v0.3 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Measurement Module" href="measurement.html" />
+    <link rel="prev" title="Documentation" href="../documentation.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <a class="reference external image-reference" href="https://amaral.northwestern.edu/"><img alt="nulogo" class="align-right" src="../_images/Northwestern_purple_RGB1.png" style="width: 30%;" /></a>
+<div class="section" id="data-module">
+<h1>Data Module<a class="headerlink" href="#data-module" title="Permalink to this headline">¶</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">flyqma.data</span></code> provides three levels of organization for managing cell measurement data:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Layer</span></code>: a 2D cross sectional image of an eye disc</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Stack</span></code>: a set of layers obtained from the same eye disc</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Experiment</span></code>: a collection of eye discs obtained under similar conditions</p></li>
+</ol>
+</div></blockquote>
+<div class="section" id="images">
+<h2>Images<a class="headerlink" href="#images" title="Permalink to this headline">¶</a></h2>
+<p>Images are 2D arrays of pixel intensities recorded within one or more fluorescence channels.</p>
+<span class="target" id="module-flyqma.data.images"></span><dl class="class">
+<dt id="flyqma.data.images.ImageMultichromatic">
+<em class="property">class </em><code class="sig-prename descclassname">flyqma.data.images.</code><code class="sig-name descname">ImageMultichromatic</code><span class="sig-paren">(</span><em class="sig-param">im</em>, <em class="sig-param">labels=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/images.html#ImageMultichromatic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.images.ImageMultichromatic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Object represents a multichromatic image.</p>
+<p>Attributes:</p>
+<blockquote>
+<div><p>im (np.ndarray[float]) - 2D array of pixel values in WHC format</p>
+</div></blockquote>
+<p>Inherited attributes:</p>
+<blockquote>
+<div><p>shape (array like) - image dimensions</p>
+<p>mask (np.ndarray[bool]) - image mask</p>
+<p>labels (np.ndarray[int]) - segment ID mask</p>
+</div></blockquote>
+<dl class="method">
+<dt id="flyqma.data.images.ImageMultichromatic.get_channel">
+<code class="sig-name descname">get_channel</code><span class="sig-paren">(</span><em class="sig-param">channel</em>, <em class="sig-param">copy=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/images.html#ImageMultichromatic.get_channel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.images.ImageMultichromatic.get_channel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns monochrome image of specified color channel.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>channel (int) - desired channel</p>
+<p>copy (bool) - if True, instantiate from image copy</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div><p>image (ImageScalar) - monochrome image</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.images.ImageMultichromatic.to_RGB">
+<code class="sig-name descname">to_RGB</code><span class="sig-paren">(</span><em class="sig-param">channels_dict=None</em>, <em class="sig-param">copy=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/images.html#ImageMultichromatic.to_RGB"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.images.ImageMultichromatic.to_RGB" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns RGB image of specified color channels.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>channels_dict (dict) - RGB channels keyed by channel index</p>
+<p>copy (bool) - if True, instantiate from image copy</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div><p>image (ImageMultichromatic) - RGB image</p>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="flyqma.data.images.ImageScalar">
+<em class="property">class </em><code class="sig-prename descclassname">flyqma.data.images.</code><code class="sig-name descname">ImageScalar</code><span class="sig-paren">(</span><em class="sig-param">im</em>, <em class="sig-param">labels=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/images.html#ImageScalar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.images.ImageScalar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Object represents a monochrome image.</p>
+<p>Attributes:</p>
+<blockquote>
+<div><p>im (np.ndarray[float]) - 2D array of pixel values</p>
+<p>shape (array like) - image dimensions</p>
+<p>mask (np.ndarray[bool]) - image mask</p>
+<p>labels (np.ndarray[int]) - segment ID mask</p>
+</div></blockquote>
+<dl class="method">
+<dt id="flyqma.data.images.ImageScalar.add_contour">
+<code class="sig-name descname">add_contour</code><span class="sig-paren">(</span><em class="sig-param">ax</em>, <em class="sig-param">mask</em>, <em class="sig-param">lw=1</em>, <em class="sig-param">color='r'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/images.html#ImageScalar.add_contour"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.images.ImageScalar.add_contour" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds border of specified contour.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.images.ImageScalar.add_contours">
+<code class="sig-name descname">add_contours</code><span class="sig-paren">(</span><em class="sig-param">ax</em>, <em class="sig-param">lw=1</em>, <em class="sig-param">color='r'</em>, <em class="sig-param">rasterized=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/images.html#ImageScalar.add_contours"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.images.ImageScalar.add_contours" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds borders of all contours.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.images.ImageScalar.clahe">
+<code class="sig-name descname">clahe</code><span class="sig-paren">(</span><em class="sig-param">factor=8</em>, <em class="sig-param">clip_limit=0.01</em>, <em class="sig-param">nbins=256</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/images.html#ImageScalar.clahe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.images.ImageScalar.clahe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run CLAHE on reflection-padded image.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>factor (float or int) - number of segments per dimension</p>
+<p>clip_limit (float) - clip limit for CLAHE</p>
+<p>nbins (int) - number of grey-scale bins for histogram</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.images.ImageScalar.gaussian_filter">
+<code class="sig-name descname">gaussian_filter</code><span class="sig-paren">(</span><em class="sig-param">sigma=(1.0</em>, <em class="sig-param">1.0)</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/images.html#ImageScalar.gaussian_filter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.images.ImageScalar.gaussian_filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply 2D gaussian filter.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.images.ImageScalar.median_filter">
+<code class="sig-name descname">median_filter</code><span class="sig-paren">(</span><em class="sig-param">radius=0</em>, <em class="sig-param">structure_dim=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/images.html#ImageScalar.median_filter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.images.ImageScalar.median_filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply 2D median filter.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.images.ImageScalar.preprocess">
+<code class="sig-name descname">preprocess</code><span class="sig-paren">(</span><em class="sig-param">median_radius=2</em>, <em class="sig-param">gaussian_sigma=(2</em>, <em class="sig-param">2)</em>, <em class="sig-param">clip_limit=0.03</em>, <em class="sig-param">clip_factor=20</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/images.html#ImageScalar.preprocess"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.images.ImageScalar.preprocess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Preprocess image.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>median_radius (int) - median filter size, px</p>
+<p>gaussian_sigma (tuple) - gaussian filter size, px std dev</p>
+<p>clip_limit (float) - CLAHE clip limit</p>
+<p>clip_factor (int) - CLAHE clip factor</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.images.ImageScalar.set_mean_mask">
+<code class="sig-name descname">set_mean_mask</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/images.html#ImageScalar.set_mean_mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.images.ImageScalar.set_mean_mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mask values below mean.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.images.ImageScalar.set_otsu_mask">
+<code class="sig-name descname">set_otsu_mask</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/images.html#ImageScalar.set_otsu_mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.images.ImageScalar.set_otsu_mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mask values below otsu threahold.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.images.ImageScalar.show">
+<code class="sig-name descname">show</code><span class="sig-paren">(</span><em class="sig-param">segments=True</em>, <em class="sig-param">cmap=None</em>, <em class="sig-param">vmin=0</em>, <em class="sig-param">vmax=1</em>, <em class="sig-param">figsize=(10</em>, <em class="sig-param">10)</em>, <em class="sig-param">ax=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/images.html#ImageScalar.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.images.ImageScalar.show" title="Permalink to this definition">¶</a></dt>
+<dd><p>Render image.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>segments (bool) - if True, include cell segment contours</p>
+<p>cmap (matplotlib.colors.ColorMap or str) - colormap or RGB channel</p>
+<p>vmin, vmax (float) - bounds for color scale</p>
+<p>figsize (tuple) - figure size</p>
+<p>ax (matplotlib.axes.AxesSubplot) - if None, create axis</p>
+<p>kwargs: keyword arguments for add_contours</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div><p>fig (matplotlib.figures.Figure)</p>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="layers">
+<h2>Layers<a class="headerlink" href="#layers" title="Permalink to this headline">¶</a></h2>
+<p>Layers are 2D cross sectional images of an eye disc.</p>
+<span class="target" id="module-flyqma.data.layers"></span><dl class="class">
+<dt id="flyqma.data.layers.Layer">
+<em class="property">class </em><code class="sig-prename descclassname">flyqma.data.layers.</code><code class="sig-name descname">Layer</code><span class="sig-paren">(</span><em class="sig-param">path</em>, <em class="sig-param">im=None</em>, <em class="sig-param">annotator=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Object represents a single imaged layer.</p>
+<p>Attributes:</p>
+<blockquote>
+<div><p>measurements (pd.DataFrame) - raw cell measurement data</p>
+<p>data (pd.DataFrame) - processed cell measurement data</p>
+<p>path (str) - path to layer directory</p>
+<p>_id (int) - layer ID, must be an integer value</p>
+<p>subdirs (dict) - {name: path} pairs for all subdirectories</p>
+<p>metadata (dict) - layer metadata</p>
+<p>labels (np.ndarray[int]) - segment ID mask</p>
+<p>annotator (Annotation) - object that assigns labels to measurements</p>
+<p>graph (Graph) - graph connecting cell centroids</p>
+<p>include (bool) - if True, layer was manually marked for inclusion</p>
+</div></blockquote>
+<p>Inherited attributes:</p>
+<blockquote>
+<div><p>im (np.ndarray[float]) - 3D array of pixel values</p>
+<p>shape (array like) - image dimensions</p>
+<p>mask (np.ndarray[bool]) - image mask</p>
+<p>labels (np.ndarray[int]) - segment ID mask</p>
+</div></blockquote>
+<p>Properties:</p>
+<blockquote>
+<div><p>color_depth (int) - number of fluorescence channels</p>
+<p>num_cells (int) - number of cells detected by segmentation</p>
+</div></blockquote>
+<dl class="method">
+<dt id="flyqma.data.layers.Layer.annotate">
+<code class="sig-name descname">annotate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer.annotate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer.annotate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Annotate measurement data in place, also labeling boundaries between labeled regions and marking regions in which each label occurs.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.Layer.apply_annotation">
+<code class="sig-name descname">apply_annotation</code><span class="sig-paren">(</span><em class="sig-param">label='genotype'</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer.apply_annotation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer.apply_annotation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assign labels to cell measurements in place.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>label (str) - attribute name for predicted genotype</p>
+<p>kwargs: keyword arguments for Annotator.annotate()</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.Layer.apply_concurrency">
+<code class="sig-name descname">apply_concurrency</code><span class="sig-paren">(</span><em class="sig-param">basis='genotype'</em>, <em class="sig-param">min_pop=5</em>, <em class="sig-param">max_distance=10</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer.apply_concurrency"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer.apply_concurrency" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add boolean ‘concurrent_&lt;basis&gt;’ field to measurement data for each unique value of &lt;basis&gt; attribute.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>basis (str) - attribute on which concurrency is established</p>
+<p>min_pop (int) - minimum population size for inclusion of cell type</p>
+<p>max_distance (float) - maximum distance threshold for inclusion</p>
+<p>kwargs: keyword arguments for ConcurrencyLabeler</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.Layer.apply_correction">
+<code class="sig-name descname">apply_correction</code><span class="sig-paren">(</span><em class="sig-param">data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer.apply_correction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer.apply_correction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds bleedthrough-corrected fluorescence levels to the measurements dataframe.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>data (pd.DataFrame) - processed cell measurement data</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.Layer.apply_normalization">
+<code class="sig-name descname">apply_normalization</code><span class="sig-paren">(</span><em class="sig-param">data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer.apply_normalization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer.apply_normalization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Normalize fluorescence intensity measurements by measured background channel intensity.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>data (pd.DataFrame) - processed cell measurement data</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.Layer.bg_key">
+<em class="property">property </em><code class="sig-name descname">bg_key</code><a class="headerlink" href="#flyqma.data.layers.Layer.bg_key" title="Permalink to this definition">¶</a></dt>
+<dd><p>DataFrame key for background channel.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.Layer.build_graph">
+<code class="sig-name descname">build_graph</code><span class="sig-paren">(</span><em class="sig-param">weighted_by</em>, <em class="sig-param">**graph_kw</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer.build_graph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer.build_graph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compile weighted graph connecting adjacent cells.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>weighted_by (str) - attribute used to weight edges</p>
+<p>graph_kw: keyword arguments, including:</p>
+<blockquote>
+<div><p>xykey (list) - attribute keys for node x/y positions</p>
+<p>logratio (bool) - if True, weight edges by log ratio</p>
+<p>distance (bool) - if True, weights edges by distance</p>
+</div></blockquote>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.Layer.color_depth">
+<em class="property">property </em><code class="sig-name descname">color_depth</code><a class="headerlink" href="#flyqma.data.layers.Layer.color_depth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of color channels.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.Layer.define_roi">
+<code class="sig-name descname">define_roi</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">roi_mask_path=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer.define_roi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer.define_roi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a “selected” attribute to measurements dataframe. The attribute is True for cells that fall within the ROI.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>data (pd.DataFrame) - processed measurement data</p>
+<p>roi_mask_path (str) - path to ROI mask, stored in a 2D boolean array container with the same dimensions as the layer image.</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.Layer.has_trained_annotator">
+<em class="property">property </em><code class="sig-name descname">has_trained_annotator</code><a class="headerlink" href="#flyqma.data.layers.Layer.has_trained_annotator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if trained annotator is available.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.Layer.initialize">
+<code class="sig-name descname">initialize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize layer directory by:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>Creating a layer directory</p></li>
+<li><p>Removing existing segmentation directory</p></li>
+<li><p>Saving metadata to file</p></li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.Layer.is_measured">
+<em class="property">property </em><code class="sig-name descname">is_measured</code><a class="headerlink" href="#flyqma.data.layers.Layer.is_measured" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if measurement data are available.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.Layer.mark_boundaries">
+<code class="sig-name descname">mark_boundaries</code><span class="sig-paren">(</span><em class="sig-param">basis='genotype'</em>, <em class="sig-param">max_edges=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer.mark_boundaries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer.mark_boundaries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mark boundaries between cells with disparate labels by assigning a boundary label to all cells that share an edge with another cell with a different label.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>basis (str) - attribute used to define label</p>
+<p>max_edges (int) - maximum number of edges for interior cells</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.Layer.mask_to_vertices">
+<em class="property">classmethod </em><code class="sig-name descname">mask_to_vertices</code><span class="sig-paren">(</span><em class="sig-param">mask</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer.mask_to_vertices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer.mask_to_vertices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert boolean mask to a list of vertices defining the border around the largest contiguous region.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>mask (np.ndarray[bool]) - ROI mask, where True denotes the region. Note that the mask may only contain one contiguous component.</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div><p>vertices (np.ndarray[int]) - N x 2 array of vertices</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.Layer.measure">
+<code class="sig-name descname">measure</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer.measure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer.measure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Measure properties of cell segments. Raw measurements are stored under in the ‘measurements’ attribute, while processed measurements are stored in the ‘data’ attribute.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.Layer.num_cells">
+<em class="property">property </em><code class="sig-name descname">num_cells</code><a class="headerlink" href="#flyqma.data.layers.Layer.num_cells" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of cells detected by segmentation.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.Layer.process_measurements">
+<code class="sig-name descname">process_measurements</code><span class="sig-paren">(</span><em class="sig-param">measurements</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer.process_measurements"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer.process_measurements" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>Augment measurements by:</dt><dd><ol class="arabic simple">
+<li><p>incorporating manual selection boundary</p></li>
+<li><p>correcting for fluorescence bleedthrough</p></li>
+<li><p>assigning measurement labels</p></li>
+<li><p>marking clone boundaries</p></li>
+<li><p>assigning label concurrency information</p></li>
+</ol>
+</dd>
+</dl>
+<p>Operations 3-5 require construction of a WeightedGraph object.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>measurements (pd.DataFrame) - raw measurement data</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div><p>data (pd.DataFrame) - processed measurement data</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.Layer.read_roi_mask">
+<em class="property">classmethod </em><code class="sig-name descname">read_roi_mask</code><span class="sig-paren">(</span><em class="sig-param">path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer.read_roi_mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer.read_roi_mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read ROI mask from file and return array of region vertices.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>path (str) - path to ROI mask in np.ndarray[bool] format</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div><p>vertices (np.ndarray[int]) - N x 2 array of vertices</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.Layer.segment">
+<code class="sig-name descname">segment</code><span class="sig-paren">(</span><em class="sig-param">channel</em>, <em class="sig-param">preprocessing_kws={}</em>, <em class="sig-param">seed_kws={}</em>, <em class="sig-param">seg_kws={}</em>, <em class="sig-param">min_area=250</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer.segment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer.segment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Identify nuclear contours by running watershed segmentation on specified background channel.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>channel (int) - channel index on which to segment image</p>
+<p>preprocessing_kws (dict) - keyword arguments for image preprocessing</p>
+<p>seed_kws (dict) - keyword arguments for seed detection</p>
+<p>seg_kws (dict) - keyword arguments for segmentation</p>
+<p>min_area (int) - threshold for minimum segment size, px</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div><p>background (ImageScalar) - background image post-processing</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.Layer.sort_clockwise">
+<em class="property">static </em><code class="sig-name descname">sort_clockwise</code><span class="sig-paren">(</span><em class="sig-param">xycoords</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer.sort_clockwise"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer.sort_clockwise" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns clockwise-sorted xy coordinates.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.Layer.train_annotator">
+<code class="sig-name descname">train_annotator</code><span class="sig-paren">(</span><em class="sig-param">attribute</em>, <em class="sig-param">save=False</em>, <em class="sig-param">logratio=True</em>, <em class="sig-param">num_labels=3</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer.train_annotator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer.train_annotator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Train an Annotation model on the measurements in this layer.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>attribute (str) - measured attribute used to determine labels</p>
+<p>save (bool) - if True, save model selection routine</p>
+<p>logratio (bool) - if True, weight edges by relative attribute value</p>
+<p>num_labels (int) - number of allowable unique labels</p>
+<p>kwargs: keyword arguments for Annotation, including:</p>
+<blockquote>
+<div><p>sampler_type (str) - either ‘radial’, ‘neighbors’, ‘community’</p>
+<p>sampler_kwargs (dict) - keyword arguments for sampler</p>
+<p>min_num_components (int) - minimum number of mixture components</p>
+<p>max_num_components (int) - maximum number of mixture components</p>
+<p>addtl_kwargs: keyword arguments for Classifier</p>
+</div></blockquote>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div><p>selector (ModelSelection object)</p>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="flyqma.data.layers.LayerIO">
+<em class="property">class </em><code class="sig-prename descclassname">flyqma.data.layers.</code><code class="sig-name descname">LayerIO</code><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerIO"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerIO" title="Permalink to this definition">¶</a></dt>
+<dd><p>Methods for saving and loading Layer objects and their subcomponents.</p>
+<dl class="method">
+<dt id="flyqma.data.layers.LayerIO.add_subdir">
+<code class="sig-name descname">add_subdir</code><span class="sig-paren">(</span><em class="sig-param">dirname</em>, <em class="sig-param">dirpath</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerIO.add_subdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerIO.add_subdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add subdirectory.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.LayerIO.find_subdirs">
+<code class="sig-name descname">find_subdirs</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerIO.find_subdirs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerIO.find_subdirs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find all subdirectories.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.LayerIO.load">
+<code class="sig-name descname">load</code><span class="sig-paren">(</span><em class="sig-param">use_cache=True</em>, <em class="sig-param">graph=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerIO.load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerIO.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load layer.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>use_cache (bool) - if True, use cached measurement data, otherwise re-process the measurement data</p>
+<p>graph (bool) - if True, load weighted graph</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.LayerIO.load_annotator">
+<code class="sig-name descname">load_annotator</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerIO.load_annotator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerIO.load_annotator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load annotator instance.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.LayerIO.load_correction">
+<code class="sig-name descname">load_correction</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerIO.load_correction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerIO.load_correction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load linear background correction.</p>
+<p>Returns:</p>
+<blockquote>
+<div><p>correction (LayerCorrection)</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.LayerIO.load_inclusion">
+<code class="sig-name descname">load_inclusion</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerIO.load_inclusion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerIO.load_inclusion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load inclusion flag.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.LayerIO.load_labels">
+<code class="sig-name descname">load_labels</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerIO.load_labels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerIO.load_labels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load segment labels if they are available.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.LayerIO.load_measurements">
+<code class="sig-name descname">load_measurements</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerIO.load_measurements"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerIO.load_measurements" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load raw measurements.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.LayerIO.load_metadata">
+<code class="sig-name descname">load_metadata</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerIO.load_metadata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerIO.load_metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load metadata.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.LayerIO.load_processed_data">
+<code class="sig-name descname">load_processed_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerIO.load_processed_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerIO.load_processed_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load processed data from file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.LayerIO.make_subdir">
+<code class="sig-name descname">make_subdir</code><span class="sig-paren">(</span><em class="sig-param">dirname</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerIO.make_subdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerIO.make_subdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make subdirectory.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.LayerIO.save">
+<code class="sig-name descname">save</code><span class="sig-paren">(</span><em class="sig-param">segmentation=True</em>, <em class="sig-param">measurements=True</em>, <em class="sig-param">processed_data=True</em>, <em class="sig-param">annotator=False</em>, <em class="sig-param">segmentation_image=False</em>, <em class="sig-param">annotation_image=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerIO.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerIO.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save segmentation parameters and results.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>segmentation (bool) - if True, save segmentation</p>
+<p>measurements (bool) - if True, save measurement data</p>
+<p>processed_data (bool) - if True, save processed measurement data</p>
+<p>annotator (bool) - if True, save annotator</p>
+<p>segmentation_image (bool) - if True, save segmentation image</p>
+<p>annotation_image (bool) - if True, save annotation image</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.LayerIO.save_annotator">
+<code class="sig-name descname">save_annotator</code><span class="sig-paren">(</span><em class="sig-param">image=False</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerIO.save_annotator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerIO.save_annotator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save annotator instance.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>image (bool) - if True, save annotation images</p>
+<p>kwargs: keyword arguments for image rendering</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.LayerIO.save_measurements">
+<code class="sig-name descname">save_measurements</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerIO.save_measurements"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerIO.save_measurements" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save raw measurements.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.LayerIO.save_metadata">
+<code class="sig-name descname">save_metadata</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerIO.save_metadata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerIO.save_metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save metadata.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.LayerIO.save_processed_data">
+<code class="sig-name descname">save_processed_data</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerIO.save_processed_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerIO.save_processed_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save processed measurement data.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.LayerIO.save_segmentation">
+<code class="sig-name descname">save_segmentation</code><span class="sig-paren">(</span><em class="sig-param">image</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerIO.save_segmentation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerIO.save_segmentation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save segment labels, and optionally save a segmentation image.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>image (bool) - if True, save segmentation image</p>
+<p>kwargs: keyword arguments for image rendering</p>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="flyqma.data.layers.LayerVisualization">
+<em class="property">class </em><code class="sig-prename descclassname">flyqma.data.layers.</code><code class="sig-name descname">LayerVisualization</code><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerVisualization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerVisualization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Methods for visualizing a layer.</p>
+<dl class="method">
+<dt id="flyqma.data.layers.LayerVisualization.build_attribute_mask">
+<code class="sig-name descname">build_attribute_mask</code><span class="sig-paren">(</span><em class="sig-param">attribute</em>, <em class="sig-param">interior_only=False</em>, <em class="sig-param">selection_only=False</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerVisualization.build_attribute_mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerVisualization.build_attribute_mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use &lt;attribute&gt; value for each segment to construct an image mask.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>attribute (str) - attribute used to label each segment</p>
+<p>interior_only (bool) - if True, excludes clone borders</p>
+<p>selection_only (bool) - if True, only include selected region</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div><p>mask (np.ma.Maskedarray) - masked image in which foreground segments are replaced with the attribute values</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.LayerVisualization.build_classifier_mask">
+<code class="sig-name descname">build_classifier_mask</code><span class="sig-paren">(</span><em class="sig-param">classifier</em>, <em class="sig-param">interior_only=False</em>, <em class="sig-param">selection_only=False</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerVisualization.build_classifier_mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerVisualization.build_classifier_mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use segment &lt;classifier&gt; to construct an image mask.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>classifier (annotation.Classifier object)</p>
+<p>interior_only (bool) - if True, excludes clone borders</p>
+<p>selection_only (bool) - if True, only include selected region</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div><p>mask (np.ma.Maskedarray) - masked image in which foreground segments are replaced with the assigned labels</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.LayerVisualization.plot_boundaries">
+<code class="sig-name descname">plot_boundaries</code><span class="sig-paren">(</span><em class="sig-param">ax</em>, <em class="sig-param">label_by='genotype'</em>, <em class="sig-param">cmap=&lt;matplotlib.colors.LinearSegmentedColormap object&gt;</em>, <em class="sig-param">alpha=70</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerVisualization.plot_boundaries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerVisualization.plot_boundaries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot boundaries of all &lt;label_by&gt; groups on &lt;ax&gt;.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.LayerVisualization.plot_boundary">
+<code class="sig-name descname">plot_boundary</code><span class="sig-paren">(</span><em class="sig-param">ax</em>, <em class="sig-param">label</em>, <em class="sig-param">label_by='genotype'</em>, <em class="sig-param">color='r'</em>, <em class="sig-param">alpha=70</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerVisualization.plot_boundary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerVisualization.plot_boundary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot boundary of &lt;label_by&gt; groups with &lt;label&gt; on &lt;ax&gt;.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="stacks">
+<h2>Stacks<a class="headerlink" href="#stacks" title="Permalink to this headline">¶</a></h2>
+<p>Stacks are sets of layers obtained from the same eye disc.</p>
+<span class="target" id="module-flyqma.data.stacks"></span><dl class="class">
+<dt id="flyqma.data.stacks.Stack">
+<em class="property">class </em><code class="sig-prename descclassname">flyqma.data.stacks.</code><code class="sig-name descname">Stack</code><span class="sig-paren">(</span><em class="sig-param">path</em>, <em class="sig-param">bit_depth=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/stacks.html#Stack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.stacks.Stack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Object represents a 3D RGB image stack.</p>
+<p>Attributes:</p>
+<blockquote>
+<div><p>path (str) - path to stack directory</p>
+<p>_id (str) - stack ID</p>
+<p>stack (np.ndarray[float]) - 3D RGB image stack</p>
+<p>shape (tuple) - stack dimensions, (depth, X, Y, 3)</p>
+<p>bit_depth (int) - bit depth of raw tif image</p>
+<p>stack_depth (int) - number of layers in stack</p>
+<p>color_depth (int) - number of fluorescence channels in stack</p>
+<p>annotator (Annotation) - object that assigns labels to measurements</p>
+<p>metadata (dict) - stack metadata</p>
+<p>tif_path (str) - path to multilayer RGB tiff file</p>
+<p>layers_path (str) - path to layers directory</p>
+<p>annotator_path (str) - path to annotation directory</p>
+</div></blockquote>
+<dl class="method">
+<dt id="flyqma.data.stacks.Stack.aggregate_measurements">
+<code class="sig-name descname">aggregate_measurements</code><span class="sig-paren">(</span><em class="sig-param">selected_only=False</em>, <em class="sig-param">exclude_boundary=False</em>, <em class="sig-param">raw=False</em>, <em class="sig-param">use_cache=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/stacks.html#Stack.aggregate_measurements"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.stacks.Stack.aggregate_measurements" title="Permalink to this definition">¶</a></dt>
+<dd><p>Aggregate measurements from each included layer.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>selected_only (bool) - if True, exclude cells not marked for inclusion</p>
+<p>exclude_boundary (bool) - if True, exclude cells on clone boundaries</p>
+<p>raw (bool) - if True, aggregate raw measurements</p>
+<p>use_cache (bool) - if True, used available cached measurement data</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div><p>data (pd.Dataframe) - measurement data (None if unavailable)</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.stacks.Stack.bit_depth">
+<em class="property">property </em><code class="sig-name descname">bit_depth</code><a class="headerlink" href="#flyqma.data.stacks.Stack.bit_depth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bit depth of raw image.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.stacks.Stack.color_depth">
+<em class="property">property </em><code class="sig-name descname">color_depth</code><a class="headerlink" href="#flyqma.data.stacks.Stack.color_depth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of fluorescence channels in stack.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.stacks.Stack.filename">
+<em class="property">property </em><code class="sig-name descname">filename</code><a class="headerlink" href="#flyqma.data.stacks.Stack.filename" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stack filename.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.stacks.Stack.get_included_layers">
+<code class="sig-name descname">get_included_layers</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/stacks.html#Stack.get_included_layers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.stacks.Stack.get_included_layers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns indices of included layers.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.stacks.Stack.included">
+<em class="property">property </em><code class="sig-name descname">included</code><a class="headerlink" href="#flyqma.data.stacks.Stack.included" title="Permalink to this definition">¶</a></dt>
+<dd><p>Indices of included layers.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.stacks.Stack.initialize">
+<code class="sig-name descname">initialize</code><span class="sig-paren">(</span><em class="sig-param">bit_depth</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/stacks.html#Stack.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.stacks.Stack.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize stack directory.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>bit_depth (int) - bit depth of raw tif (e.g. 12 or 16)</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.stacks.Stack.is_annotated">
+<em class="property">property </em><code class="sig-name descname">is_annotated</code><a class="headerlink" href="#flyqma.data.stacks.Stack.is_annotated" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if annotation is complete.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.stacks.Stack.is_initialized">
+<em class="property">property </em><code class="sig-name descname">is_initialized</code><a class="headerlink" href="#flyqma.data.stacks.Stack.is_initialized" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if Stack has been initialized.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.stacks.Stack.is_segmented">
+<em class="property">property </em><code class="sig-name descname">is_segmented</code><a class="headerlink" href="#flyqma.data.stacks.Stack.is_segmented" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if segmentation is complete.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.stacks.Stack.load_layer">
+<code class="sig-name descname">load_layer</code><span class="sig-paren">(</span><em class="sig-param">layer_id=0</em>, <em class="sig-param">graph=True</em>, <em class="sig-param">use_cache=True</em>, <em class="sig-param">full=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/stacks.html#Stack.load_layer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.stacks.Stack.load_layer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load individual layer.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>layer_id (int) - layer index</p>
+<p>graph (bool) - if True, load layer graph</p>
+<p>use_cache (bool) - if True, use cached layer measurement data</p>
+<p>full (bool) - if True, load fully labeled RGB image</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div><p>layer (Layer)</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.stacks.Stack.prompt_initialization">
+<code class="sig-name descname">prompt_initialization</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/stacks.html#Stack.prompt_initialization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.stacks.Stack.prompt_initialization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ask user whether to initialize all stack directories.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.stacks.Stack.restore_directory">
+<code class="sig-name descname">restore_directory</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/stacks.html#Stack.restore_directory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.stacks.Stack.restore_directory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Restore stack directory to original state.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.stacks.Stack.segment">
+<code class="sig-name descname">segment</code><span class="sig-paren">(</span><em class="sig-param">channel</em>, <em class="sig-param">preprocessing_kws={}</em>, <em class="sig-param">seed_kws={}</em>, <em class="sig-param">seg_kws={}</em>, <em class="sig-param">min_area=250</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/stacks.html#Stack.segment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.stacks.Stack.segment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Segment all layers using watershed strategy.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>channel (int) - channel index on which to segment image</p>
+<p>preprocessing_kws (dict) - keyword arguments for image preprocessing</p>
+<p>seed_kws (dict) - keyword arguments for seed detection</p>
+<p>seg_kws (dict) - keyword arguments for segmentation</p>
+<p>min_area (int) - threshold for minimum segment size, px</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.stacks.Stack.selector_path">
+<em class="property">property </em><code class="sig-name descname">selector_path</code><a class="headerlink" href="#flyqma.data.stacks.Stack.selector_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path to model selection object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.stacks.Stack.stack_depth">
+<em class="property">property </em><code class="sig-name descname">stack_depth</code><a class="headerlink" href="#flyqma.data.stacks.Stack.stack_depth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of layers in stack.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.stacks.Stack.train_annotator">
+<code class="sig-name descname">train_annotator</code><span class="sig-paren">(</span><em class="sig-param">attribute</em>, <em class="sig-param">save=False</em>, <em class="sig-param">logratio=True</em>, <em class="sig-param">num_labels=3</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/stacks.html#Stack.train_annotator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.stacks.Stack.train_annotator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Train an Annotation model on all layers in this stack.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>attribute (str) - measured attribute used to determine labels</p>
+<p>save (bool) - if True, save annotator and model selection routine</p>
+<p>logratio (bool) - if True, weight edges by relative attribute value</p>
+<p>num_labels (int) - number of allowable unique labels</p>
+<p>kwargs: keyword arguments for Annotation, including:</p>
+<blockquote>
+<div><p>sampler_type (str) - either ‘radial’, ‘neighbors’, ‘community’</p>
+<p>sampler_kwargs (dict) - keyword arguments for sampler</p>
+<p>min_num_components (int) - minimum number of mixture components</p>
+<p>max_num_components (int) - maximum number of mixture components</p>
+<p>addtl_kwargs: keyword arguments for Classifier</p>
+</div></blockquote>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="flyqma.data.stacks.StackIO">
+<em class="property">class </em><code class="sig-prename descclassname">flyqma.data.stacks.</code><code class="sig-name descname">StackIO</code><a class="reference internal" href="../_modules/flyqma/data/stacks.html#StackIO"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.stacks.StackIO" title="Permalink to this definition">¶</a></dt>
+<dd><p>Methods for saving and loading a Stack instance.</p>
+<dl class="method">
+<dt id="flyqma.data.stacks.StackIO.from_silhouette">
+<em class="property">static </em><code class="sig-name descname">from_silhouette</code><span class="sig-paren">(</span><em class="sig-param">filepath</em>, <em class="sig-param">bit_depth</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/stacks.html#StackIO.from_silhouette"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.stacks.StackIO.from_silhouette" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize stack from silhouette &lt;filepath&gt;.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>path (str) - path to silhouette file</p>
+<p>bit_depth (int) - bit depth of raw tif (e.g. 12 or 16)</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div><p>stack (flyqma.Stack)</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.stacks.StackIO.from_tif">
+<em class="property">static </em><code class="sig-name descname">from_tif</code><span class="sig-paren">(</span><em class="sig-param">filepath</em>, <em class="sig-param">bit_depth</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/stacks.html#StackIO.from_tif"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.stacks.StackIO.from_tif" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize stack from tif &lt;filepath&gt;.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>path (str) - path to tif image file</p>
+<p>bit_depth (int) - bit depth of raw tif (e.g. 12 or 16)</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div><p>stack (flyqma.Stack)</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.stacks.StackIO.load_annotator">
+<code class="sig-name descname">load_annotator</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/stacks.html#StackIO.load_annotator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.stacks.StackIO.load_annotator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load annotator from annotation directory.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.stacks.StackIO.load_image">
+<code class="sig-name descname">load_image</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/stacks.html#StackIO.load_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.stacks.StackIO.load_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load 3D image from tif file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.stacks.StackIO.load_metadata">
+<code class="sig-name descname">load_metadata</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/stacks.html#StackIO.load_metadata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.stacks.StackIO.load_metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load available metadata.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.stacks.StackIO.save">
+<code class="sig-name descname">save</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/stacks.html#StackIO.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.stacks.StackIO.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save stack metadata and annotator.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.stacks.StackIO.save_annotator">
+<code class="sig-name descname">save_annotator</code><span class="sig-paren">(</span><em class="sig-param">data=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/stacks.html#StackIO.save_annotator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.stacks.StackIO.save_annotator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save annotator to annotation directory.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.stacks.StackIO.save_metadata">
+<code class="sig-name descname">save_metadata</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/stacks.html#StackIO.save_metadata"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.stacks.StackIO.save_metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save metadata.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="experiments">
+<h2>Experiments<a class="headerlink" href="#experiments" title="Permalink to this headline">¶</a></h2>
+<p>Experiments are collections of stacks obtained under similar conditions.</p>
+<span class="target" id="module-flyqma.data.experiments"></span><dl class="class">
+<dt id="flyqma.data.experiments.Experiment">
+<em class="property">class </em><code class="sig-prename descclassname">flyqma.data.experiments.</code><code class="sig-name descname">Experiment</code><span class="sig-paren">(</span><em class="sig-param">path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/experiments.html#Experiment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.experiments.Experiment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Object represents a collection of 3D RGB image stacks collected under the same experimental conditions.</p>
+<p>Attributes:</p>
+<blockquote>
+<div><p>path (str) - path to experiment directory</p>
+<p>_id (str) - name of experiment</p>
+<p>stack_ids (list of str) - unique stack ids within experiment</p>
+<p>stack_dirs (dict) - {stack_id: stack_directory} tuples</p>
+<p>count (int) - counter for stack iteration</p>
+</div></blockquote>
+<dl class="method">
+<dt id="flyqma.data.experiments.Experiment.aggregate_measurements">
+<code class="sig-name descname">aggregate_measurements</code><span class="sig-paren">(</span><em class="sig-param">selected_only=False</em>, <em class="sig-param">exclude_boundary=False</em>, <em class="sig-param">raw=False</em>, <em class="sig-param">use_cache=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/experiments.html#Experiment.aggregate_measurements"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.experiments.Experiment.aggregate_measurements" title="Permalink to this definition">¶</a></dt>
+<dd><p>Aggregate measurements from each stack.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>selected_only (bool) - if True, exclude cells outside the ROI</p>
+<p>exclude_boundary (bool) - if True, exclude cells on the border of labeled regions</p>
+<p>raw (bool) - if True, use raw measurements from included discs</p>
+<p>use_cache (bool) - if True, used available cached measurement data</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div><p>data (pd.Dataframe) - curated cell measurement data, which is None if no measurement data are found</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.experiments.Experiment.initialize">
+<code class="sig-name descname">initialize</code><span class="sig-paren">(</span><em class="sig-param">bit_depth</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/experiments.html#Experiment.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.experiments.Experiment.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize a collection of image stacks.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>bit_depth (int) - bit depth of raw tif (e.g. 12 or 16). Value will be read from the stack metadata if None is provided. An error is raised if no value is found.</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.experiments.Experiment.is_initialized">
+<em class="property">property </em><code class="sig-name descname">is_initialized</code><a class="headerlink" href="#flyqma.data.experiments.Experiment.is_initialized" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if Experiment has been initialized.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.experiments.Experiment.load_stack">
+<code class="sig-name descname">load_stack</code><span class="sig-paren">(</span><em class="sig-param">stack_id</em>, <em class="sig-param">full=False</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/experiments.html#Experiment.load_stack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.experiments.Experiment.load_stack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load 3D RGB image stack.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>stack_id (str or int) - desired stack</p>
+<p>full (bool) - if True, load full 3D image from tif file</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div><p>stack (Stack)</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.experiments.Experiment.prompt_initialization">
+<code class="sig-name descname">prompt_initialization</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/experiments.html#Experiment.prompt_initialization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.experiments.Experiment.prompt_initialization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ask user whether to initialize all stack directories.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="silhouette-interface">
+<h2>Silhouette Interface<a class="headerlink" href="#silhouette-interface" title="Permalink to this headline">¶</a></h2>
+<p>Fly-QMA provides several tools for seemlessly exchanging data with NU FlyEye Silhouette.</p>
+<span class="target" id="module-flyqma.data.silhouette_read"></span><dl class="class">
+<dt id="flyqma.data.silhouette_read.ReadSilhouette">
+<em class="property">class </em><code class="sig-prename descclassname">flyqma.data.silhouette_read.</code><code class="sig-name descname">ReadSilhouette</code><span class="sig-paren">(</span><em class="sig-param">path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/silhouette_read.html#ReadSilhouette"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.silhouette_read.ReadSilhouette" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read-only interface to a FlyEye Silhouette file.</p>
+<p>Attributes:</p>
+<blockquote>
+<div><p>path (str) - path to Silhouette file</p>
+<p>feed (dict) - feed file containing layer IDs</p>
+<p>feud (dict) - feud file containing cell type labels</p>
+</div></blockquote>
+<p>Properties:</p>
+<blockquote>
+<div><p>is_flipped_about_yz (bool) - if True, invert about YZ plane</p>
+<p>is_flipped_about_xy (bool) - if True, invert about XY plane</p>
+</div></blockquote>
+<dl class="method">
+<dt id="flyqma.data.silhouette_read.ReadSilhouette.read_json">
+<code class="sig-name descname">read_json</code><span class="sig-paren">(</span><em class="sig-param">filename</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/silhouette_read.html#ReadSilhouette.read_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.silhouette_read.ReadSilhouette.read_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read contents of specified JSON file.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>filename (str) - filename</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div><p>out (dict) - file contents</p>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="flyqma.data.silhouette_read.ReadSilhouetteData">
+<em class="property">class </em><code class="sig-prename descclassname">flyqma.data.silhouette_read.</code><code class="sig-name descname">ReadSilhouetteData</code><span class="sig-paren">(</span><em class="sig-param">path</em>, <em class="sig-param">recompile=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/silhouette_read.html#ReadSilhouetteData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.silhouette_read.ReadSilhouetteData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read-only interface to data within a FlyEye Silhouette file.</p>
+<p>Upon instantiation, individual cell measurements are aggregated into a data.cells.Cells compatible DataFrame.</p>
+<p>Measurement data must be read on a layer-by-layer basis the first time a Silhouette object is instantiated. Following this initial reading, the aggregated measurement data are serialized and stored within the silhouette file. These serialized measurements may then be accessed directly during future use. The recompile flag indicates whether the serialized measurements should be ignored upon instantiation.</p>
+<p>Attributes:</p>
+<blockquote>
+<div><p>df (pd.DataFrame) - cell measurement data</p>
+</div></blockquote>
+<p>Inherited attributes:</p>
+<blockquote>
+<div><p>path (str) - path to Silhouette file</p>
+<p>feed (dict) - feed file containing layer IDs</p>
+<p>feud (dict) - feud file containing cell type labels</p>
+</div></blockquote>
+<dl class="method">
+<dt id="flyqma.data.silhouette_read.ReadSilhouetteData.compile_measurements">
+<code class="sig-name descname">compile_measurements</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/silhouette_read.html#ReadSilhouetteData.compile_measurements"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.silhouette_read.ReadSilhouetteData.compile_measurements" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compile measurements from all layers (slow access).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.silhouette_read.ReadSilhouetteData.labels">
+<em class="property">property </em><code class="sig-name descname">labels</code><a class="headerlink" href="#flyqma.data.silhouette_read.ReadSilhouetteData.labels" title="Permalink to this definition">¶</a></dt>
+<dd><p>pd.Series of labels keyed by (layer_id, segment_id).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.silhouette_read.ReadSilhouetteData.load">
+<code class="sig-name descname">load</code><span class="sig-paren">(</span><em class="sig-param">recompile=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/silhouette_read.html#ReadSilhouetteData.load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.silhouette_read.ReadSilhouetteData.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read all contour and orientation data from silhouette file.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>recompile (bool) - if True, recompile measurements from all layers</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.silhouette_read.ReadSilhouetteData.load_measurements">
+<code class="sig-name descname">load_measurements</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/silhouette_read.html#ReadSilhouetteData.load_measurements"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.silhouette_read.ReadSilhouetteData.load_measurements" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load serialized measurements (fast access).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.silhouette_read.ReadSilhouetteData.parse_contour">
+<em class="property">static </em><code class="sig-name descname">parse_contour</code><span class="sig-paren">(</span><em class="sig-param">contour</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/silhouette_read.html#ReadSilhouetteData.parse_contour"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.silhouette_read.ReadSilhouetteData.parse_contour" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert contour to list format.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>contour (dict) - contour from silhouette file</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div><p>ctr_list (list) - values in data.cells.Cells compatible list format</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.silhouette_read.ReadSilhouetteData.read_contours">
+<code class="sig-name descname">read_contours</code><span class="sig-paren">(</span><em class="sig-param">all_labels={}</em>, <em class="sig-param">include_unlabeled=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/silhouette_read.html#ReadSilhouetteData.read_contours"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.silhouette_read.ReadSilhouetteData.read_contours" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read contours from silhouette file.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>all_labels (dict) - {layer_id: {contour_id: label}} for each layer</p>
+<p>include_unlabeled (bool) - if True, include unlabeled segments</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div><p>df (pd.DataFrame) - data.cells.Cells compatible dataframe of contours</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.silhouette_read.ReadSilhouetteData.read_labels">
+<code class="sig-name descname">read_labels</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/silhouette_read.html#ReadSilhouetteData.read_labels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.silhouette_read.ReadSilhouetteData.read_labels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load segment labels from silhouette file.</p>
+<p>Returns:</p>
+<blockquote>
+<div><p>labels (dict) - {layer_id: {contour_id: label}} entries for each layer</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.silhouette_read.ReadSilhouetteData.save_measurements">
+<code class="sig-name descname">save_measurements</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/silhouette_read.html#ReadSilhouetteData.save_measurements"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.silhouette_read.ReadSilhouetteData.save_measurements" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save serialized measurements for fast access.</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-flyqma.data.silhouette_write"></span><dl class="class">
+<dt id="flyqma.data.silhouette_write.WriteSilhouette">
+<em class="property">class </em><code class="sig-prename descclassname">flyqma.data.silhouette_write.</code><code class="sig-name descname">WriteSilhouette</code><a class="reference internal" href="../_modules/flyqma/data/silhouette_write.html#WriteSilhouette"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.silhouette_write.WriteSilhouette" title="Permalink to this definition">¶</a></dt>
+<dd><p>Methods for writing a stack to Silhouette readable format.</p>
+<p>The Silhouette container includes a FEED file:</p>
+<p>FEED.json</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;orientation&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;flip_about_xy&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span> <span class="s2">&quot;flip_about_yz&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">},</span>
+<span class="s2">&quot;layer_ids&quot;</span><span class="p">:</span> <span class="p">[</span> <span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">2.</span><span class="o">..</span> <span class="p">],</span>
+<span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="n">param_name</span><span class="p">:</span> <span class="n">param_value</span> <span class="o">...</span> <span class="p">}</span> <span class="p">}</span>
+</pre></div>
+</div>
+<dl class="method">
+<dt id="flyqma.data.silhouette_write.WriteSilhouette.load_silhouette_labels">
+<code class="sig-name descname">load_silhouette_labels</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/silhouette_write.html#WriteSilhouette.load_silhouette_labels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.silhouette_write.WriteSilhouette.load_silhouette_labels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load manually assigned labels from file.</p>
+<p>Returns:</p>
+<blockquote>
+<div><p>labels (pd.Series) - labels keyed by (layer_id, segment_id)</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.silhouette_write.WriteSilhouette.silhouette_path">
+<em class="property">property </em><code class="sig-name descname">silhouette_path</code><a class="headerlink" href="#flyqma.data.silhouette_write.WriteSilhouette.silhouette_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path to Silhouette directory.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.silhouette_write.WriteSilhouette.write_silhouette">
+<code class="sig-name descname">write_silhouette</code><span class="sig-paren">(</span><em class="sig-param">dst=None</em>, <em class="sig-param">include_image=True</em>, <em class="sig-param">channel_dict=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/silhouette_write.html#WriteSilhouette.write_silhouette"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.silhouette_write.WriteSilhouette.write_silhouette" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write silhouette file.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>dst (str) - destination directory</p>
+<p>include_image (bool) - save RGB image of each layer</p>
+<p>channel_dict (dict) - RGB channel names, keyed by channel index. If none provided, defaults to the first three channels in RGB order.</p>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="flyqma.data.silhouette_write.WriteSilhouetteLayer">
+<em class="property">class </em><code class="sig-prename descclassname">flyqma.data.silhouette_write.</code><code class="sig-name descname">WriteSilhouetteLayer</code><a class="reference internal" href="../_modules/flyqma/data/silhouette_write.html#WriteSilhouetteLayer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.silhouette_write.WriteSilhouetteLayer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Methods for writing a Layer to Silhouette readable format. A layer file is structured as follows:</p>
+<p>LAYER_ID.json :</p>
+<blockquote>
+<div><p>{
+“id”: LAYER_ID
+“imageFilename”: “LAYER_ID.png”
+“contours”: [ … contours … ]</p>
+<blockquote>
+<div><p>{“centroid”: [CONTOUR_CENTROID_X, CONTOUR_CENTROID_Y],
+“color_avg”: {“b”: X, “g”: X, “r”: X},
+“color_std”: {“b”: X, “g”: X, “r”: X},
+“id”: CONTOUR_ID,
+“pixel_count”: CONTOUR_AREA,
+“points”: [[x1, y1], [x2, y2] … ]}}</p>
+</div></blockquote>
+</div></blockquote>
+<dl class="method">
+<dt id="flyqma.data.silhouette_write.WriteSilhouetteLayer.build_contours">
+<code class="sig-name descname">build_contours</code><span class="sig-paren">(</span><em class="sig-param">channel_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/silhouette_write.html#WriteSilhouetteLayer.build_contours"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.silhouette_write.WriteSilhouetteLayer.build_contours" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert dataframe to a list of contours (Silhouette format).</p>
+<p>Args:</p>
+<blockquote>
+<div><p>channel_dict (dict) - RGB channel names, keyed by channel index</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div><p>contours (list) - list of contour dictionaries</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.silhouette_write.WriteSilhouetteLayer.write_silhouette">
+<code class="sig-name descname">write_silhouette</code><span class="sig-paren">(</span><em class="sig-param">dst</em>, <em class="sig-param">include_image=True</em>, <em class="sig-param">channel_dict=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/silhouette_write.html#WriteSilhouetteLayer.write_silhouette"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.silhouette_write.WriteSilhouetteLayer.write_silhouette" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write silhouette compatible JSON to target directory.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>dst (str) - destination directory</p>
+<p>include_image (bool) - save layer image as png</p>
+<p>channel_dict (dict) - RGB channel names, keyed by channel index. If none provided, defaults to the first three channels in RGB order.</p>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/graphics/logo.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">INSTALLATION</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../start.html">GETTING STARTED</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">EXAMPLE USAGE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../filestructure.html">FILE STRUCTURE</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../documentation.html">DOCUMENTATION</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Data Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="measurement.html">Measurement Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="selection.html">Selection Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="annotation.html">Annotation Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bleedthrough.html">Bleedthrough Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="analysis.html">Analysis Module</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../contact.html">CONTACT</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="../documentation.html">Documentation</a><ul>
+      <li>Previous: <a href="../documentation.html" title="previous chapter">Documentation</a></li>
+      <li>Next: <a href="measurement.html" title="next chapter">Measurement Module</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Amaral Lab.
+      
+      |
+      <a href="../_sources/modules/data.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

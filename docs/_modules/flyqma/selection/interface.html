@@ -1,19 +1,17 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>flyqma.selection.interface &#8212; flyqma v0.2 documentation</title>
+    <meta charset="utf-8" />
+    <title>flyqma.selection.interface &#8212; flyqma v0.3 documentation</title>
     <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -33,13 +31,13 @@
           <div class="body" role="main">
             
   <h1>Source code for flyqma.selection.interface</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span>
+<span></span><span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">from</span> <span class="nn">matplotlib.patches</span> <span class="k">import</span> <span class="n">Polygon</span>
-<span class="kn">from</span> <span class="nn">matplotlib.gridspec</span> <span class="k">import</span> <span class="n">GridSpec</span>
+<span class="kn">from</span> <span class="nn">matplotlib.patches</span> <span class="kn">import</span> <span class="n">Polygon</span>
+<span class="kn">from</span> <span class="nn">matplotlib.gridspec</span> <span class="kn">import</span> <span class="n">GridSpec</span>
 
-<span class="kn">from</span> <span class="nn">..utilities</span> <span class="k">import</span> <span class="n">IO</span>
+<span class="kn">from</span> <span class="nn">..utilities</span> <span class="kn">import</span> <span class="n">IO</span>
 
 
 <div class="viewcode-block" id="LayerVisualization"><a class="viewcode-back" href="../../../modules/selection.html#flyqma.selection.interface.LayerVisualization">[docs]</a><span class="k">class</span> <span class="nc">LayerVisualization</span><span class="p">:</span>
@@ -56,7 +54,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer</span><span class="p">,</span> <span class="n">axes</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer</span><span class="p">,</span> <span class="n">axes</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Instantiate layer visualization.</span>
 
@@ -154,10 +152,6 @@
 
 <span class="sd">        include (bool) - flag for layer inclusion</span>
 
-<span class="sd">        duplicate (bool) - flag for duplicate layer</span>
-
-<span class="sd">        exemplar (bool) - flag for exemplary layer</span>
-
 <span class="sd">        active_polyhon (bool) - if True, polygon is currently active</span>
 
 <span class="sd">        pts (list) - selection boundary points</span>
@@ -175,7 +169,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer</span><span class="p">,</span> <span class="n">axes</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer</span><span class="p">,</span> <span class="n">axes</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Instantiate layer interface.</span>
 
@@ -192,8 +186,6 @@
 
         <span class="c1"># set layer attributes</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">include</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">duplicate</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">exemplar</span> <span class="o">=</span> <span class="kc">False</span>
 
         <span class="c1"># no initial polygon</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">active_polygon</span> <span class="o">=</span> <span class="kc">False</span>
@@ -213,8 +205,6 @@
         <span class="c1"># load selection metadata</span>
         <span class="n">md</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">read_json</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;md.json&#39;</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">include</span> <span class="o">=</span> <span class="n">md</span><span class="p">[</span><span class="s1">&#39;include&#39;</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">duplicate</span> <span class="o">=</span> <span class="n">md</span><span class="p">[</span><span class="s1">&#39;duplicate&#39;</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">exemplar</span> <span class="o">=</span> <span class="n">md</span><span class="p">[</span><span class="s1">&#39;exemplar&#39;</span><span class="p">]</span>
 
         <span class="c1"># add markers</span>
         <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pts</span><span class="p">:</span>
@@ -226,26 +216,27 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">add_polygon</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">active_polygon</span> <span class="o">=</span> <span class="kc">True</span>
 
-        <span class="c1"># mark if neurons/cones</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">include</span><span class="o">==</span><span class="kc">False</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">duplicate</span><span class="o">==</span><span class="kc">False</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">overlay</span><span class="p">(</span><span class="s1">&#39;NEURONS</span><span class="se">\n</span><span class="s1">&amp;</span><span class="se">\n</span><span class="s1">CONES&#39;</span><span class="p">)</span>
-
-        <span class="c1"># mark if duplicate</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">include</span><span class="o">==</span><span class="kc">False</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">duplicate</span><span class="o">==</span><span class="kc">True</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">overlay</span><span class="p">(</span><span class="s1">&#39;DUPLICATE&#39;</span><span class="p">)</span></div>
+        <span class="c1"># mark excluded layers</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">include</span><span class="o">==</span><span class="kc">False</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">overlay</span><span class="p">(</span><span class="s1">&#39;EXCLUDED&#39;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="LayerInterface.save"><a class="viewcode-back" href="../../../modules/selection.html#flyqma.selection.interface.LayerInterface.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Save selected points and selection metadata to file. &quot;&quot;&quot;</span>
+
+        <span class="c1"># if no region was specified, use corners (e.g. include everything)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pts</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">w</span><span class="p">,</span><span class="n">h</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer</span><span class="o">.</span><span class="n">shape</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pts</span> <span class="o">=</span> <span class="p">[</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="n">w</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">h</span><span class="p">]</span> <span class="p">]</span>
+
         <span class="n">io</span> <span class="o">=</span> <span class="n">IO</span><span class="p">()</span>
         <span class="n">pts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pts</span><span class="p">)</span>
         <span class="n">io</span><span class="o">.</span><span class="n">write_npy</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;selection.npy&#39;</span><span class="p">),</span> <span class="n">pts</span><span class="p">)</span>
-        <span class="n">md</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">include</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">include</span><span class="p">,</span>
-                  <span class="n">duplicate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">duplicate</span><span class="p">,</span>
-                  <span class="n">exemplar</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">exemplar</span><span class="p">)</span>
+        <span class="n">md</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">include</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">include</span><span class="p">)</span>
         <span class="n">io</span><span class="o">.</span><span class="n">write_json</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;md.json&#39;</span><span class="p">),</span> <span class="n">md</span><span class="p">)</span>
 
         <span class="c1"># update measurements</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">layer</span><span class="o">.</span><span class="n">apply_selection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layer</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layer</span><span class="o">.</span><span class="n">load_inclusion</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layer</span><span class="o">.</span><span class="n">define_roi</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layer</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">layer</span><span class="o">.</span><span class="n">save_processed_data</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="LayerInterface.clear"><a class="viewcode-back" href="../../../modules/selection.html#flyqma.selection.interface.LayerInterface.clear">[docs]</a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -305,14 +296,9 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stack</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stack</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">stack</span><span class="o">.</span><span class="n">path</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">build_interface</span><span class="p">(</span><span class="n">stack</span><span class="p">)</span>
-
-<div class="viewcode-block" id="StackInterface.load"><a class="viewcode-back" href="../../../modules/selection.html#flyqma.selection.interface.StackInterface.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Load from existing selection data. &quot;&quot;&quot;</span>
-        <span class="k">for</span> <span class="n">interface</span> <span class="ow">in</span> <span class="n">layer_to_interface</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
-            <span class="n">interface</span><span class="o">.</span><span class="n">load</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="StackInterface.build_interface"><a class="viewcode-back" href="../../../modules/selection.html#flyqma.selection.interface.StackInterface.build_interface">[docs]</a>    <span class="k">def</span> <span class="nf">build_interface</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stack</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -325,7 +311,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># create figure</span>
-        <span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span> <span class="o">=</span> <span class="n">stack</span><span class="o">.</span><span class="n">depth</span><span class="p">,</span> <span class="n">stack</span><span class="o">.</span><span class="n">colordepth</span>
+        <span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span> <span class="o">=</span> <span class="n">stack</span><span class="o">.</span><span class="n">stack_depth</span><span class="p">,</span> <span class="n">stack</span><span class="o">.</span><span class="n">color_depth</span>
         <span class="n">figsize</span> <span class="o">=</span> <span class="p">(</span><span class="mf">2.25</span> <span class="o">*</span> <span class="n">ncols</span><span class="p">,</span> <span class="mf">2.25</span> <span class="o">*</span> <span class="n">nrows</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">)</span>
         <span class="n">gs</span> <span class="o">=</span> <span class="n">GridSpec</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span><span class="o">=</span><span class="n">ncols</span><span class="p">,</span> <span class="n">wspace</span><span class="o">=.</span><span class="mi">01</span><span class="p">,</span> <span class="n">hspace</span><span class="o">=.</span><span class="mi">01</span><span class="p">)</span>
@@ -335,7 +321,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">ax_to_layer</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="c1"># build interface for each layer</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">layer</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">stack</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">stack</span><span class="o">.</span><span class="n">stack_depth</span><span class="p">):</span>
+
+            <span class="c1"># iterator excludes discs marked for excludion</span>
+            <span class="n">layer</span> <span class="o">=</span> <span class="n">stack</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
 
             <span class="c1"># create all axes for current layer</span>
             <span class="n">axes</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">gs</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="n">ncols</span><span class="o">+</span><span class="n">j</span><span class="p">])</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ncols</span><span class="p">)]</span>
@@ -351,8 +340,7 @@
             <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">ax</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">axes</span><span class="p">):</span>
                     <span class="n">ch_label</span> <span class="o">=</span> <span class="s1">&#39;Channel </span><span class="si">{:d}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
-                    <span class="n">d_label</span> <span class="o">=</span> <span class="s1">&#39;Disc </span><span class="si">{:d}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">stack</span><span class="o">.</span><span class="n">_id</span><span class="p">)</span>
-                    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">d_label</span><span class="p">,</span> <span class="n">ch_label</span><span class="p">]),</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span></div></div>
+                    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">ch_label</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span></div></div>
 </pre></div>
 
           </div>
@@ -395,17 +383,23 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
         </div>
       </div>
       <div class="clearer"></div>
