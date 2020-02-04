@@ -11,21 +11,21 @@ Fly-QMA
 
 **Fly-QMA** is part of the **NU FlyEye** platform for quantitative analysis of *Drosophila* imaginal discs. The package enables Quantitative Mosaic Analysis (QMA) - that is, it helps users quantify and analyze expression patterns in mosaic tissues.
 
-Expression patterns are typically identified by comparing the fluorescence of target gene reporters between groups of cells. Fly-QMA helps quantify these differences in reporter expression. Quantification entails measuring fluorescence intensities by analyzing images of imaginal discs. These measurements may then used to detect and analyze spatial patterns within each image.
+Expression patterns are typically identified by comparing the intensities of fluorescent reporters between groups of cells. Fly-QMA uses computer vision to quantify these differences in reporter expression by inferring them from microscope images. The measurements may then used to detect and analyze spatial patterns that might otherwise go unnoticed.
 
 Given confocal microscopy data, Fly-QMA facilitates:
 
-  - **Segmentation.** Detect cell nuclei within each image
+  - **Segmentation.** Detect cell nuclei within an image
 
   - **Measurement.** Quantify reporter expression levels
 
   - **Bleedthrough Control.** Correct for fluorescence bleedthrough
 
-  - **Annotation.** Label distinct subpopulations of cells
+  - **Annotation.** Automatically label differing groups of cells
 
-  - **ROI Definition.** Manually define regions of interest
+  - **ROI Definition.** Focus on particular regions of interest
 
-  - **Comparison.** Compare expression levels between subpopulations
+  - **Comparison.** Compare expression levels between cells
 
 
 To get started, simply ``pip install flyqma``
@@ -37,7 +37,8 @@ To get started, simply ``pip install flyqma``
 
    INSTALLATION <installation>
    GETTING STARTED <start>
-   EXAMPLE USAGE <usage>
+   BASIC USAGE <usage>
+   INTEGRATIONS <integration>
    FILE STRUCTURE <filestructure>
    DOCUMENTATION <documentation>
    CONTACT <contact>

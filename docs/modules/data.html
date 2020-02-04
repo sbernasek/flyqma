@@ -217,63 +217,10 @@
 <blockquote>
 <div><p>color_depth (int) - number of fluorescence channels</p>
 <p>num_cells (int) - number of cells detected by segmentation</p>
+<p>bg_key (str) - key for channel used to generate segmentation</p>
+<p>is_segmented (bool) - if True, layer has been segmented</p>
+<p>has_trained_annotator (bool) - if True, layer has a trained annotator</p>
 </div></blockquote>
-<dl class="method">
-<dt id="flyqma.data.layers.Layer.annotate">
-<code class="sig-name descname">annotate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer.annotate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer.annotate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Annotate measurement data in place, also labeling boundaries between labeled regions and marking regions in which each label occurs.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="flyqma.data.layers.Layer.apply_annotation">
-<code class="sig-name descname">apply_annotation</code><span class="sig-paren">(</span><em class="sig-param">label='genotype'</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer.apply_annotation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer.apply_annotation" title="Permalink to this definition">¶</a></dt>
-<dd><p>Assign labels to cell measurements in place.</p>
-<p>Args:</p>
-<blockquote>
-<div><p>label (str) - attribute name for predicted genotype</p>
-<p>kwargs: keyword arguments for Annotator.annotate()</p>
-</div></blockquote>
-</dd></dl>
-
-<dl class="method">
-<dt id="flyqma.data.layers.Layer.apply_concurrency">
-<code class="sig-name descname">apply_concurrency</code><span class="sig-paren">(</span><em class="sig-param">basis='genotype'</em>, <em class="sig-param">min_pop=5</em>, <em class="sig-param">max_distance=10</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer.apply_concurrency"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer.apply_concurrency" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add boolean ‘concurrent_&lt;basis&gt;’ field to measurement data for each unique value of &lt;basis&gt; attribute.</p>
-<p>Args:</p>
-<blockquote>
-<div><p>basis (str) - attribute on which concurrency is established</p>
-<p>min_pop (int) - minimum population size for inclusion of cell type</p>
-<p>max_distance (float) - maximum distance threshold for inclusion</p>
-<p>kwargs: keyword arguments for ConcurrencyLabeler</p>
-</div></blockquote>
-</dd></dl>
-
-<dl class="method">
-<dt id="flyqma.data.layers.Layer.apply_correction">
-<code class="sig-name descname">apply_correction</code><span class="sig-paren">(</span><em class="sig-param">data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer.apply_correction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer.apply_correction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds bleedthrough-corrected fluorescence levels to the measurements dataframe.</p>
-<p>Args:</p>
-<blockquote>
-<div><p>data (pd.DataFrame) - processed cell measurement data</p>
-</div></blockquote>
-</dd></dl>
-
-<dl class="method">
-<dt id="flyqma.data.layers.Layer.apply_normalization">
-<code class="sig-name descname">apply_normalization</code><span class="sig-paren">(</span><em class="sig-param">data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer.apply_normalization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer.apply_normalization" title="Permalink to this definition">¶</a></dt>
-<dd><p>Normalize fluorescence intensity measurements by measured background channel intensity.</p>
-<p>Args:</p>
-<blockquote>
-<div><p>data (pd.DataFrame) - processed cell measurement data</p>
-</div></blockquote>
-</dd></dl>
-
-<dl class="method">
-<dt id="flyqma.data.layers.Layer.bg_key">
-<em class="property">property </em><code class="sig-name descname">bg_key</code><a class="headerlink" href="#flyqma.data.layers.Layer.bg_key" title="Permalink to this definition">¶</a></dt>
-<dd><p>DataFrame key for background channel.</p>
-</dd></dl>
-
 <dl class="method">
 <dt id="flyqma.data.layers.Layer.build_graph">
 <code class="sig-name descname">build_graph</code><span class="sig-paren">(</span><em class="sig-param">weighted_by</em>, <em class="sig-param">**graph_kw</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer.build_graph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer.build_graph" title="Permalink to this definition">¶</a></dt>
@@ -291,54 +238,6 @@
 </dd></dl>
 
 <dl class="method">
-<dt id="flyqma.data.layers.Layer.color_depth">
-<em class="property">property </em><code class="sig-name descname">color_depth</code><a class="headerlink" href="#flyqma.data.layers.Layer.color_depth" title="Permalink to this definition">¶</a></dt>
-<dd><p>Number of color channels.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="flyqma.data.layers.Layer.define_roi">
-<code class="sig-name descname">define_roi</code><span class="sig-paren">(</span><em class="sig-param">data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer.define_roi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer.define_roi" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds a “selected” attribute to measurements dataframe. The attribute is True for cells that fall within the ROI.</p>
-<p>Args:</p>
-<blockquote>
-<div><p>data (pd.DataFrame) - processed measurement data</p>
-</div></blockquote>
-</dd></dl>
-
-<dl class="method">
-<dt id="flyqma.data.layers.Layer.has_trained_annotator">
-<em class="property">property </em><code class="sig-name descname">has_trained_annotator</code><a class="headerlink" href="#flyqma.data.layers.Layer.has_trained_annotator" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns True if trained annotator is available.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="flyqma.data.layers.Layer.import_roi_mask">
-<code class="sig-name descname">import_roi_mask</code><span class="sig-paren">(</span><em class="sig-param">path</em>, <em class="sig-param">save=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer.import_roi_mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer.import_roi_mask" title="Permalink to this definition">¶</a></dt>
-<dd><p>Import external ROI mask and use it to label measurement data.</p>
-<p>Provided mask must contain a 2-D boolean array with the same dimensions as the raw image. True values denote the ROI. The mask may only contain a single contiguous ROI.</p>
-<p>Args:</p>
-<blockquote>
-<div><p>path (str) - path to ROI mask</p>
-<p>save (bool) - if True, copy ROI mask to stack directory</p>
-</div></blockquote>
-</dd></dl>
-
-<dl class="method">
-<dt id="flyqma.data.layers.Layer.import_segmentation_mask">
-<code class="sig-name descname">import_segmentation_mask</code><span class="sig-paren">(</span><em class="sig-param">path</em>, <em class="sig-param">channel</em>, <em class="sig-param">save=True</em>, <em class="sig-param">save_image=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer.import_segmentation_mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer.import_segmentation_mask" title="Permalink to this definition">¶</a></dt>
-<dd><p>Import external segmentation mask and use it to generate measurements.</p>
-<p>Provided mask must contain a 2-D array of positive integers in which a values of zero denotes the image background.</p>
-<p>Args:</p>
-<blockquote>
-<div><p>path (str) - path to segmentation mask</p>
-<p>channel (int) - fluorescence channel used for segmentation</p>
-<p>save (bool) - if True, copy segmentation to stack directory</p>
-<p>save_image (bool) - if True, save segmentation image</p>
-</div></blockquote>
-</dd></dl>
-
-<dl class="method">
 <dt id="flyqma.data.layers.Layer.initialize">
 <code class="sig-name descname">initialize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer.initialize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize layer directory by:</p>
@@ -349,55 +248,6 @@
 <li><p>Saving metadata to file</p></li>
 </ul>
 </div></blockquote>
-</dd></dl>
-
-<dl class="method">
-<dt id="flyqma.data.layers.Layer.is_measured">
-<em class="property">property </em><code class="sig-name descname">is_measured</code><a class="headerlink" href="#flyqma.data.layers.Layer.is_measured" title="Permalink to this definition">¶</a></dt>
-<dd><p>True if measurement data are available.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="flyqma.data.layers.Layer.is_segmented">
-<em class="property">property </em><code class="sig-name descname">is_segmented</code><a class="headerlink" href="#flyqma.data.layers.Layer.is_segmented" title="Permalink to this definition">¶</a></dt>
-<dd><p>True if measurement data are available.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="flyqma.data.layers.Layer.mark_boundaries">
-<code class="sig-name descname">mark_boundaries</code><span class="sig-paren">(</span><em class="sig-param">basis='genotype'</em>, <em class="sig-param">max_edges=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer.mark_boundaries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer.mark_boundaries" title="Permalink to this definition">¶</a></dt>
-<dd><p>Mark boundaries between cells with disparate labels by assigning a boundary label to all cells that share an edge with another cell with a different label.</p>
-<p>Args:</p>
-<blockquote>
-<div><p>basis (str) - attribute used to define label</p>
-<p>max_edges (int) - maximum number of edges for interior cells</p>
-</div></blockquote>
-</dd></dl>
-
-<dl class="method">
-<dt id="flyqma.data.layers.Layer.mask_to_vertices">
-<em class="property">classmethod </em><code class="sig-name descname">mask_to_vertices</code><span class="sig-paren">(</span><em class="sig-param">mask</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer.mask_to_vertices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer.mask_to_vertices" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert boolean mask to a list of vertices defining the border around the largest contiguous region.</p>
-<p>Args:</p>
-<blockquote>
-<div><p>mask (np.ndarray[bool]) - ROI mask, where True denotes the region. Note that the mask may only contain one contiguous component.</p>
-</div></blockquote>
-<p>Returns:</p>
-<blockquote>
-<div><p>vertices (np.ndarray[int]) - N x 2 array of vertices</p>
-</div></blockquote>
-</dd></dl>
-
-<dl class="method">
-<dt id="flyqma.data.layers.Layer.measure">
-<code class="sig-name descname">measure</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer.measure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer.measure" title="Permalink to this definition">¶</a></dt>
-<dd><p>Measure properties of cell segments. Raw measurements are stored under in the ‘measurements’ attribute, while processed measurements are stored in the ‘data’ attribute.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="flyqma.data.layers.Layer.num_cells">
-<em class="property">property </em><code class="sig-name descname">num_cells</code><a class="headerlink" href="#flyqma.data.layers.Layer.num_cells" title="Permalink to this definition">¶</a></dt>
-<dd><p>Number of cells detected by segmentation.</p>
 </dd></dl>
 
 <dl class="method">
@@ -424,47 +274,56 @@
 </div></blockquote>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="class">
+<dt id="flyqma.data.layers.LayerAnnotation">
+<em class="property">class </em><code class="sig-prename descclassname">flyqma.data.layers.</code><code class="sig-name descname">LayerAnnotation</code><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerAnnotation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerAnnotation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Annotation related methods for Layer class.</p>
 <dl class="method">
-<dt id="flyqma.data.layers.Layer.read_roi_mask">
-<em class="property">classmethod </em><code class="sig-name descname">read_roi_mask</code><span class="sig-paren">(</span><em class="sig-param">path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer.read_roi_mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer.read_roi_mask" title="Permalink to this definition">¶</a></dt>
-<dd><p>Read ROI mask from file and return array of region vertices.</p>
+<dt id="flyqma.data.layers.LayerAnnotation.annotate">
+<code class="sig-name descname">annotate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerAnnotation.annotate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerAnnotation.annotate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Annotate measurement data in place, also labeling boundaries between labeled regions and marking regions in which each label occurs.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.LayerAnnotation.apply_annotation">
+<code class="sig-name descname">apply_annotation</code><span class="sig-paren">(</span><em class="sig-param">label='genotype'</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerAnnotation.apply_annotation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerAnnotation.apply_annotation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assign labels to cell measurements in place.</p>
 <p>Args:</p>
 <blockquote>
-<div><p>path (str) - path to ROI mask in np.ndarray[bool] format</p>
-</div></blockquote>
-<p>Returns:</p>
-<blockquote>
-<div><p>vertices (np.ndarray[int]) - N x 2 array of vertices</p>
+<div><p>label (str) - attribute name for predicted genotype</p>
+<p>kwargs: keyword arguments for Annotator.annotate()</p>
 </div></blockquote>
 </dd></dl>
 
 <dl class="method">
-<dt id="flyqma.data.layers.Layer.segment">
-<code class="sig-name descname">segment</code><span class="sig-paren">(</span><em class="sig-param">channel</em>, <em class="sig-param">preprocessing_kws={}</em>, <em class="sig-param">seed_kws={}</em>, <em class="sig-param">seg_kws={}</em>, <em class="sig-param">min_area=250</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer.segment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer.segment" title="Permalink to this definition">¶</a></dt>
-<dd><p>Identify nuclear contours by running watershed segmentation on specified background channel.</p>
+<dt id="flyqma.data.layers.LayerAnnotation.apply_concurrency">
+<code class="sig-name descname">apply_concurrency</code><span class="sig-paren">(</span><em class="sig-param">basis='genotype'</em>, <em class="sig-param">min_pop=5</em>, <em class="sig-param">max_distance=10</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerAnnotation.apply_concurrency"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerAnnotation.apply_concurrency" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add boolean ‘concurrent_&lt;basis&gt;’ field to measurement data for each unique value of &lt;basis&gt; attribute.</p>
 <p>Args:</p>
 <blockquote>
-<div><p>channel (int) - channel index on which to segment image</p>
-<p>preprocessing_kws (dict) - keyword arguments for image preprocessing</p>
-<p>seed_kws (dict) - keyword arguments for seed detection</p>
-<p>seg_kws (dict) - keyword arguments for segmentation</p>
-<p>min_area (int) - threshold for minimum segment size, px</p>
+<div><p>basis (str) - attribute on which concurrency is established</p>
+<p>min_pop (int) - minimum population size for inclusion of cell type</p>
+<p>max_distance (float) - maximum distance threshold for inclusion</p>
+<p>kwargs: keyword arguments for ConcurrencyLabeler</p>
 </div></blockquote>
-<p>Returns:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.LayerAnnotation.mark_boundaries">
+<code class="sig-name descname">mark_boundaries</code><span class="sig-paren">(</span><em class="sig-param">basis='genotype'</em>, <em class="sig-param">max_edges=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerAnnotation.mark_boundaries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerAnnotation.mark_boundaries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mark boundaries between cells with disparate labels by assigning a boundary label to all cells that share an edge with another cell with a different label.</p>
+<p>Args:</p>
 <blockquote>
-<div><p>background (ImageScalar) - background image (after processing)</p>
+<div><p>basis (str) - attribute used to define label</p>
+<p>max_edges (int) - maximum number of edges for interior cells</p>
 </div></blockquote>
 </dd></dl>
 
 <dl class="method">
-<dt id="flyqma.data.layers.Layer.sort_clockwise">
-<em class="property">static </em><code class="sig-name descname">sort_clockwise</code><span class="sig-paren">(</span><em class="sig-param">xycoords</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer.sort_clockwise"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer.sort_clockwise" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns clockwise-sorted xy coordinates.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="flyqma.data.layers.Layer.train_annotator">
-<code class="sig-name descname">train_annotator</code><span class="sig-paren">(</span><em class="sig-param">attribute</em>, <em class="sig-param">save=False</em>, <em class="sig-param">logratio=True</em>, <em class="sig-param">num_labels=3</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#Layer.train_annotator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.Layer.train_annotator" title="Permalink to this definition">¶</a></dt>
+<dt id="flyqma.data.layers.LayerAnnotation.train_annotator">
+<code class="sig-name descname">train_annotator</code><span class="sig-paren">(</span><em class="sig-param">attribute</em>, <em class="sig-param">save=False</em>, <em class="sig-param">logratio=True</em>, <em class="sig-param">num_labels=3</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerAnnotation.train_annotator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerAnnotation.train_annotator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Train an Annotation model on the measurements in this layer.</p>
 <p>Args:</p>
 <blockquote>
@@ -484,6 +343,22 @@
 <p>Returns:</p>
 <blockquote>
 <div><p>selector (ModelSelection object)</p>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="flyqma.data.layers.LayerCorrection">
+<em class="property">class </em><code class="sig-prename descclassname">flyqma.data.layers.</code><code class="sig-name descname">LayerCorrection</code><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerCorrection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerCorrection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bleedthrough correction related methods for Layer class.</p>
+<dl class="method">
+<dt id="flyqma.data.layers.LayerCorrection.apply_correction">
+<code class="sig-name descname">apply_correction</code><span class="sig-paren">(</span><em class="sig-param">data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerCorrection.apply_correction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerCorrection.apply_correction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds bleedthrough-corrected fluorescence levels to the measurements dataframe.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>data (pd.DataFrame) - processed cell measurement data</p>
 </div></blockquote>
 </dd></dl>
 
@@ -621,6 +496,151 @@
 <div><p>image (bool) - if True, save segmentation image</p>
 <p>kwargs: keyword arguments for image rendering</p>
 </div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="flyqma.data.layers.LayerMeasurement">
+<em class="property">class </em><code class="sig-prename descclassname">flyqma.data.layers.</code><code class="sig-name descname">LayerMeasurement</code><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerMeasurement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerMeasurement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Measurement related methods for Layer class.</p>
+<dl class="method">
+<dt id="flyqma.data.layers.LayerMeasurement.apply_normalization">
+<code class="sig-name descname">apply_normalization</code><span class="sig-paren">(</span><em class="sig-param">data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerMeasurement.apply_normalization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerMeasurement.apply_normalization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Normalize fluorescence intensity measurements by measured background channel intensity.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>data (pd.DataFrame) - processed cell measurement data</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.LayerMeasurement.import_segmentation_mask">
+<code class="sig-name descname">import_segmentation_mask</code><span class="sig-paren">(</span><em class="sig-param">path</em>, <em class="sig-param">channel</em>, <em class="sig-param">save=True</em>, <em class="sig-param">save_image=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerMeasurement.import_segmentation_mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerMeasurement.import_segmentation_mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Import external segmentation mask and use it to generate measurements.</p>
+<p>Provided mask must contain a 2-D array of positive integers in which a values of zero denotes the image background.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>path (str) - path to segmentation mask</p>
+<p>channel (int) - fluorescence channel used for segmentation</p>
+<p>save (bool) - if True, copy segmentation to stack directory</p>
+<p>save_image (bool) - if True, save segmentation image</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.LayerMeasurement.measure">
+<code class="sig-name descname">measure</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerMeasurement.measure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerMeasurement.measure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Measure properties of cell segments. Raw measurements are stored under in the ‘measurements’ attribute, while processed measurements are stored in the ‘data’ attribute.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.LayerMeasurement.segment">
+<code class="sig-name descname">segment</code><span class="sig-paren">(</span><em class="sig-param">channel</em>, <em class="sig-param">preprocessing_kws={}</em>, <em class="sig-param">seed_kws={}</em>, <em class="sig-param">seg_kws={}</em>, <em class="sig-param">min_area=250</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerMeasurement.segment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerMeasurement.segment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Identify nuclear contours by running watershed segmentation on specified background channel.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>channel (int) - channel index on which to segment image</p>
+<p>preprocessing_kws (dict) - keyword arguments for image preprocessing</p>
+<p>seed_kws (dict) - keyword arguments for seed detection</p>
+<p>seg_kws (dict) - keyword arguments for segmentation</p>
+<p>min_area (int) - threshold for minimum segment size, px</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div><p>background (ImageScalar) - background image (after processing)</p>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="flyqma.data.layers.LayerProperties">
+<em class="property">class </em><code class="sig-prename descclassname">flyqma.data.layers.</code><code class="sig-name descname">LayerProperties</code><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerProperties"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerProperties" title="Permalink to this definition">¶</a></dt>
+<dd><p>Properties for Layer class:</p>
+<blockquote>
+<div><p>color_depth (int) - number of fluorescence channels</p>
+<p>num_cells (int) - number of cells detected by segmentation</p>
+<p>bg_key (str) - key for channel used to generate segmentation</p>
+<p>is_segmented (bool) - if True, layer has been segmented</p>
+<p>has_trained_annotator (bool) - if True, layer has a trained annotator</p>
+</div></blockquote>
+<dl class="method">
+<dt id="flyqma.data.layers.LayerProperties.bg_key">
+<em class="property">property </em><code class="sig-name descname">bg_key</code><a class="headerlink" href="#flyqma.data.layers.LayerProperties.bg_key" title="Permalink to this definition">¶</a></dt>
+<dd><p>DataFrame key for background channel.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.LayerProperties.color_depth">
+<em class="property">property </em><code class="sig-name descname">color_depth</code><a class="headerlink" href="#flyqma.data.layers.LayerProperties.color_depth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of color channels.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.LayerProperties.has_trained_annotator">
+<em class="property">property </em><code class="sig-name descname">has_trained_annotator</code><a class="headerlink" href="#flyqma.data.layers.LayerProperties.has_trained_annotator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns True if trained annotator is available.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.LayerProperties.is_segmented">
+<em class="property">property </em><code class="sig-name descname">is_segmented</code><a class="headerlink" href="#flyqma.data.layers.LayerProperties.is_segmented" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if measurement data are available.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.LayerProperties.num_cells">
+<em class="property">property </em><code class="sig-name descname">num_cells</code><a class="headerlink" href="#flyqma.data.layers.LayerProperties.num_cells" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of cells detected by segmentation.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="flyqma.data.layers.LayerROI">
+<em class="property">class </em><code class="sig-prename descclassname">flyqma.data.layers.</code><code class="sig-name descname">LayerROI</code><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerROI"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerROI" title="Permalink to this definition">¶</a></dt>
+<dd><p>ROI related methods for Layer class.</p>
+<dl class="method">
+<dt id="flyqma.data.layers.LayerROI.define_roi">
+<code class="sig-name descname">define_roi</code><span class="sig-paren">(</span><em class="sig-param">data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerROI.define_roi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerROI.define_roi" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a “selected” attribute to measurements dataframe. The attribute is True for cells that fall within the ROI.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>data (pd.DataFrame) - processed measurement data</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.LayerROI.import_roi_mask">
+<code class="sig-name descname">import_roi_mask</code><span class="sig-paren">(</span><em class="sig-param">path</em>, <em class="sig-param">save=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerROI.import_roi_mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerROI.import_roi_mask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Import external ROI mask and use it to label measurement data.</p>
+<p>Provided mask must contain a 2-D boolean array with the same dimensions as the raw image. True values denote the ROI. The mask may only contain a single contiguous ROI.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>path (str) - path to ROI mask</p>
+<p>save (bool) - if True, copy ROI mask to stack directory</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.LayerROI.mask_to_vertices">
+<em class="property">classmethod </em><code class="sig-name descname">mask_to_vertices</code><span class="sig-paren">(</span><em class="sig-param">mask</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerROI.mask_to_vertices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerROI.mask_to_vertices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert boolean mask to a list of vertices defining the border around the largest contiguous region.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>mask (np.ndarray[bool]) - ROI mask, where True denotes the region. Note that the mask may only contain one contiguous component.</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div><p>vertices (np.ndarray[int]) - N x 2 array of vertices</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.LayerROI.sort_clockwise">
+<em class="property">static </em><code class="sig-name descname">sort_clockwise</code><span class="sig-paren">(</span><em class="sig-param">xycoords</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerROI.sort_clockwise"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerROI.sort_clockwise" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns clockwise-sorted xy coordinates.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1237,7 +1257,8 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">INSTALLATION</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../start.html">GETTING STARTED</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../usage.html">EXAMPLE USAGE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">BASIC USAGE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../integration.html">INTEGRATIONS</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../filestructure.html">FILE STRUCTURE</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../documentation.html">DOCUMENTATION</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Data Module</a></li>

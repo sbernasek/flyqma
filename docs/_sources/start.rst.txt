@@ -15,8 +15,8 @@ The fastest way to familiarize yourself with **Fly-QMA** is to start with a work
 Before working with your own microscopy data, we also suggest reading the sections below.
 
 
-Image Preparation
------------------
+Preparing Images
+----------------
 
 **Fly-QMA** uses a hierarchical :ref:`file structure <filestructure>` that is organized into three levels:
 
@@ -149,7 +149,7 @@ The data stored in the ``layer.measurements`` attribute and ``measurements.hdf``
   * Bleedthrough correction: correction for fluorescence bleedthrough between reporters
   * Region of interest selection: manual exclusion of layers or regions of layers from the dataset
 
-The objects that perform these operations all behave in a similar manner. They are manually defined for each disc (see the Tutorial), but may then be saved for repeated use. When saved, each object creates its own subdirectory within the corresponding layer directory:
+The objects that perform these operations all behave in a similar manner. They are manually defined for each disc (see the `Tutorial <https://github.com/sebastianbernasek/flyqma/blob/master/tutorial.ipynb>`_), but may then be saved for repeated use. When saved, each object creates its own subdirectory within the corresponding layer directory:
 
 .. code-block:: bash
 

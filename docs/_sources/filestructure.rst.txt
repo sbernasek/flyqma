@@ -10,9 +10,7 @@
 File Structure
 ==============
 
-**Fly-QMA** uses a standardized file structure, and will automatically adhere to this format by creating and updating  various subdirectories and files as needed. It is also possible to integrate external analyses (such as a segmentation mask) into the Fly-QMA workflow by manually incorporating them in accordance with the standardized file structure outlined below.
-
-The file structure is hierarchically organized into three levels:
+**Fly-QMA** uses a standardized file structure, and will automatically adhere to this format by creating and updating  various subdirectories and files as needed. The file structure is hierarchically organized into three levels:
 
  1. **EXPERIMENT**: One or more tissue samples imaged under the same conditions.
 
@@ -24,7 +22,7 @@ The file structure is hierarchically organized into three levels:
 Experiments
 -----------
 
-Microscopy data should be arranged into a collection of **STACK** directories that reside within an **EXPERIMENT** directory unique to a particular set of experimental conditions.
+Microscopy data should be arranged into a collection of **STACK** directories that reside within an **EXPERIMENT** directory unique to a particular set of experimental conditions:
 
 .. code-block:: bash
 
@@ -38,9 +36,9 @@ Microscopy data should be arranged into a collection of **STACK** directories th
 Image Stacks
 ------------
 
-Each **STACK** directory contains various components pertinent to all images within the z-stack. These may include:
+Each **STACK** directory contains various components pertinent to all images within the image z-stack. These may include:
 
- - The original ``.tif`` image file depicting a z-stack of an imaginal disc. Images may be regularly-spaced 3D z-stacks or irregularly-spaced 3D collections of one or more layers. If a 2D image is provided, Fly-QMA will assume the z-stack only contains a single layer. *Note that the image file must retain the same name as its parent STACK directory.*
+ - The original ``.tif`` image file depicting a z-stack of an imaginal disc. Images may be regularly-spaced 3D z-stacks or irregularly-spaced 3D collections of one or more layers. If a 2D image is provided, Fly-QMA will assume the z-stack only contains a single layer.
  - A ``metadata.json`` file containing all imaging metadata, e.g. number of layers, number of fluorescence channels, image bit depth, etc.
  - An ``annotation`` subdirectory containing all of the model components used to annotate a particular image stack.
  - A ``layers`` subdirectory containing all of the lower level **LAYER** directories. Layers are sequentially numbered, beginning with zero.
@@ -68,11 +66,10 @@ Layers
 Each **LAYER** directory contains all components pertinent to an individual 2D layer within the z-stack. These may include:
 
  - A ``metadata.json`` file containing all layer metadata, such as particular parameter values used.
- - A ``selection`` subdirectory containing a ``selection.npy`` ROI mask. This mask is a 2D numpy array of boolean values in which each element indicates whether a given pixel is within the ROI.  **Users may readily import their own ROI mask by manually replacing this file.** The ``selection`` directory also includes a ``md.json`` file used whose contents are used to indicate whether or not the layer is included within subsequent analyses.
+ - A ``selection`` subdirectory containing a ``selection.npy`` ROI mask. This mask is a binary 2D numpy array in which each element denotes whether a given pixel is within the ROI. The ``selection`` directory also includes a ``md.json`` file used whose contents are used to indicate whether or not the layer is included within subsequent analyses.
  - A ``correction`` subdirectory containing a parameterized model for performing bleedthrough correction. The ``data.json`` file contains the model parameterization, while ``fit.png`` depicts the model fit and ``correction.png`` shows the resultant correction.
- - A ``segmentation`` subdirectory containing a ``labels.npy`` segmentation mask. This mask is a 2D numpy array of integers in which each element represents a single pixel within the image. The integer value denotes the segment assigned to each pixel, where zero-valued pixels comprise the background. **As this output format is shared by other segmentation platforms (such as skimage), users may readily import their own segmentation by manually replacing this file.** The ``segmentation`` directory may also include an image of the resultant segmentation, stored as ``segmentation.ong``, but this file is not required.
+ - A ``segmentation`` subdirectory containing a ``labels.npy`` segmentation mask. This mask is a 2D numpy array of integers in which each element represents a single pixel within the image. The integer value denotes the segment assigned to each pixel, where zero-valued pixels comprise the background. The ``segmentation`` directory may also include an image of the resultant segmentation, stored as ``segmentation.ong``, but this file is not required.
  - A ``measurements`` subdirectory containing two serialized Pandas dataframes. The file ``measurements.hdf`` contains the raw measured pixel intensities for all detected cells or nuclei, while ``processed.hdf`` contains a cached version of the measured data after all analyses (e.g. bleedthrough correction, annotation, etc.) have been applied. The former is used to preserve the original measurements, while the latter is used to cache the results of previous analysis so they may be rapidly retrieved at any time.
-
 
 .. code-block:: bash
 
@@ -107,6 +104,9 @@ Each **LAYER** directory contains all components pertinent to an individual 2D l
    │       └── ... N
    ├── STACK 1
    └── ... STACK N
+
+.. Note::
+   It is possible to integrate external analyses into the Fly-QMA workflow by manually adding them in accordance with the standardized file structure. For instance, users may import their own ROI or segmentation masks by adding them to the appropriate subdirectories. However, Fly-QMA also provides a handful of import methods designed explicitly for this purpose. See the :ref:`integration <integration>` section for additional details.
 
 
 Annotation

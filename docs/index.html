@@ -35,16 +35,16 @@
 <div class="section" id="fly-qma">
 <h1>Fly-QMA<a class="headerlink" href="#fly-qma" title="Permalink to this headline">¶</a></h1>
 <p><strong>Fly-QMA</strong> is part of the <strong>NU FlyEye</strong> platform for quantitative analysis of <em>Drosophila</em> imaginal discs. The package enables Quantitative Mosaic Analysis (QMA) - that is, it helps users quantify and analyze expression patterns in mosaic tissues.</p>
-<p>Expression patterns are typically identified by comparing the fluorescence of target gene reporters between groups of cells. Fly-QMA helps quantify these differences in reporter expression. Quantification entails measuring fluorescence intensities by analyzing images of imaginal discs. These measurements may then used to detect and analyze spatial patterns within each image.</p>
+<p>Expression patterns are typically identified by comparing the intensities of fluorescent reporters between groups of cells. Fly-QMA uses computer vision to quantify these differences in reporter expression by inferring them from microscope images. The measurements may then used to detect and analyze spatial patterns that might otherwise go unnoticed.</p>
 <p>Given confocal microscopy data, Fly-QMA facilitates:</p>
 <blockquote>
 <div><ul class="simple">
-<li><p><strong>Segmentation.</strong> Detect cell nuclei within each image</p></li>
+<li><p><strong>Segmentation.</strong> Detect cell nuclei within an image</p></li>
 <li><p><strong>Measurement.</strong> Quantify reporter expression levels</p></li>
 <li><p><strong>Bleedthrough Control.</strong> Correct for fluorescence bleedthrough</p></li>
-<li><p><strong>Annotation.</strong> Label distinct subpopulations of cells</p></li>
-<li><p><strong>ROI Definition.</strong> Manually define regions of interest</p></li>
-<li><p><strong>Comparison.</strong> Compare expression levels between subpopulations</p></li>
+<li><p><strong>Annotation.</strong> Automatically label differing groups of cells</p></li>
+<li><p><strong>ROI Definition.</strong> Focus on particular regions of interest</p></li>
+<li><p><strong>Comparison.</strong> Compare expression levels between cells</p></li>
 </ul>
 </div></blockquote>
 <p>To get started, simply <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">flyqma</span></code></p>
@@ -77,7 +77,8 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">INSTALLATION</a></li>
 <li class="toctree-l1"><a class="reference internal" href="start.html">GETTING STARTED</a></li>
-<li class="toctree-l1"><a class="reference internal" href="usage.html">EXAMPLE USAGE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">BASIC USAGE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integration.html">INTEGRATIONS</a></li>
 <li class="toctree-l1"><a class="reference internal" href="filestructure.html">FILE STRUCTURE</a></li>
 <li class="toctree-l1"><a class="reference internal" href="documentation.html">DOCUMENTATION</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contact.html">CONTACT</a></li>
