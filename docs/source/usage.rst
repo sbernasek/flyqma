@@ -5,14 +5,14 @@
    :target: https://amaral.northwestern.edu/
 
 
-Example Usage
-=============
+Basic Usage
+===========
 
-**Fly-QMA** provides a wide range of functionality for measuring and analyzing mosaic imaginal discs. A brief introduction to some basic operations is provided below. For API details please see the :ref:`documentation <documentation>`.
+**Fly-QMA** provides a wide range of functionality for measuring and analyzing mosaic imaginal discs. A brief introduction to some basic operations is provided below. For explicit API details please see the :ref:`code documentation <documentation>`.
 
 
-Loading Images
---------------
+Querying Data
+-------------
 
 We recommend first organizing your images in accordance with our recommended hierarchical :ref:`file structure <filestructure>`. In the examples below, ``./data`` would contain several subdirectories, each of which contains a single ``.tif`` file. Once everything is in place, get started by creating an ``Experiment`` instance. This will serve as the entry-point for managing your data in Fly-QMA.
 
@@ -48,8 +48,9 @@ Select a specific fluorescence channel:
    >>> channel = layer.get_channel(channel_id)
 
 
-Segmenting an Image
--------------------
+
+Segmenting Images
+-----------------
 
 Segment an image layer, measure the segment properties, and save the results:
 
@@ -62,24 +63,16 @@ Segment an image layer, measure the segment properties, and save the results:
 See the measurement :ref:`documentation <measurement_docs>` for additional details and parameters needed to customize the segmentation routine to suit your data.
 
 
-Importing a Segmentation Mask
------------------------------
-
-Fly-QMA also supports importing an externally generated segmentation mask in which integer values denote segment membership on a pixel-by-pixel basis. The discrete mask must be a two-dimensional array whose dimensions match those of the raw microscope image. Use the ``save=True`` argument to incorporate the segmentation indefinitely.
-
-.. code-block:: python
-
-   >>> segmentation_mask_path = './segmentation.npy'
-   >>> background_channel = 2
-   >>> layer.import_segmentation_mask(segmentation_mask_path, background_channel, save=True)
-
 
 .. _gui:
 
 Defining a ROI
 --------------
 
-The Fly-QMA package includes a matplot-lib based GUI for selecting a particular region of interest within an image layer. The interface consists of a grid of images in which rows correspond to layers and columns correspond to each of the available fluorescence channels. To launch the GUI for an individual image stack:
+To import an externally generated ROI mask please refer to the :ref:`integration <roi_integration>` section.
+
+
+Fly-QMA includes a matplot-lib based GUI for selecting a particular region of interest within an image layer. The interface consists of a grid of images in which rows correspond to layers and columns correspond to each of the available fluorescence channels. To launch the GUI for an individual image stack:
 
 .. code-block:: python
 
@@ -127,18 +120,9 @@ A saved GUI may be reopened via the ``GUI.load`` method, at which point further 
 See the ROI selection :ref:`documentation <selection_docs>` for additional details.
 
 
-Importing a ROI Mask
---------------------
-
-Fly-QMA also supports importing an externally generated mask in which binary values define the ROI. The binary mask must be a two-dimensional array whose dimensions match those of the raw microscope image. Use the ``save=True`` argument to incorporate the ROI indefinitely.
-
-.. code-block:: python
-
-   >>> roi_mask_path = './roi_mask.npy'
-   >>> layer.import_roi_mask(roi_mask_path, save=True)
 
 
-Bleedthrough Correction
+Correcting Bleedthrough
 -----------------------
 
 Perform bleedthrough correction:
@@ -153,7 +137,7 @@ See the bleedthrough correction :ref:`documentation <bleedthrough_docs>` for add
 
 
 
-Data Aggregation
+Aggregating Data
 ----------------
 
 Aggregate all measurement data from an experiment:
