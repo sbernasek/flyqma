@@ -26,30 +26,30 @@ Image Preparation
 
  3. **LAYER**: All analysis relevant to a single 2-D image, such as an individual layer.
 
-Microscopy data should be arranged into a collection of sequentially numbered and zero-indexed **STACK** directories that reside within a particular **EXPERIMENT** directory:
+Microscopy data should be arranged into a collection of **STACK** directories that reside within a particular **EXPERIMENT** directory:
 
 .. code-block:: bash
 
    EXPERIMENT
    │
-   ├── 0         # First STACK
-   ├── 1
-   └── ... N     # Nth STACK
+   ├── STACK 0         # First STACK directory
+   ├── STACK 1
+   └── ... STACK N     # Nth STACK directory
 
-Each **STACK** directory should contain one or more 2-D images of a unique tissue sample. Images must be supplied in ``.tif`` format with ZXYC orientation, and must share the same name as the parent **STACK** directory, e.g. EXPERIMENT/1/1.tif. Each image file may depict a single layer, a regularly-spaced z-stack, or an irregularly-spaced collections of layers.
+Each **STACK** directory should contain one or more 2-D images of a unique tissue sample. Images must be supplied in ``.tif`` format with ZXYC orientation. Each image file may depict a single layer, a regularly-spaced z-stack, or an irregularly-spaced collections of layers.
 
 .. code-block:: bash
 
    EXPERIMENT
    │
-   ├── 0
-   │   └── 0.tif   # 3-D image with ZXYC orientation
+   ├── STACK 0
+   │   └── image.tif   # 3-D image with ZXYC orientation
    │
-   ├── 1
-   │   └── 1.tif
+   ├── STACK 1
+   │   └── image.tif
    │
-   └── ... N
-           └── N.tif
+   └── ... STACK N
+           └── image.tif
 
 
 .. warning::
@@ -86,16 +86,16 @@ To begin analyzing an image stack, layers must be added to the corresponding sta
 
    EXPERIMENT
    │
-   ├── 0
-   │   ├── 0.tif
+   ├── STACK 0
+   │   ├── image.tif
    │   ├── metadata.json   # stack metadata (number of layers, image bit depth, etc.)
    │   └── layers
    │       ├── 0           # first LAYER directory
    │       ├── 1
    │       └── ... M       # Mth LAYER directory
    │
-   ├── 1
-   └── ... N
+   ├── STACK 1
+   └── ... STACK N
 
 Image layers may now be analyzed individually. To access an individual layer:
 
@@ -122,8 +122,8 @@ Upon completion, the segmentation results and corresponding measurements may be 
 
    EXPERIMENT
    │
-   ├── 0
-   │   ├── 0.tif
+   ├── STACK 0
+   │   ├── image.tif
    │   ├── metadata.json
    │   └── layers
    │       ├── 0
@@ -136,8 +136,8 @@ Upon completion, the segmentation results and corresponding measurements may be 
    │       │       └── processed.hdf      # processed expression measurements
    │       ├── 1
    │       └── ... M
-   ├── 1
-   └── ... N
+   ├── STACK 1
+   └── ... STACK N
 
 
 Analysis
@@ -155,8 +155,8 @@ The objects that perform these operations all behave in a similar manner. They a
 
     EXPERIMENT
     │
-    ├── 0
-    │   ├── 0.tif
+    ├── STACK 0
+    │   ├── image.tif
     │   ├── metadata.json
     │   └── layers
     │       ├── 0
@@ -173,8 +173,8 @@ The objects that perform these operations all behave in a similar manner. They a
     │       │       └── ...
     │       ├── 1
     │       └── ... M
-    ├── 1
-    └── ... N
+    ├── STACK 1
+    └── ... STACK N
 
 The added subdirectories include all the files and metadata necessary to load and execute the data processing operations performed by the respective object. Saved operations are automatically applied to the raw measurement data each time a layer is loaded. Processed measurements are accessible via the ``layer.data`` attribute when a layer exists in local memory. They may also be aggregated across layers via ``stack.aggregate_measurements()`` and across all stacks in an experiment via ``experiment.aggregate_measurements()``.
 
@@ -185,8 +185,8 @@ Note that annotation models may also be fit to an entire stack, rather than to e
 
    EXPERIMENT
    │
-   ├── 0
-   │   ├── 0.tif
+   ├── STACK 0
+   │   ├── image.tif
    │   ├── metadata.json
    │   ├── layers
    │   └── annotation                     # stack annotator directory
@@ -204,5 +204,5 @@ Note that annotation models may also be fit to an entire stack, rather than to e
    │           ├── classifier_0
    │           ├── classifier_1
    │           └── ... classifier_M       # Mth mixture model directory
-   ├── 1
-   └── ... N
+   ├── STACK 1
+   └── ... STACK N

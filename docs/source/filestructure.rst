@@ -24,15 +24,15 @@ The file structure is hierarchically organized into three levels:
 Experiments
 -----------
 
-Microscopy data should be arranged into a collection of **STACK** directories that reside within an **EXPERIMENT** directory unique to a particular set of experimental conditions. These **STACK** directories are sequentially numbered, beginning with zero.
+Microscopy data should be arranged into a collection of **STACK** directories that reside within an **EXPERIMENT** directory unique to a particular set of experimental conditions.
 
 .. code-block:: bash
 
    EXPERIMENT
    │
-   ├── 0         # First STACK directory
-   ├── 1
-   └── ... N     # Nth STACK directory
+   ├── STACK 0         # First STACK directory
+   ├── STACK 1
+   └── ... STACK N     # Nth STACK directory
 
 
 Image Stacks
@@ -49,17 +49,17 @@ Each **STACK** directory contains various components pertinent to all images wit
 
    EXPERIMENT
    │
-   ├── 0
-   │   ├── 0.tif
+   ├── STACK 0
+   │   ├── image.tif
    │   ├── metadata.json
    │   ├── annotation
    │   └── layers
    │        ├── 0        # first LAYER directory
    │        ├── 1
    │        └── ... N    # Nth LAYER directory
-   ├── 1
+   ├── STACK 1
    │
-   └── ... N
+   └── ... STACK N
 
 
 Layers
@@ -78,8 +78,8 @@ Each **LAYER** directory contains all components pertinent to an individual 2D l
 
    EXPERIMENT
    │
-   ├── 0
-   │   ├── 0.tif
+   ├── STACK 0
+   │   ├── image.tif
    │   ├── metadata.json
    │   ├── annotation
    │   └── layers
@@ -88,7 +88,7 @@ Each **LAYER** directory contains all components pertinent to an individual 2D l
    │       │   │
    │       │   ├── selection              # ROI selection subdirectory
    │       │   │   ├── md.json
-   │       │   │   └── selection.npy
+   │       │   │   └── selection.npy      # vertices defining ROI
    │       │   │
    │       │   ├── correction             # bleedthrough correction subdirectory
    │       │   │   ├── data.json
@@ -105,8 +105,8 @@ Each **LAYER** directory contains all components pertinent to an individual 2D l
    │       │
    │       ├── 1
    │       └── ... N
-   ├── 1
-   └── ... N
+   ├── STACK 1
+   └── ... STACK N
 
 
 Annotation
@@ -119,8 +119,8 @@ In Fly-QMA, annotation entails training a model to identify distinct levels of c
 
    EXPERIMENT
    │
-   ├── 0
-   │   ├── 0.tif
+   ├── STACK 0
+   │   ├── image.tif
    │   ├── metadata.json
    │   ├── layers
    │   └── annotation                     # annotation subdirectory
@@ -138,5 +138,5 @@ In Fly-QMA, annotation entails training a model to identify distinct levels of c
    │           ├── classifier_0
    │           ├── classifier_1
    │           └── ... classifier_M       # Mth mixture model directory
-   ├── 1
-   └── ... N
+   ├── STACK 1
+   └── ... STACK N
