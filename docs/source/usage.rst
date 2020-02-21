@@ -11,8 +11,9 @@ Basic Usage
 **Fly-QMA** provides a wide range of functionality for measuring and analyzing mosaic imaginal discs. A brief introduction to some basic operations is provided below. For explicit API details please see the :ref:`code documentation <documentation>`.
 
 
-Querying Data
--------------
+
+Organizing Images
+-----------------
 
 We recommend first organizing your images in accordance with our recommended hierarchical :ref:`file structure <filestructure>`. In the examples below, ``./data`` would contain several subdirectories, each of which contains a single ``.tif`` file. Once everything is in place, get started by creating an ``Experiment`` instance. This will serve as the entry-point for managing your data in Fly-QMA.
 
@@ -24,7 +25,7 @@ We recommend first organizing your images in accordance with our recommended hie
 
 Lower levels of the data hierarchy may then be accessed in a top-down manner. Methods acting upon lower level instances are executed in place, meaning you won't lose progress by iterating across instances or by coming back to a given instance at a different time.
 
-Select a specific image stack:
+To select a specific image stack:
 
 .. code-block:: python
 
@@ -32,7 +33,7 @@ Select a specific image stack:
    >>> stack = experiment[stack_id]
 
 
-Select a specific layer:
+To select a specific layer:
 
 .. code-block:: python
 
@@ -40,7 +41,7 @@ Select a specific layer:
    >>> layer = stack[layer_id]
 
 
-Select a specific fluorescence channel:
+To select a specific fluorescence channel:
 
 .. code-block:: python
 
@@ -49,10 +50,13 @@ Select a specific fluorescence channel:
 
 
 
+
 Segmenting Images
 -----------------
 
-Segment an image layer, measure the segment properties, and save the results:
+See the measurement :ref:`documentation <measurement_docs>` for a list of the specific parameters needed to customize the segmentation routine to suit your data. At a minimum, users must specify the background ``channel`` - that is, the index of the fluorescence channel used to identify cells or nuclei, e.g. a DAPI stain.
+
+To segment an image layer, measure the segment properties, and save the results:
 
 .. code-block:: python
 
@@ -60,7 +64,61 @@ Segment an image layer, measure the segment properties, and save the results:
    >>> layer.segment(background_channel)
    >>> layer.save()
 
-See the measurement :ref:`documentation <measurement_docs>` for additional details and parameters needed to customize the segmentation routine to suit your data.
+Alternatively, to segment all layers within an image stack:
+
+.. code-block:: python
+
+   >>> background_channel = 2
+   >>> stack.segment(background_channel, save=True)
+
+In both cases, measurement data are generated on a layer-by-layer basis and are accessed via the ``Layer.data`` attribute. Specifying ``save=True`` or calling ``layer.save()`` ensures that the measurement data will remain available even after the session is terminated.
+
+
+
+
+Analyzing Measurements
+----------------------
+
+Measurement data are stored in a `Pandas DataFrame <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html>`_. Each sample (row) in the DataFrame reflects an individual cell or nuclear fluorescence measurement, whose index denotes a unique Segment ID. Columns depict a mixture of continuous and categorical features pertaining to each sample. By default, these features include:
+
+ - **segment_id:** The unique integer identifier assigned to the segment.
+ - **pixel_count:** The total number of pixels within the segment.
+ - **centroid_x:** The mean x-coordinate of all pixels within the segment.
+ - **centroid_y:** The mean y-coordinate of all pixels within the segment.
+ - **chN** - The mean intensity of the Nth channel across all pixels within the segment.
+ - **chN_std** - The standard deviation of the Nth channel across all pixels within the segment.
+ - **chN_normalized** - The mean intensity of the Nth channel divided by the mean intensity of the background channel.
+
+Additional features are automatically appended to the DataFrame as further analyses are performed. These may include:
+
+ - **chN_predicted:** The estimated contribution of bleedthrough into the measured level of the Nth channel.
+ - **chNc:** The bleedthrough-corrected mean intensity of the Nth channel.
+ - **chNc_normalized:** The bleedthrough-corrected normalized mean intensity of the Nth channel.
+ - **selected:** Boolean flag indicating whether the segment falls within the user-specific ROI.
+ - **boundary:**  Boolean flag indicating whether the segment lies within a boundary between differing cell types.
+ - **manual_label:** Segment label that was manually assigned using  `FlyEye Silhouette <https://www.silhouette.amaral.northwestern.edu/>`_.
+
+Furthermore, the annotation module may be used to assign one or more labels to each segment. Users are free to specify the names of these additional features as they please.
+
+
+
+Aggregating Measurements
+------------------------
+
+To aggregate data across all layers in an image stack:
+
+.. code-block:: python
+
+   >>> stack_data = stack.aggregate_measurements()
+
+Similarly, to aggregate measurement data across an entire experiment:
+
+.. code-block:: python
+
+   >>> experiment_data = experiment.aggregate_measurements()
+
+Each of these operations returns cell measurement data in the same DataFrame format discussed above. However, in order to preserve the unique identity of each measurement the index is replaced by a hierarchical index depicting the unique layer and/or stack from which each segment was derived.
+
 
 
 
@@ -125,7 +183,7 @@ See the ROI selection :ref:`documentation <selection_docs>` for additional detai
 Correcting Bleedthrough
 -----------------------
 
-Perform bleedthrough correction:
+To perform bleedthrough correction:
 
 .. code-block:: python
 
@@ -137,20 +195,9 @@ See the bleedthrough correction :ref:`documentation <bleedthrough_docs>` for add
 
 
 
-Aggregating Data
+
+
+Example Projects
 ----------------
 
-Aggregate all measurement data from an experiment:
-
-.. code-block:: python
-
-   >>> data = experiment.aggregate_measurements()
-
-**The processed cell measurement data are now ready for analysis!**
-
-
-
-Usage Examples
---------------
-
-For real usage examples, please refer to the `FlyQMA manuscript <https://doi.org/10.1101/775783>`_ and the `our study <https://doi.org/10.1101/430744>`_ of Pnt and Yan expression in the developing eye.
+For real usage examples, please refer to the `FlyQMA manuscript <https://doi.org/10.1101/775783>`_ and `our study <https://doi.org/10.1101/430744>`_ of Pnt and Yan expression in the developing eye.
