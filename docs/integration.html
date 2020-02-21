@@ -14,8 +14,8 @@
     <script type="text/javascript" src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="File Structure" href="filestructure.html" />
-    <link rel="prev" title="Basic Usage" href="usage.html" />
+    <link rel="next" title="Defining a ROI" href="roi.html" />
+    <link rel="prev" title="File Structure" href="filestructure.html" />
    
   <link rel="stylesheet" href="_static/custom.css" type="text/css" />
   
@@ -35,14 +35,14 @@
   <a class="reference external image-reference" href="https://amaral.northwestern.edu/"><img alt="nulogo" class="align-right" src="_images/Northwestern_purple_RGB.png" style="width: 30%;" /></a>
 <div class="section" id="external-integrations">
 <span id="integration"></span><h1>External Integrations<a class="headerlink" href="#external-integrations" title="Permalink to this headline">¶</a></h1>
-<p>Fly-QMA supports easy integration with external analysis platforms. See the subsections below for detailed instructions.</p>
+<p>Fly-QMA supports integration with external analysis platforms. See the subsections below for detailed instructions.</p>
 <div class="section" id="segmentation-masks">
 <h2>Segmentation Masks<a class="headerlink" href="#segmentation-masks" title="Permalink to this headline">¶</a></h2>
 <p>Image segmentation can often be strongly context-dependent, limiting the utility of once-size-fits-all strategies. Fly-QMA was therefore designed to support integration with external segmentation tools by allowing users to seemlessly import externally generated segmentation masks. Segmentation masks are two-dimensional <code class="docutils literal notranslate"><span class="pre">.npy</span></code> arrays whose dimensions match those of the image to be segmented. Each array element is an integer value that denotes the label assigned to the corresponding pixel in the segmented image. Zero-valued pixels denote the background. This format is shared by several common segmentation platforms, including <a class="reference external" href="https://scikit-image.org/docs/dev/user_guide/tutorial_segmentation.html">scikit-image</a>.</p>
-<p>Segmentation masks are imported by calling the <code class="docutils literal notranslate"><span class="pre">Layer.import_segmentation_mask</span></code> method. Expression measurements will then automatically be generated using the provided mask. The <code class="docutils literal notranslate"><span class="pre">save=True</span></code> argument tells Fly-QMA to save a copy of the mask to the appropriate LAYER subdirectory in order to ensure that the mask remains available even after the Layer instance is destroyed.</p>
+<p>Segmentation masks are imported by calling the <code class="docutils literal notranslate"><span class="pre">Layer.import_segmentation_mask</span></code> method. Expression measurements will then automatically be generated using the provided mask. The <code class="docutils literal notranslate"><span class="pre">save=True</span></code> argument tells Fly-QMA to save a copy of the mask to the appropriate <strong>LAYER</strong> subdirectory in order to ensure that the mask remains available even after the Layer instance is destroyed.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">segmentation_mask_path</span> <span class="o">=</span> <span class="s1">&#39;./segmentation.npy&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">background_channel</span> <span class="o">=</span> <span class="mi">2</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">layer</span><span class="o">.</span><span class="n">import_segmentation_mask</span><span class="p">(</span><span class="n">segmentation_mask_path</span><span class="p">,</span> <span class="n">background_channel</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">channel</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">layer</span><span class="o">.</span><span class="n">import_segmentation_mask</span><span class="p">(</span><span class="n">segmentation_mask_path</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -89,14 +89,15 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">INSTALLATION</a></li>
 <li class="toctree-l1"><a class="reference internal" href="start.html">GETTING STARTED</a></li>
-<li class="toctree-l1"><a class="reference internal" href="usage.html">BASIC USAGE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filestructure.html">FILE STRUCTURE</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">INTEGRATIONS</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#segmentation-masks">Segmentation Masks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#roi-masks">ROI Masks</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="filestructure.html">FILE STRUCTURE</a></li>
+<li class="toctree-l1"><a class="reference internal" href="roi.html">ROI DEFINITION</a></li>
 <li class="toctree-l1"><a class="reference internal" href="documentation.html">DOCUMENTATION</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">PROJECTS</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contact.html">CONTACT</a></li>
 </ul>
 
@@ -104,8 +105,8 @@
 <h3>Related Topics</h3>
 <ul>
   <li><a href="index.html">Documentation overview</a><ul>
-      <li>Previous: <a href="usage.html" title="previous chapter">Basic Usage</a></li>
-      <li>Next: <a href="filestructure.html" title="next chapter">File Structure</a></li>
+      <li>Previous: <a href="filestructure.html" title="previous chapter">File Structure</a></li>
+      <li>Next: <a href="roi.html" title="next chapter">Defining a ROI</a></li>
   </ul></li>
 </ul>
 </div>

@@ -12,7 +12,7 @@ Getting Started
 
 The fastest way to familiarize yourself with **Fly-QMA** is to start with a working example. We recommend starting with the Fly-QMA `Tutorial <https://github.com/sebastianbernasek/flyqma/blob/master/tutorial.ipynb>`_.
 
-Before working with your own microscopy data, we also suggest reading the sections below.
+We also recommend reading the sections below before working with your own microscopy data.
 
 
 Preparing Images
@@ -26,7 +26,7 @@ Preparing Images
 
  3. **LAYER**: All analysis relevant to a single 2-D image, such as an individual layer.
 
-Microscopy data should be arranged into a collection of **STACK** directories that reside within a particular **EXPERIMENT** directory:
+Before using Fly-QMA, microscopy data should be manually arranged into a collection of **STACK** directories that reside within a particular **EXPERIMENT** directory. Note that the actual names of these directories don't matter, but their hierarchical positions do:
 
 .. code-block:: bash
 
@@ -51,7 +51,6 @@ Each **STACK** directory should contain one or more 2-D images of a unique tissu
    └── ... STACK N
            └── image.tif
 
-
 .. warning::
    Image segmentation is performed on a layer-by-layer basis. Because cells often span several adjacent layers in a confocal z-stack, individual layers must be spaced far enough apart to avoid measuring the same cells twice. Overlapping layers may also be manually excluded using the provided :ref:`ROI Selector <selection_docs>`.
 
@@ -59,15 +58,14 @@ Each **STACK** directory should contain one or more 2-D images of a unique tissu
 Loading Images
 --------------
 
-All measurements and analyses are performed in place. This means that new subdirectories and files are added to a stack directory each time a new segmentation, measurement, annotation, bleedthrough correction, or region of interest selection is saved. Saving one of these operations will overwrite any existing files of the same type.
-
-To begin using **Fly-QMA**, create an ``Experiment`` instance by passing the ``/experiment`` path to the object constructor:
+ Once everything is in place, instantiate an ``Experiment`` using the **EXPERIMENT** directory path:
 
 .. code-block:: python
 
-    experiment = Experiment(path='/experiment')
+   >>> from flyqma.data import Experiment
+   >>> experiment = Experiment('./EXPERIMENT')
 
-This instance will serve as a central hub for measuring and analyzing all of the stacks in the ``/experiment`` directory. To access an individual stack:
+This instance will serve as the entry-point for managing all of the data in the **EXPERIMENT** directory. Lower levels of the data hierarchy may then be accessed in a top-down manner. To access an individual stack:
 
 .. code-block:: python
 
@@ -78,9 +76,9 @@ This instance will serve as a central hub for measuring and analyzing all of the
     for stack in experiment:
       stack.do_stuff()
 
-The ``experiment.load_stack()`` method includes a ``full`` keyword argument that may be set to False in order to skip loading the stack's ``.tif`` file into memory. This offers some performance benefit when only saved measurement data are needed. Of course, loading the image data is necessary if any segmentation, measurement, region of interest selection, or bleedthrough correction operations are to be performed.
+The ``experiment.load_stack()`` method includes a ``full`` keyword argument that may be set to False in order to skip loading the stack's ``.tif`` file into memory. This offers some performance benefit when only saved measurement data are needed. Of course, loading the image data is necessary if any segmentation, measurement, ROI definition, or bleedthrough correction operations are to be performed.
 
-To begin analyzing an image stack, layers must be added to the corresponding stack directory. The ``Stack.initialize()`` method creates a ``layers`` subdirectory containing an additional subdirectory for each **LAYER** in the 3D image stack. A stack metadata file is similarly added to the **STACK** directory at this time, resulting in:
+To begin analyzing an image stack, layers must be added to the corresponding stack directory. Calling ``stack.initialize()`` creates a ``layers`` subdirectory containing an additional subdirectory for each 2-D layer in the 3-D image stack. A stack metadata file is also added to the **STACK** directory at this time, resulting in:
 
 .. code-block:: bash
 
@@ -97,7 +95,8 @@ To begin analyzing an image stack, layers must be added to the corresponding sta
    ├── STACK 1
    └── ... STACK N
 
-Image layers may now be analyzed individually. To access an individual layer:
+
+Image layers may now be analyzed individually:
 
 .. code-block:: python
 
@@ -108,15 +107,30 @@ Image layers may now be analyzed individually. To access an individual layer:
     for layer in stack:
       layer.do_stuff()
 
+Methods acting upon lower level Stack or Layer instances are executed in place, meaning you won't lose progress by iterating across instances or by coming back to a given instance at a different time. This peristence is possible because new subdirectories and files are automatically added to the appropriate **STACK** or **LAYER** directory each time a segmentation, measurement, annotation, bleedthrough correction, or ROI selection is saved, overwriting any existing files of the same type.
 
-Measuring Expression
---------------------
 
-For a given layer, segmentation and expression quantification are performed by calling the ``layer.segment`` method.
-See the ``flyqma.measurement`` :ref:`documentation <measurement_docs>` for an overview of customizable image preprocessing, seed detection, or segmentation parameters. Measurements for each contour are generated automatically.
+Segmenting Images
+-----------------
 
-Upon completion, the segmentation results and corresponding measurements may be saved by calling ``layer.save()``. This saves the segmentation parameters within a layer metadata file and creates a ``segmentation`` subdirectory containing a segment labels mask. It also creates a ``measurements`` subdirectory containing the corresponding raw expression measurement data as well as a copy subject to all subsequent processing operations. The raw measurements will remain the same until a new segmentation is executed and saved, while the processed measurements are updated each time a new operation is applied and saved.
+See the measurement :ref:`documentation <measurement_docs>` for a list of the specific parameters needed to customize the segmentation routine to suit your data. At a minimum, users must specify the background ``channel`` - that is, the index of the fluorescence channel used to identify cells or nuclei.
 
+To segment an image layer, measure the segment properties, and save the results:
+
+.. code-block:: python
+
+   >>> channel = 2
+   >>> layer.segment(channel)
+   >>> layer.save()
+
+Alternatively, to segment all layers within an image stack:
+
+.. code-block:: python
+
+   >>> channel = 2
+   >>> stack.segment(channel, save=True)
+
+In both cases, measurement data are generated on a layer-by-layer basis. To ensure that the segmentation results and corresponding measurement data will remain available after the session is terminated, specify ``save=True`` or call ``layer.save()``. This will save the segmentation parameters within a layer metadata file and create a ``segmentation`` subdirectory containing a segment labels mask. It will also create a ``measurements`` subdirectory containing the corresponding raw expression measurement data (measurements.hdf), as well as a duplicate version that is subject to all subsequent processing operations (processed.hdf). The raw measurements will remain the same until a new segmentation is executed and saved, while the processed measurements are updated each time a new operation is applied and saved. Following segmentation, each **LAYER** directory will resemble:
 
 .. code-block:: bash
 
@@ -140,16 +154,46 @@ Upon completion, the segmentation results and corresponding measurements may be 
    └── ... STACK N
 
 
+Measurement Data
+----------------
+
+Raw and processed measurement data are accessed via the ``Layer.measurements`` and ``Layer.data`` attributes, respectively. Both are stored in `Pandas DataFrames <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html>`_ in which each sample (row) reflects an individual segment. Columns depict a mixture of continuous and categorical features, including:
+
+ - **segment_id:** The unique integer identifier assigned to the segment.
+ - **pixel_count:** The total number of pixels within the segment.
+ - **centroid_x:** The mean x-coordinate of all pixels within the segment.
+ - **centroid_y:** The mean y-coordinate of all pixels within the segment.
+ - **chN** - The mean intensity of the Nth channel across all pixels within the segment.
+ - **chN_std** - The standard deviation of the Nth channel across all pixels within the segment.
+ - **chN_normalized** - The mean intensity of the Nth channel divided by the mean intensity of the background channel.
+
+To aggregate processed measurement data across all layers in an image stack:
+
+.. code-block:: python
+
+   >>> stack_data = stack.aggregate_measurements()
+
+Similarly, to aggregate across an entire experiment:
+
+.. code-block:: python
+
+   >>> experiment_data = experiment.aggregate_measurements()
+
+Each of these operations returns measurement data in the same DataFrame format. However, in order to preserve the unique identity of each measurement the index is replaced by a hierarchical index depicting the unique layer and/or stack from which each segment was derived.
+
+
+
 Analysis
 --------
 
-The data stored in the ``layer.measurements`` attribute and ``measurements.hdf`` file reflect raw measurements of mean pixel fluorecence intensity for each identified cell contour. These measurements may then be subject to one or more processing operations such as:
+The measurement data stored in the ``layer.measurements`` attribute and ``measurements.hdf`` file reflect raw measurements of mean pixel intensity for each segment. These measurements may then be subject to one or more processing operations such as:
 
-  * Annotation: automated assignment of cell types to each contour
-  * Bleedthrough correction: correction for fluorescence bleedthrough between reporters
-  * Region of interest selection: manual exclusion of layers or regions of layers from the dataset
+  - ROI definition
+  - Bleedthrough correction
+  - Automated annotation
+  - Manual annotation
 
-The objects that perform these operations all behave in a similar manner. They are manually defined for each disc (see the `Tutorial <https://github.com/sebastianbernasek/flyqma/blob/master/tutorial.ipynb>`_), but may then be saved for repeated use. When saved, each object creates its own subdirectory within the corresponding layer directory:
+The objects that perform these operations all behave in a similar manner. They are manually defined for each disc (see the `Tutorial <https://github.com/sebastianbernasek/flyqma/blob/master/tutorial.ipynb>`_ for examples), but may then be saved for repeated use. When saved, each object creates its own subdirectory within the corresponding **LAYER** directory:
 
 .. code-block:: bash
 
@@ -176,33 +220,13 @@ The objects that perform these operations all behave in a similar manner. They a
     ├── STACK 1
     └── ... STACK N
 
-The added subdirectories include all the files and metadata necessary to load and execute the data processing operations performed by the respective object. Saved operations are automatically applied to the raw measurement data each time a layer is loaded. Processed measurements are accessible via the ``layer.data`` attribute when a layer exists in local memory. They may also be aggregated across layers via ``stack.aggregate_measurements()`` and across all stacks in an experiment via ``experiment.aggregate_measurements()``.
+The added subdirectories include all the files and metadata necessary to load and execute the data processing operations performed by the respective object. Saved operations are automatically applied to the raw measurement data each time a layer is loaded, appending a number of additional features to the ``layer.data`` DataFrame:
 
-Note that annotation models may also be fit to an entire stack, rather than to each of its individual layers. Consequently, these annotation models are stored in their own ``annotation`` subdirectory below the stack header. If a model selection procedure is used, all of the trained models are similarly saved within a ``models`` subdirectory.
+ - **chN_predicted:** The estimated contribution of bleedthrough into the measured level of the Nth channel.
+ - **chNc:** The bleedthrough-corrected mean intensity of the Nth channel.
+ - **chNc_normalized:** The bleedthrough-corrected normalized mean intensity of the Nth channel.
+ - **selected:** Boolean flag indicating whether the segment falls within the user-specific ROI.
+ - **boundary:**  Boolean flag indicating whether the segment lies within a boundary between differing cell types.
+ - **manual_label:** Segment label that was manually assigned using  `FlyEye Silhouette <https://www.silhouette.amaral.northwestern.edu/>`_.
 
-
-.. code-block:: bash
-
-   EXPERIMENT
-   │
-   ├── STACK 0
-   │   ├── image.tif
-   │   ├── metadata.json
-   │   ├── layers
-   │   └── annotation                     # stack annotator directory
-   │       │
-   │       ├── annotation.json            # annotation parameters
-   │       │
-   │       ├── classifier                 # selected model directory
-   │       │   ├── parameters.json        # selected model parameters
-   │       │   ├── model.pkl              # pickled mixture model
-   │       │   └── values.npy             # samples used to fit mixture model
-   │       │
-   │       └── models                     # model selection directory
-   │           ├── parameters.json        # model selection parameters
-   │           ├── values.npy             # values used for model selection
-   │           ├── classifier_0
-   │           ├── classifier_1
-   │           └── ... classifier_M       # Mth mixture model directory
-   ├── STACK 1
-   └── ... STACK N
+Furthermore, the annotation module may be used to assign one or more labels to each segment. Users are free to specify the names of these additional features as they please.
