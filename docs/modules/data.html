@@ -322,6 +322,26 @@
 </dd></dl>
 
 <dl class="method">
+<dt id="flyqma.data.layers.LayerAnnotation.show_annotation">
+<code class="sig-name descname">show_annotation</code><span class="sig-paren">(</span><em class="sig-param">channel</em>, <em class="sig-param">label</em>, <em class="sig-param">interior_only=False</em>, <em class="sig-param">selection_only=False</em>, <em class="sig-param">cmap=None</em>, <em class="sig-param">figsize=(8</em>, <em class="sig-param">4)</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerAnnotation.show_annotation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerAnnotation.show_annotation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Visualize annotation by overlaying &lt;label&gt; attribute on the image of the specified fluoreascence &lt;channel&gt;.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>channel (str) - fluorescence channel to visualize</p>
+<p>label (str) - attribute containing cell type labels</p>
+<p>interior_only (bool) - if True, exclude border regions</p>
+<p>selection_only (bool) - if True, only add contours within ROI</p>
+<p>cmap (matplotlib.ListedColorMap) - color scheme for celltype labels</p>
+<p>figsize (tuple) - figure dimensions</p>
+<p>kwargs: keyword arguments for plt.scatter</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div><p>fig (matplotlib.Figure)</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
 <dt id="flyqma.data.layers.LayerAnnotation.train_annotator">
 <code class="sig-name descname">train_annotator</code><span class="sig-paren">(</span><em class="sig-param">attribute</em>, <em class="sig-param">save=False</em>, <em class="sig-param">logratio=True</em>, <em class="sig-param">num_labels=3</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/layers.html#LayerAnnotation.train_annotator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.layers.LayerAnnotation.train_annotator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Train an Annotation model on the measurements in this layer.</p>
@@ -562,6 +582,7 @@
 <div><p>color_depth (int) - number of fluorescence channels</p>
 <p>num_cells (int) - number of cells detected by segmentation</p>
 <p>bg_key (str) - key for channel used to generate segmentation</p>
+<p>has_image (bool) - if True, image is loaded into memory</p>
 <p>is_segmented (bool) - if True, layer has been segmented</p>
 <p>has_trained_annotator (bool) - if True, layer has a trained annotator</p>
 </div></blockquote>
@@ -575,6 +596,12 @@
 <dt id="flyqma.data.layers.LayerProperties.color_depth">
 <em class="property">property </em><code class="sig-name descname">color_depth</code><a class="headerlink" href="#flyqma.data.layers.LayerProperties.color_depth" title="Permalink to this definition">¶</a></dt>
 <dd><p>Number of color channels.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.data.layers.LayerProperties.has_image">
+<em class="property">property </em><code class="sig-name descname">has_image</code><a class="headerlink" href="#flyqma.data.layers.LayerProperties.has_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if image is available.</p>
 </dd></dl>
 
 <dl class="method">
@@ -824,7 +851,7 @@
 
 <dl class="method">
 <dt id="flyqma.data.stacks.Stack.segment">
-<code class="sig-name descname">segment</code><span class="sig-paren">(</span><em class="sig-param">channel</em>, <em class="sig-param">preprocessing_kws={}</em>, <em class="sig-param">seed_kws={}</em>, <em class="sig-param">seg_kws={}</em>, <em class="sig-param">min_area=250</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/stacks.html#Stack.segment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.stacks.Stack.segment" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">segment</code><span class="sig-paren">(</span><em class="sig-param">channel</em>, <em class="sig-param">preprocessing_kws={}</em>, <em class="sig-param">seed_kws={}</em>, <em class="sig-param">seg_kws={}</em>, <em class="sig-param">min_area=250</em>, <em class="sig-param">save=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/stacks.html#Stack.segment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.stacks.Stack.segment" title="Permalink to this definition">¶</a></dt>
 <dd><p>Segment all layers using watershed strategy.</p>
 <p>Args:</p>
 <blockquote>
@@ -833,6 +860,7 @@
 <p>seed_kws (dict) - keyword arguments for seed detection</p>
 <p>seg_kws (dict) - keyword arguments for segmentation</p>
 <p>min_area (int) - threshold for minimum segment size, px</p>
+<p>save (bool) - if True, save measurement data for each layer</p>
 </div></blockquote>
 </dd></dl>
 

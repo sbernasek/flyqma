@@ -83,7 +83,7 @@
 
 <span class="sd">        Args:</span>
 
-<span class="sd">            channel (str) - color channel to visualize</span>
+<span class="sd">            channel (str) - fluorescence channel to visualize</span>
 
 <span class="sd">            figsize (tuple) - figure size</span>
 
@@ -161,6 +161,8 @@
 
         <span class="c1"># exclude borders</span>
         <span class="k">if</span> <span class="n">interior_only</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Boundary attribute not found. Annotate and try again.&#39;</span>
+            <span class="k">assert</span> <span class="s1">&#39;boundary&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">msg</span>
             <span class="n">boundary</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">boundary</span><span class="p">]</span>
             <span class="n">boundary_to_black</span> <span class="o">=</span> <span class="p">{</span><span class="n">x</span><span class="p">:</span> <span class="n">null_value</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">boundary</span><span class="o">.</span><span class="n">segment_id</span><span class="p">}</span>
             <span class="n">segment_to_value</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">boundary_to_black</span><span class="p">)</span>
@@ -418,6 +420,7 @@
 <span class="sd">           correction (LayerCorrection)</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_image</span><span class="p">,</span> <span class="s1">&#39;Image unavailable. Load image and try again.&#39;</span>
         <span class="k">return</span> <span class="n">LayerCorrection</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="LayerIO.load"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.layers.LayerIO.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_cache</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">graph</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
@@ -491,6 +494,8 @@
 
 <span class="sd">        bg_key (str) - key for channel used to generate segmentation</span>
 
+<span class="sd">        has_image (bool) - if True, image is loaded into memory</span>
+
 <span class="sd">        is_segmented (bool) - if True, layer has been segmented</span>
 
 <span class="sd">        has_trained_annotator (bool) - if True, layer has a trained annotator</span>
@@ -511,6 +516,11 @@
     <span class="k">def</span> <span class="nf">bg_key</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; DataFrame key for background channel. &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_key</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;bg&#39;</span><span class="p">])</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">has_image</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; True if image is available. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">im</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">is_segmented</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -948,7 +958,7 @@
                           <span class="n">max_distance</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
                           <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Add boolean &#39;concurrent_&lt;basis&gt;&#39; field to cell measurement data for each unique value of &lt;basis&gt; attribute.</span>
+<span class="sd">        Add boolean &#39;concurrent_&lt;basis&gt;&#39; field to measurement data for each unique value of &lt;basis&gt; attribute.</span>
 
 <span class="sd">        Args:</span>
 
@@ -1046,7 +1056,59 @@
 <span class="sd">            max_edges (int) - maximum number of edges for interior cells</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_mark_boundaries</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">basis</span><span class="o">=</span><span class="n">basis</span><span class="p">,</span> <span class="n">max_edges</span><span class="o">=</span><span class="n">max_edges</span><span class="p">)</span></div></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mark_boundaries</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">basis</span><span class="o">=</span><span class="n">basis</span><span class="p">,</span> <span class="n">max_edges</span><span class="o">=</span><span class="n">max_edges</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="LayerAnnotation.show_annotation"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.layers.LayerAnnotation.show_annotation">[docs]</a>    <span class="k">def</span> <span class="nf">show_annotation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span>
+                        <span class="n">interior_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                        <span class="n">selection_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                        <span class="n">cmap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                        <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
+                        <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        Visualize annotation by overlaying &lt;label&gt; attribute on the image of the specified fluoreascence &lt;channel&gt;.</span>
+
+<span class="sd">        Args:</span>
+
+<span class="sd">            channel (str) - fluorescence channel to visualize</span>
+
+<span class="sd">            label (str) - attribute containing cell type labels</span>
+
+<span class="sd">            interior_only (bool) - if True, exclude border regions</span>
+
+<span class="sd">            selection_only (bool) - if True, only add contours within ROI</span>
+
+<span class="sd">            cmap (matplotlib.ListedColorMap) - color scheme for celltype labels</span>
+
+<span class="sd">            figsize (tuple) - figure dimensions</span>
+
+<span class="sd">            kwargs: keyword arguments for plt.scatter</span>
+
+<span class="sd">        Returns:</span>
+
+<span class="sd">            fig (matplotlib.Figure)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">assert</span> <span class="n">label</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="s1">&#39;No </span><span class="si">{:s}</span><span class="s1"> attribute found. Please check to make sure that annotation is complete.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+
+        <span class="c1"># create figure and plot images</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="p">(</span><span class="n">ax0</span><span class="p">,</span> <span class="n">ax1</span><span class="p">)</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">ncols</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">)</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">segments</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax0</span><span class="p">)</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">segments</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax1</span><span class="p">)</span>
+
+        <span class="c1"># build and overlay attribute mask</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_attribute_mask</span><span class="p">(</span><span class="n">label</span><span class="p">,</span>
+                                         <span class="n">interior_only</span><span class="o">=</span><span class="n">interior_only</span><span class="p">,</span>
+                                         <span class="n">selection_only</span><span class="o">=</span><span class="n">selection_only</span><span class="p">)</span>
+        <span class="n">ax1</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">)</span>
+
+        <span class="c1"># rectify dimensions</span>
+        <span class="n">ax1</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="o">*</span><span class="n">ax0</span><span class="o">.</span><span class="n">get_xlim</span><span class="p">())</span>
+        <span class="n">ax1</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="o">*</span><span class="n">ax0</span><span class="o">.</span><span class="n">get_ylim</span><span class="p">())</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">fig</span></div></div>
 
 
 <div class="viewcode-block" id="Layer"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.layers.Layer">[docs]</a><span class="k">class</span> <span class="nc">Layer</span><span class="p">(</span><span class="n">LayerIO</span><span class="p">,</span>

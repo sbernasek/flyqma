@@ -36,8 +36,8 @@
 <div class="section" id="basic-usage">
 <h1>Basic Usage<a class="headerlink" href="#basic-usage" title="Permalink to this headline">¶</a></h1>
 <p><strong>Fly-QMA</strong> provides a wide range of functionality for measuring and analyzing mosaic imaginal discs. A brief introduction to some basic operations is provided below. For explicit API details please see the <a class="reference internal" href="documentation.html#documentation"><span class="std std-ref">code documentation</span></a>.</p>
-<div class="section" id="querying-data">
-<h2>Querying Data<a class="headerlink" href="#querying-data" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="organizing-images">
+<h2>Organizing Images<a class="headerlink" href="#organizing-images" title="Permalink to this headline">¶</a></h2>
 <p>We recommend first organizing your images in accordance with our recommended hierarchical <a class="reference internal" href="filestructure.html#filestructure"><span class="std std-ref">file structure</span></a>. In the examples below, <code class="docutils literal notranslate"><span class="pre">./data</span></code> would contain several subdirectories, each of which contains a single <code class="docutils literal notranslate"><span class="pre">.tif</span></code> file. Once everything is in place, get started by creating an <code class="docutils literal notranslate"><span class="pre">Experiment</span></code> instance. This will serve as the entry-point for managing your data in Fly-QMA.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">flyqma.data</span> <span class="kn">import</span> <span class="n">experiments</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">path</span> <span class="o">=</span> <span class="s1">&#39;./data&#39;</span>
@@ -45,17 +45,17 @@
 </pre></div>
 </div>
 <p>Lower levels of the data hierarchy may then be accessed in a top-down manner. Methods acting upon lower level instances are executed in place, meaning you won’t lose progress by iterating across instances or by coming back to a given instance at a different time.</p>
-<p>Select a specific image stack:</p>
+<p>To select a specific image stack:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">stack_id</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">stack</span> <span class="o">=</span> <span class="n">experiment</span><span class="p">[</span><span class="n">stack_id</span><span class="p">]</span>
 </pre></div>
 </div>
-<p>Select a specific layer:</p>
+<p>To select a specific layer:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">layer_id</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">layer</span> <span class="o">=</span> <span class="n">stack</span><span class="p">[</span><span class="n">layer_id</span><span class="p">]</span>
 </pre></div>
 </div>
-<p>Select a specific fluorescence channel:</p>
+<p>To select a specific fluorescence channel:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">channel_id</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">channel</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">get_channel</span><span class="p">(</span><span class="n">channel_id</span><span class="p">)</span>
 </pre></div>
@@ -63,13 +63,58 @@
 </div>
 <div class="section" id="segmenting-images">
 <h2>Segmenting Images<a class="headerlink" href="#segmenting-images" title="Permalink to this headline">¶</a></h2>
-<p>Segment an image layer, measure the segment properties, and save the results:</p>
+<p>See the measurement <a class="reference internal" href="modules/measurement.html#measurement-docs"><span class="std std-ref">documentation</span></a> for a list of the specific parameters needed to customize the segmentation routine to suit your data. At a minimum, users must specify the background <code class="docutils literal notranslate"><span class="pre">channel</span></code> - that is, the index of the fluorescence channel used to identify cells or nuclei, e.g. a DAPI stain.</p>
+<p>To segment an image layer, measure the segment properties, and save the results:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">background_channel</span> <span class="o">=</span> <span class="mi">2</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">layer</span><span class="o">.</span><span class="n">segment</span><span class="p">(</span><span class="n">background_channel</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">layer</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>See the measurement <a class="reference internal" href="modules/measurement.html#measurement-docs"><span class="std std-ref">documentation</span></a> for additional details and parameters needed to customize the segmentation routine to suit your data.</p>
+<p>Alternatively, to segment all layers within an image stack:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">background_channel</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stack</span><span class="o">.</span><span class="n">segment</span><span class="p">(</span><span class="n">background_channel</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In both cases, measurement data are generated on a layer-by-layer basis and are accessed via the <code class="docutils literal notranslate"><span class="pre">Layer.data</span></code> attribute. Specifying <code class="docutils literal notranslate"><span class="pre">save=True</span></code> or calling <code class="docutils literal notranslate"><span class="pre">layer.save()</span></code> ensures that the measurement data will remain available even after the session is terminated.</p>
+</div>
+<div class="section" id="analyzing-measurements">
+<h2>Analyzing Measurements<a class="headerlink" href="#analyzing-measurements" title="Permalink to this headline">¶</a></h2>
+<p>Measurement data are stored in a <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html">Pandas DataFrame</a>. Each sample (row) in the DataFrame reflects an individual cell or nuclear fluorescence measurement, whose index denotes a unique Segment ID. Columns depict a mixture of continuous and categorical features pertaining to each sample. By default, these features include:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>segment_id:</strong> The unique integer identifier assigned to the segment.</p></li>
+<li><p><strong>pixel_count:</strong> The total number of pixels within the segment.</p></li>
+<li><p><strong>centroid_x:</strong> The mean x-coordinate of all pixels within the segment.</p></li>
+<li><p><strong>centroid_y:</strong> The mean y-coordinate of all pixels within the segment.</p></li>
+<li><p><strong>chN</strong> - The mean intensity of the Nth channel across all pixels within the segment.</p></li>
+<li><p><strong>chN_std</strong> - The standard deviation of the Nth channel across all pixels within the segment.</p></li>
+<li><p><strong>chN_normalized</strong> - The mean intensity of the Nth channel divided by the mean intensity of the background channel.</p></li>
+</ul>
+</div></blockquote>
+<p>Additional features are automatically appended to the DataFrame as further analyses are performed. These may include:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><strong>chN_predicted:</strong> The estimated contribution of bleedthrough into the measured level of the Nth channel.</p></li>
+<li><p><strong>chNc:</strong> The bleedthrough-corrected mean intensity of the Nth channel.</p></li>
+<li><p><strong>chNc_normalized:</strong> The bleedthrough-corrected normalized mean intensity of the Nth channel.</p></li>
+<li><p><strong>selected:</strong> Boolean flag indicating whether the segment falls within the user-specific ROI.</p></li>
+<li><p><strong>boundary:</strong>  Boolean flag indicating whether the segment lies within a boundary between differing cell types.</p></li>
+<li><p><strong>manual_label:</strong> Segment label that was manually assigned using  <a class="reference external" href="https://www.silhouette.amaral.northwestern.edu/">FlyEye Silhouette</a>.</p></li>
+</ul>
+</div></blockquote>
+<p>Furthermore, the annotation module may be used to assign one or more labels to each segment. Users are free to specify the names of these additional features as they please.</p>
+</div>
+<div class="section" id="aggregating-measurements">
+<h2>Aggregating Measurements<a class="headerlink" href="#aggregating-measurements" title="Permalink to this headline">¶</a></h2>
+<p>To aggregate data across all layers in an image stack:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">stack_data</span> <span class="o">=</span> <span class="n">stack</span><span class="o">.</span><span class="n">aggregate_measurements</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Similarly, to aggregate measurement data across an entire experiment:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">experiment_data</span> <span class="o">=</span> <span class="n">experiment</span><span class="o">.</span><span class="n">aggregate_measurements</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Each of these operations returns cell measurement data in the same DataFrame format discussed above. However, in order to preserve the unique identity of each measurement the index is replaced by a hierarchical index depicting the unique layer and/or stack from which each segment was derived.</p>
 </div>
 <div class="section" id="defining-a-roi">
 <span id="gui"></span><h2>Defining a ROI<a class="headerlink" href="#defining-a-roi" title="Permalink to this headline">¶</a></h2>
@@ -109,7 +154,7 @@ Q: <span class="nb">exit</span> GUI
 </div>
 <div class="section" id="correcting-bleedthrough">
 <h2>Correcting Bleedthrough<a class="headerlink" href="#correcting-bleedthrough" title="Permalink to this headline">¶</a></h2>
-<p>Perform bleedthrough correction:</p>
+<p>To perform bleedthrough correction:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">flyqma.bleedthrough.correction</span> <span class="kn">import</span> <span class="n">LayerCorrection</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">correction</span> <span class="o">=</span> <span class="n">LayerCorrection</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">correction</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
@@ -117,17 +162,9 @@ Q: <span class="nb">exit</span> GUI
 </div>
 <p>See the bleedthrough correction <a class="reference internal" href="modules/bleedthrough.html#bleedthrough-docs"><span class="std std-ref">documentation</span></a> for additional details and a complete list of available parameters.</p>
 </div>
-<div class="section" id="aggregating-data">
-<h2>Aggregating Data<a class="headerlink" href="#aggregating-data" title="Permalink to this headline">¶</a></h2>
-<p>Aggregate all measurement data from an experiment:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">experiment</span><span class="o">.</span><span class="n">aggregate_measurements</span><span class="p">()</span>
-</pre></div>
-</div>
-<p><strong>The processed cell measurement data are now ready for analysis!</strong></p>
-</div>
-<div class="section" id="usage-examples">
-<h2>Usage Examples<a class="headerlink" href="#usage-examples" title="Permalink to this headline">¶</a></h2>
-<p>For real usage examples, please refer to the <a class="reference external" href="https://doi.org/10.1101/775783">FlyQMA manuscript</a> and the <a class="reference external" href="https://doi.org/10.1101/430744">our study</a> of Pnt and Yan expression in the developing eye.</p>
+<div class="section" id="example-projects">
+<h2>Example Projects<a class="headerlink" href="#example-projects" title="Permalink to this headline">¶</a></h2>
+<p>For real usage examples, please refer to the <a class="reference external" href="https://doi.org/10.1101/775783">FlyQMA manuscript</a> and <a class="reference external" href="https://doi.org/10.1101/430744">our study</a> of Pnt and Yan expression in the developing eye.</p>
 </div>
 </div>
 
@@ -164,12 +201,13 @@ Q: <span class="nb">exit</span> GUI
 <li class="toctree-l1"><a class="reference internal" href="installation.html">INSTALLATION</a></li>
 <li class="toctree-l1"><a class="reference internal" href="start.html">GETTING STARTED</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">BASIC USAGE</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#querying-data">Querying Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#organizing-images">Organizing Images</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#segmenting-images">Segmenting Images</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#analyzing-measurements">Analyzing Measurements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#aggregating-measurements">Aggregating Measurements</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#defining-a-roi">Defining a ROI</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#correcting-bleedthrough">Correcting Bleedthrough</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#aggregating-data">Aggregating Data</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#usage-examples">Usage Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#example-projects">Example Projects</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="integration.html">INTEGRATIONS</a></li>

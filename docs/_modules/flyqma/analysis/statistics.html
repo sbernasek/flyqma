@@ -31,7 +31,9 @@
           <div class="body" role="main">
             
   <h1>Source code for flyqma.analysis.statistics</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span></span><span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">combinations</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="nn">sns</span>
@@ -71,7 +73,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">y</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">basis</span> <span class="o">=</span> <span class="n">basis</span>
 
-<div class="viewcode-block" id="PairwiseComparison.compare"><a class="viewcode-back" href="../../../modules/analysis.html#flyqma.analysis.statistics.PairwiseComparison.compare">[docs]</a>    <span class="k">def</span> <span class="nf">compare</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="s1">&#39;MW&#39;</span><span class="p">):</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_greater_than</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; True if first population mean is greater than the second.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">basis</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">basis</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+<div class="viewcode-block" id="PairwiseComparison.compare"><a class="viewcode-back" href="../../../modules/analysis.html#flyqma.analysis.statistics.PairwiseComparison.compare">[docs]</a>    <span class="k">def</span> <span class="nf">compare</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="s1">&#39;MW&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Run statistical test.</span>
 
@@ -83,6 +90,10 @@
 
 <span class="sd">            p (float) - p-value</span>
 
+<span class="sd">            is_greater_than (bool) - True if first population mean is greater</span>
+
+<span class="sd">            kwargs: keyword arguments for statistical test</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># extract compared values for each population</span>
@@ -90,24 +101,24 @@
 
         <span class="c1"># perform statistical test</span>
         <span class="k">if</span> <span class="n">test</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;ks&#39;</span><span class="p">:</span>
-            <span class="n">k</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="n">ks_2samp</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+            <span class="n">k</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="n">ks_2samp</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">test</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;t&#39;</span><span class="p">:</span>
-            <span class="n">k</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="n">ttest_ind</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+            <span class="n">k</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="n">ttest_ind</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">test</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;mw&#39;</span><span class="p">:</span>
-            <span class="n">k</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="n">mannwhitneyu</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">alternative</span><span class="o">=</span><span class="s1">&#39;two-sided&#39;</span><span class="p">)</span>
+            <span class="n">k</span><span class="p">,</span> <span class="n">p</span> <span class="o">=</span> <span class="n">mannwhitneyu</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Test </span><span class="si">{:s}</span><span class="s1"> not recognized.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">test</span><span class="p">))</span>
 
-        <span class="k">return</span> <span class="n">p</span></div></div>
+        <span class="k">return</span> <span class="n">p</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_greater_than</span></div></div>
 
 
-<div class="viewcode-block" id="CloneComparison"><a class="viewcode-back" href="../../../modules/analysis.html#flyqma.analysis.statistics.CloneComparison">[docs]</a><span class="k">class</span> <span class="nc">CloneComparison</span><span class="p">(</span><span class="n">PairwiseComparison</span><span class="p">):</span>
+<div class="viewcode-block" id="PairwiseCelltypeComparison"><a class="viewcode-back" href="../../../modules/analysis.html#flyqma.analysis.statistics.PairwiseCelltypeComparison">[docs]</a><span class="k">class</span> <span class="nc">PairwiseCelltypeComparison</span><span class="p">(</span><span class="n">PairwiseComparison</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Pairwise statistical comparison between two concurrent cell types.</span>
 
 <span class="sd">    Attributes:</span>
 
-<span class="sd">        label (str) - attribute used to define population labels</span>
+<span class="sd">        label (str) - attribute used to stratify populations</span>
 
 <span class="sd">        type1 (str) - first label</span>
 
@@ -125,13 +136,13 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">measurements</span><span class="p">,</span> <span class="n">type1</span><span class="p">,</span> <span class="n">type2</span><span class="p">,</span> <span class="n">basis</span><span class="p">,</span>
                  <span class="n">label</span><span class="o">=</span><span class="s1">&#39;celltype&#39;</span><span class="p">,</span>
-                 <span class="n">concurrent_only</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+                 <span class="n">concurrent_only</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Instantiate comparison between two concurrent cell types.</span>
 
 <span class="sd">        Args:</span>
 
-<span class="sd">            measurements (pd.DataFrame) - cell measurement data</span>
+<span class="sd">            measurements (pd.DataFrame) - measurement data</span>
 
 <span class="sd">            type1 (str or int) - first label</span>
 
@@ -141,7 +152,7 @@
 
 <span class="sd">            label (str) - attribute used to define population labels</span>
 
-<span class="sd">            concurrent_only (bool) - if True, only</span>
+<span class="sd">            concurrent_only (bool) - if True, only compare concurrent cells</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -151,9 +162,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">type2</span> <span class="o">=</span> <span class="n">type2</span>
 
         <span class="c1"># select concurrent cells of each type</span>
-        <span class="n">ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">measurements</span><span class="p">[</span><span class="s1">&#39;concurrent_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type1</span><span class="p">)],</span>
-                             <span class="n">measurements</span><span class="p">[</span><span class="s1">&#39;concurrent_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type2</span><span class="p">)])</span>
-        <span class="n">measurements</span> <span class="o">=</span> <span class="n">measurements</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">concurrent_only</span><span class="p">:</span>
+            <span class="n">k1</span> <span class="o">=</span> <span class="s1">&#39;concurrent_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type1</span><span class="p">)</span>
+            <span class="n">k2</span> <span class="o">=</span> <span class="s1">&#39;concurrent_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">type2</span><span class="p">)</span>
+            <span class="n">measurements</span> <span class="o">=</span> <span class="n">measurements</span><span class="p">[</span><span class="n">measurements</span><span class="p">[</span><span class="n">k1</span><span class="p">]</span> <span class="o">&amp;</span> <span class="n">measurements</span><span class="p">[</span><span class="n">k2</span><span class="p">]]</span>
 
         <span class="c1"># split into two populations</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">measurements</span><span class="p">[</span><span class="n">measurements</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">type1</span><span class="p">]</span>
@@ -162,7 +174,7 @@
         <span class="c1"># instantiate comparison</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">basis</span><span class="o">=</span><span class="n">basis</span><span class="p">)</span>
 
-<div class="viewcode-block" id="CloneComparison.plot"><a class="viewcode-back" href="../../../modules/analysis.html#flyqma.analysis.statistics.CloneComparison.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+<div class="viewcode-block" id="PairwiseCelltypeComparison.plot"><a class="viewcode-back" href="../../../modules/analysis.html#flyqma.analysis.statistics.PairwiseCelltypeComparison.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
              <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
              <span class="n">colors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
              <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;violin&#39;</span><span class="p">,</span>
@@ -224,7 +236,7 @@
         <span class="c1"># format axis</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">format_axis</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">colors</span><span class="o">=</span><span class="n">colors</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="n">ylabel</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="CloneComparison.format_axis"><a class="viewcode-back" href="../../../modules/analysis.html#flyqma.analysis.statistics.CloneComparison.format_axis">[docs]</a>    <span class="k">def</span> <span class="nf">format_axis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span>
+<div class="viewcode-block" id="PairwiseCelltypeComparison.format_axis"><a class="viewcode-back" href="../../../modules/analysis.html#flyqma.analysis.statistics.PairwiseCelltypeComparison.format_axis">[docs]</a>    <span class="k">def</span> <span class="nf">format_axis</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span>
                     <span class="n">colors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                     <span class="n">axis_labels</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                     <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;violin&#39;</span><span class="p">,</span>
@@ -285,88 +297,98 @@
             <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">ylabel</span><span class="p">)</span></div></div>
 
 
-<div class="viewcode-block" id="SummaryStatistics"><a class="viewcode-back" href="../../../modules/analysis.html#flyqma.analysis.statistics.SummaryStatistics">[docs]</a><span class="k">class</span> <span class="nc">SummaryStatistics</span><span class="p">:</span>
+<div class="viewcode-block" id="CelltypeComparison"><a class="viewcode-back" href="../../../modules/analysis.html#flyqma.analysis.statistics.CelltypeComparison">[docs]</a><span class="k">class</span> <span class="nc">CelltypeComparison</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Summary of comparisons between mutant, heterozygote, and wildtype clones.</span>
+<span class="sd">    Summary of comparisons between all labeled celltypes.</span>
 
 <span class="sd">    Attributes:</span>
 
-<span class="sd">        measurements (pd.DataFrame) - cell measurement data</span>
+<span class="sd">        measurements (pd.DataFrame) - measurement data</span>
 
-<span class="sd">        basis (str) - attribute on which clones are compared</span>
+<span class="sd">        basis (str) - attribute on which populations are compared</span>
 
 <span class="sd">        label (str) - attribute used to define population labels</span>
 
-<span class="sd">        test (str) - name of test used, one of (&#39;KS&#39;, &#39;t&#39;, &#39;MW&#39;)</span>
+<span class="sd">        test (str) - statistical test used, one of (&#39;KS&#39;, &#39;t&#39;, &#39;MW&#39;)</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">control</span><span class="p">,</span> <span class="n">perturbation</span><span class="p">,</span> <span class="n">basis</span><span class="p">,</span>
-                 <span class="n">label</span><span class="o">=</span><span class="s1">&#39;celltype&#39;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="s1">&#39;MW&#39;</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">measurements</span><span class="p">,</span> <span class="n">basis</span><span class="p">,</span>
+                 <span class="n">label</span><span class="o">=</span><span class="s1">&#39;celltype&#39;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="s1">&#39;MW&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Instantiate summary of comaprisons between mutant, heterozygote, and wildtype clones.</span>
+<span class="sd">        Instantiate summary of comparisons between all labeled cell types.</span>
 
 <span class="sd">        Args:</span>
 
-<span class="sd">            control (pd.DataFrame) - measurements for control condition</span>
+<span class="sd">            measurements (pd.DataFrame) - measurement data</span>
 
-<span class="sd">            perturbation (pd.DataFrame) - measurements for perturbation condition</span>
-
-<span class="sd">            basis (str) - attribute on which clones are compared</span>
+<span class="sd">            basis (str) - attribute on which populations are compared</span>
 
 <span class="sd">            label (str) - attribute used to define population labels</span>
 
 <span class="sd">            test (str) - name of test used, one of (&#39;KS&#39;, &#39;t&#39;, &#39;MW&#39;)</span>
 
+<span class="sd">            kwargs: keyword arguments for statistical test</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">measurements</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">control</span><span class="o">=</span><span class="n">control</span><span class="p">,</span> <span class="n">perturbation</span><span class="o">=</span><span class="n">perturbation</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">measurements</span> <span class="o">=</span> <span class="n">measurements</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">basis</span> <span class="o">=</span> <span class="n">basis</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">label</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">test</span> <span class="o">=</span> <span class="n">test</span>
 
         <span class="c1"># compute and report pvalues</span>
-        <span class="n">pvals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+        <span class="n">pvals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">report</span><span class="p">(</span><span class="n">pvals</span><span class="p">)</span>
 
-<div class="viewcode-block" id="SummaryStatistics.compare_celltype"><a class="viewcode-back" href="../../../modules/analysis.html#flyqma.analysis.statistics.SummaryStatistics.compare_celltype">[docs]</a>    <span class="k">def</span> <span class="nf">compare_celltype</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">condition</span><span class="p">,</span> <span class="n">type1</span><span class="p">,</span> <span class="n">type2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;celltype&#39;</span><span class="p">):</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pairs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Unique pairs of labels. &quot;&quot;&quot;</span>
+        <span class="n">label_values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">measurements</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">]</span><span class="o">.</span><span class="n">unique</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">sorted</span><span class="p">([</span><span class="nb">sorted</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">combinations</span><span class="p">(</span><span class="n">label_values</span><span class="p">,</span> <span class="mi">2</span><span class="p">)]))</span>
+
+<div class="viewcode-block" id="CelltypeComparison.compare_celltype"><a class="viewcode-back" href="../../../modules/analysis.html#flyqma.analysis.statistics.CelltypeComparison.compare_celltype">[docs]</a>    <span class="k">def</span> <span class="nf">compare_celltype</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">type1</span><span class="p">,</span> <span class="n">type2</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
-
-<span class="sd">            condition (str) - experimental condition, &#39;control&#39; or &#39;perturbation&#39;</span>
 
 <span class="sd">            type1 (str) - first cell type</span>
 
 <span class="sd">            type2 (str) - second cell type</span>
 
-<span class="sd">            label (str) - attribute used to define population labels</span>
+<span class="sd">            kwargs: keyword arguments for statistical test</span>
 
 <span class="sd">        Returns:</span>
 
 <span class="sd">            p (float) - p value for comparison statistic</span>
 
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">measurements</span><span class="p">[</span><span class="n">condition</span><span class="p">]</span>
-        <span class="n">comparison</span> <span class="o">=</span> <span class="n">CloneComparison</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">type1</span><span class="p">,</span> <span class="n">type2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">basis</span><span class="p">,</span>
-                                     <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">comparison</span><span class="o">.</span><span class="n">compare</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">test</span><span class="p">)</span></div>
+<span class="sd">            is_greater_than (bool) - True if first population mean is greater</span>
 
-<div class="viewcode-block" id="SummaryStatistics.run"><a class="viewcode-back" href="../../../modules/analysis.html#flyqma.analysis.statistics.SummaryStatistics.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">comparison</span> <span class="o">=</span> <span class="n">PairwiseCelltypeComparison</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">measurements</span><span class="p">,</span> <span class="n">type1</span><span class="p">,</span> <span class="n">type2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">basis</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">comparison</span><span class="o">.</span><span class="n">compare</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">test</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CelltypeComparison.run"><a class="viewcode-back" href="../../../modules/analysis.html#flyqma.analysis.statistics.CelltypeComparison.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Compare mutant vs heterozygous and heterozygous vs wildtype for both the control and perturbation conditions.</span>
+<span class="sd">        Compare all pairwise combinations of cell types.</span>
+
+<span class="sd">        kwargs: keyword arguments for statistical test</span>
 
 <span class="sd">        Returns:</span>
 
 <span class="sd">            pvals (dict) - {comparison: pvalue} pairs</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">pvals</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
-            <span class="n">c_mh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compare_celltype</span><span class="p">(</span><span class="s1">&#39;control&#39;</span><span class="p">,</span> <span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">),</span>
-            <span class="n">c_hw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compare_celltype</span><span class="p">(</span><span class="s1">&#39;control&#39;</span><span class="p">,</span> <span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">),</span>
-            <span class="n">p_mh</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compare_celltype</span><span class="p">(</span><span class="s1">&#39;perturbation&#39;</span><span class="p">,</span> <span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">),</span>
-            <span class="n">p_hw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compare_celltype</span><span class="p">(</span><span class="s1">&#39;perturbation&#39;</span><span class="p">,</span> <span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">))</span>
+
+        <span class="n">signs</span> <span class="o">=</span> <span class="p">{</span><span class="kc">True</span><span class="p">:</span> <span class="s1">&#39; &gt; &#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">:</span> <span class="s1">&#39; &lt; &#39;</span><span class="p">}</span>
+
+        <span class="n">pvals</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">pair</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pairs</span><span class="p">:</span>
+            <span class="n">pval</span><span class="p">,</span> <span class="n">greater_than</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compare_celltype</span><span class="p">(</span><span class="o">*</span><span class="n">pair</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">comparison_name</span> <span class="o">=</span> <span class="n">signs</span><span class="p">[</span><span class="n">greater_than</span><span class="p">]</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">pair</span><span class="p">])</span>
+            <span class="n">pvals</span><span class="p">[</span><span class="n">comparison_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">pval</span>
+
         <span class="k">return</span> <span class="n">pvals</span></div>
 
-<div class="viewcode-block" id="SummaryStatistics.report"><a class="viewcode-back" href="../../../modules/analysis.html#flyqma.analysis.statistics.SummaryStatistics.report">[docs]</a>    <span class="k">def</span> <span class="nf">report</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pvals</span><span class="p">):</span>
+<div class="viewcode-block" id="CelltypeComparison.report"><a class="viewcode-back" href="../../../modules/analysis.html#flyqma.analysis.statistics.CelltypeComparison.report">[docs]</a>    <span class="k">def</span> <span class="nf">report</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pvals</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Print summary of statistical comparisons for each condition.</span>
 
@@ -376,11 +398,8 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Statistical test: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">test</span><span class="p">))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Control: 0x vs 1x: </span><span class="si">{:0.4f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pvals</span><span class="p">[</span><span class="s1">&#39;c_mh&#39;</span><span class="p">]))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Control: 1x vs 2x: </span><span class="si">{:0.4f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pvals</span><span class="p">[</span><span class="s1">&#39;c_hw&#39;</span><span class="p">]))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Perturbation: 0x vs 1x: </span><span class="si">{:0.4f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pvals</span><span class="p">[</span><span class="s1">&#39;p_mh&#39;</span><span class="p">]))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Perturbation: 1x vs 2x: </span><span class="si">{:0.4f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pvals</span><span class="p">[</span><span class="s1">&#39;p_hw&#39;</span><span class="p">]))</span></div></div>
-
+        <span class="k">for</span> <span class="n">test</span><span class="p">,</span> <span class="n">pval</span> <span class="ow">in</span> <span class="n">pvals</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">test</span> <span class="o">+</span> <span class="s1">&#39;: p = </span><span class="si">{:0.4f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pval</span><span class="p">))</span></div></div>
 
 
 <span class="c1"># # define labels and corresponding fill colors</span>

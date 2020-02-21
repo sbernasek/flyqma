@@ -37,12 +37,68 @@
 <h1>Analysis Module<a class="headerlink" href="#analysis-module" title="Permalink to this headline">¶</a></h1>
 <p><code class="docutils literal notranslate"><span class="pre">flyqma.analysis</span></code> provides several tools for statistically comparing measured fluorescence levels between subpopulations of cells.</p>
 <span class="target" id="module-flyqma.analysis.statistics"></span><dl class="class">
-<dt id="flyqma.analysis.statistics.CloneComparison">
-<em class="property">class </em><code class="sig-prename descclassname">flyqma.analysis.statistics.</code><code class="sig-name descname">CloneComparison</code><span class="sig-paren">(</span><em class="sig-param">measurements</em>, <em class="sig-param">type1</em>, <em class="sig-param">type2</em>, <em class="sig-param">basis</em>, <em class="sig-param">label='celltype'</em>, <em class="sig-param">concurrent_only=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/analysis/statistics.html#CloneComparison"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.analysis.statistics.CloneComparison" title="Permalink to this definition">¶</a></dt>
+<dt id="flyqma.analysis.statistics.CelltypeComparison">
+<em class="property">class </em><code class="sig-prename descclassname">flyqma.analysis.statistics.</code><code class="sig-name descname">CelltypeComparison</code><span class="sig-paren">(</span><em class="sig-param">measurements</em>, <em class="sig-param">basis</em>, <em class="sig-param">label='celltype'</em>, <em class="sig-param">test='MW'</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/analysis/statistics.html#CelltypeComparison"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.analysis.statistics.CelltypeComparison" title="Permalink to this definition">¶</a></dt>
+<dd><p>Summary of comparisons between all labeled celltypes.</p>
+<p>Attributes:</p>
+<blockquote>
+<div><p>measurements (pd.DataFrame) - measurement data</p>
+<p>basis (str) - attribute on which populations are compared</p>
+<p>label (str) - attribute used to define population labels</p>
+<p>test (str) - statistical test used, one of (‘KS’, ‘t’, ‘MW’)</p>
+</div></blockquote>
+<dl class="method">
+<dt id="flyqma.analysis.statistics.CelltypeComparison.compare_celltype">
+<code class="sig-name descname">compare_celltype</code><span class="sig-paren">(</span><em class="sig-param">type1</em>, <em class="sig-param">type2</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/analysis/statistics.html#CelltypeComparison.compare_celltype"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.analysis.statistics.CelltypeComparison.compare_celltype" title="Permalink to this definition">¶</a></dt>
+<dd><p>Args:</p>
+<blockquote>
+<div><p>type1 (str) - first cell type</p>
+<p>type2 (str) - second cell type</p>
+<p>kwargs: keyword arguments for statistical test</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div><p>p (float) - p value for comparison statistic</p>
+<p>is_greater_than (bool) - True if first population mean is greater</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.analysis.statistics.CelltypeComparison.pairs">
+<em class="property">property </em><code class="sig-name descname">pairs</code><a class="headerlink" href="#flyqma.analysis.statistics.CelltypeComparison.pairs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unique pairs of labels.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.analysis.statistics.CelltypeComparison.report">
+<code class="sig-name descname">report</code><span class="sig-paren">(</span><em class="sig-param">pvals</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/analysis/statistics.html#CelltypeComparison.report"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.analysis.statistics.CelltypeComparison.report" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print summary of statistical comparisons for each condition.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>pvals (dict) - {comparison: pvalue} pairs</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.analysis.statistics.CelltypeComparison.run">
+<code class="sig-name descname">run</code><span class="sig-paren">(</span><em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/analysis/statistics.html#CelltypeComparison.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.analysis.statistics.CelltypeComparison.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compare all pairwise combinations of cell types.</p>
+<p>kwargs: keyword arguments for statistical test</p>
+<p>Returns:</p>
+<blockquote>
+<div><p>pvals (dict) - {comparison: pvalue} pairs</p>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="flyqma.analysis.statistics.PairwiseCelltypeComparison">
+<em class="property">class </em><code class="sig-prename descclassname">flyqma.analysis.statistics.</code><code class="sig-name descname">PairwiseCelltypeComparison</code><span class="sig-paren">(</span><em class="sig-param">measurements</em>, <em class="sig-param">type1</em>, <em class="sig-param">type2</em>, <em class="sig-param">basis</em>, <em class="sig-param">label='celltype'</em>, <em class="sig-param">concurrent_only=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/analysis/statistics.html#PairwiseCelltypeComparison"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.analysis.statistics.PairwiseCelltypeComparison" title="Permalink to this definition">¶</a></dt>
 <dd><p>Pairwise statistical comparison between two concurrent cell types.</p>
 <p>Attributes:</p>
 <blockquote>
-<div><p>label (str) - attribute used to define population labels</p>
+<div><p>label (str) - attribute used to stratify populations</p>
 <p>type1 (str) - first label</p>
 <p>type2 (str) - second label</p>
 </div></blockquote>
@@ -53,8 +109,8 @@
 <p>basis (str) - attribute on which populations are compared</p>
 </div></blockquote>
 <dl class="method">
-<dt id="flyqma.analysis.statistics.CloneComparison.format_axis">
-<code class="sig-name descname">format_axis</code><span class="sig-paren">(</span><em class="sig-param">ax</em>, <em class="sig-param">colors=None</em>, <em class="sig-param">axis_labels=None</em>, <em class="sig-param">mode='violin'</em>, <em class="sig-param">ylabel=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/analysis/statistics.html#CloneComparison.format_axis"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.analysis.statistics.CloneComparison.format_axis" title="Permalink to this definition">¶</a></dt>
+<dt id="flyqma.analysis.statistics.PairwiseCelltypeComparison.format_axis">
+<code class="sig-name descname">format_axis</code><span class="sig-paren">(</span><em class="sig-param">ax</em>, <em class="sig-param">colors=None</em>, <em class="sig-param">axis_labels=None</em>, <em class="sig-param">mode='violin'</em>, <em class="sig-param">ylabel=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/analysis/statistics.html#PairwiseCelltypeComparison.format_axis"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.analysis.statistics.PairwiseCelltypeComparison.format_axis" title="Permalink to this definition">¶</a></dt>
 <dd><p>Format axis.</p>
 <p>Args:</p>
 <blockquote>
@@ -67,8 +123,8 @@
 </dd></dl>
 
 <dl class="method">
-<dt id="flyqma.analysis.statistics.CloneComparison.plot">
-<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param">ax=None</em>, <em class="sig-param">colors=None</em>, <em class="sig-param">mode='violin'</em>, <em class="sig-param">ylabel=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/analysis/statistics.html#CloneComparison.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.analysis.statistics.CloneComparison.plot" title="Permalink to this definition">¶</a></dt>
+<dt id="flyqma.analysis.statistics.PairwiseCelltypeComparison.plot">
+<code class="sig-name descname">plot</code><span class="sig-paren">(</span><em class="sig-param">ax=None</em>, <em class="sig-param">colors=None</em>, <em class="sig-param">mode='violin'</em>, <em class="sig-param">ylabel=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/analysis/statistics.html#PairwiseCelltypeComparison.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.analysis.statistics.PairwiseCelltypeComparison.plot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Visualize comparison using seaborn box or violinplot.</p>
 <p>Args:</p>
 <blockquote>
@@ -94,7 +150,7 @@
 </div></blockquote>
 <dl class="method">
 <dt id="flyqma.analysis.statistics.PairwiseComparison.compare">
-<code class="sig-name descname">compare</code><span class="sig-paren">(</span><em class="sig-param">test='MW'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/analysis/statistics.html#PairwiseComparison.compare"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.analysis.statistics.PairwiseComparison.compare" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">compare</code><span class="sig-paren">(</span><em class="sig-param">test='MW'</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/analysis/statistics.html#PairwiseComparison.compare"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.analysis.statistics.PairwiseComparison.compare" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run statistical test.</p>
 <p>Args:</p>
 <blockquote>
@@ -103,56 +159,15 @@
 <p>Returns:</p>
 <blockquote>
 <div><p>p (float) - p-value</p>
-</div></blockquote>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="flyqma.analysis.statistics.SummaryStatistics">
-<em class="property">class </em><code class="sig-prename descclassname">flyqma.analysis.statistics.</code><code class="sig-name descname">SummaryStatistics</code><span class="sig-paren">(</span><em class="sig-param">control</em>, <em class="sig-param">perturbation</em>, <em class="sig-param">basis</em>, <em class="sig-param">label='celltype'</em>, <em class="sig-param">test='MW'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/analysis/statistics.html#SummaryStatistics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.analysis.statistics.SummaryStatistics" title="Permalink to this definition">¶</a></dt>
-<dd><p>Summary of comparisons between mutant, heterozygote, and wildtype clones.</p>
-<p>Attributes:</p>
-<blockquote>
-<div><p>measurements (pd.DataFrame) - cell measurement data</p>
-<p>basis (str) - attribute on which clones are compared</p>
-<p>label (str) - attribute used to define population labels</p>
-<p>test (str) - name of test used, one of (‘KS’, ‘t’, ‘MW’)</p>
-</div></blockquote>
-<dl class="method">
-<dt id="flyqma.analysis.statistics.SummaryStatistics.compare_celltype">
-<code class="sig-name descname">compare_celltype</code><span class="sig-paren">(</span><em class="sig-param">condition</em>, <em class="sig-param">type1</em>, <em class="sig-param">type2</em>, <em class="sig-param">label='celltype'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/analysis/statistics.html#SummaryStatistics.compare_celltype"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.analysis.statistics.SummaryStatistics.compare_celltype" title="Permalink to this definition">¶</a></dt>
-<dd><p>Args:</p>
-<blockquote>
-<div><p>condition (str) - experimental condition, ‘control’ or ‘perturbation’</p>
-<p>type1 (str) - first cell type</p>
-<p>type2 (str) - second cell type</p>
-<p>label (str) - attribute used to define population labels</p>
-</div></blockquote>
-<p>Returns:</p>
-<blockquote>
-<div><p>p (float) - p value for comparison statistic</p>
+<p>is_greater_than (bool) - True if first population mean is greater</p>
+<p>kwargs: keyword arguments for statistical test</p>
 </div></blockquote>
 </dd></dl>
 
 <dl class="method">
-<dt id="flyqma.analysis.statistics.SummaryStatistics.report">
-<code class="sig-name descname">report</code><span class="sig-paren">(</span><em class="sig-param">pvals</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/analysis/statistics.html#SummaryStatistics.report"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.analysis.statistics.SummaryStatistics.report" title="Permalink to this definition">¶</a></dt>
-<dd><p>Print summary of statistical comparisons for each condition.</p>
-<p>Args:</p>
-<blockquote>
-<div><p>pvals (dict) - {comparison: pvalue} pairs</p>
-</div></blockquote>
-</dd></dl>
-
-<dl class="method">
-<dt id="flyqma.analysis.statistics.SummaryStatistics.run">
-<code class="sig-name descname">run</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/analysis/statistics.html#SummaryStatistics.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.analysis.statistics.SummaryStatistics.run" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compare mutant vs heterozygous and heterozygous vs wildtype for both the control and perturbation conditions.</p>
-<p>Returns:</p>
-<blockquote>
-<div><p>pvals (dict) - {comparison: pvalue} pairs</p>
-</div></blockquote>
+<dt id="flyqma.analysis.statistics.PairwiseComparison.is_greater_than">
+<em class="property">property </em><code class="sig-name descname">is_greater_than</code><a class="headerlink" href="#flyqma.analysis.statistics.PairwiseComparison.is_greater_than" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if first population mean is greater than the second.</p>
 </dd></dl>
 
 </dd></dl>

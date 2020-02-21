@@ -440,7 +440,8 @@
                 <span class="n">preprocessing_kws</span><span class="o">=</span><span class="p">{},</span>
                 <span class="n">seed_kws</span><span class="o">=</span><span class="p">{},</span>
                 <span class="n">seg_kws</span><span class="o">=</span><span class="p">{},</span>
-                <span class="n">min_area</span><span class="o">=</span><span class="mi">250</span><span class="p">):</span>
+                <span class="n">min_area</span><span class="o">=</span><span class="mi">250</span><span class="p">,</span>
+                <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Segment all layers using watershed strategy.</span>
 
@@ -456,6 +457,8 @@
 
 <span class="sd">            min_area (int) - threshold for minimum segment size, px</span>
 
+<span class="sd">            save (bool) - if True, save measurement data for each layer</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c1"># make sure image is loaded</span>
@@ -469,7 +472,8 @@
                 <span class="n">min_area</span><span class="o">=</span><span class="n">min_area</span><span class="p">)</span>
 
             <span class="c1"># save layer measurements and segmentation</span>
-            <span class="n">layer</span><span class="o">.</span><span class="n">save</span><span class="p">()</span></div>
+            <span class="k">if</span> <span class="n">save</span><span class="p">:</span>
+                <span class="n">layer</span><span class="o">.</span><span class="n">save</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="Stack.train_annotator"><a class="viewcode-back" href="../../../modules/data.html#flyqma.data.stacks.Stack.train_annotator">[docs]</a>    <span class="k">def</span> <span class="nf">train_annotator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attribute</span><span class="p">,</span>
                         <span class="n">save</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
