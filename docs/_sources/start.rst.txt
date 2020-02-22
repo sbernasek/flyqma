@@ -163,9 +163,9 @@ Raw and processed measurement data are accessed via the ``Layer.measurements`` a
  - **pixel_count:** total number of pixels within the segment
  - **centroid_x:** mean x-coordinate of all pixels
  - **centroid_y:** mean y-coordinate of all pixels
- - **chN** - mean intensity of the Nth channel across all pixels
- - **chN_std** - standard deviation of the Nth channel across all pixels
- - **chN_normalized** - mean intensity of the Nth channel divided by the mean intensity of the background channel
+ - **chN:** mean intensity of the Nth channel across all pixels
+ - **chN_std:** standard deviation of the Nth channel across all pixels
+ - **chN_normalized:** normalized mean intensity of the Nth channel
 
 To aggregate processed measurement data across all layers in an image stack:
 
@@ -223,8 +223,8 @@ The objects that perform these operations all behave in a similar manner. They a
 The added subdirectories include all the files and metadata necessary to load and execute the data processing operations performed by the respective object. Saved operations are automatically applied to the raw measurement data each time a layer is loaded, appending a number of additional features to the ``layer.data`` DataFrame:
 
  - **chN_predicted:** estimated bleedthrough contribution into the Nth channel
- - **chNc:** bleedthrough-corrected mean intensity of the Nth channel
- - **chNc_normalized:** normalized bleedthrough-corrected mean intensity of the Nth channel
+ - **chNc:** bleedthrough-corrected intensity of the Nth channel
+ - **chNc_normalized:** normalized bleedthrough-corrected intensity of the Nth channel
  - **selected:** boolean flag indicating whether the segment falls within the ROI
  - **boundary:**  boolean flag indicating whether the segment lies within a boundary region
  - **manual_label:** segment label manually assigned using  `FlyEye Silhouette <https://www.silhouette.amaral.northwestern.edu/>`_

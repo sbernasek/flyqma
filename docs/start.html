@@ -161,9 +161,9 @@
 <li><p><strong>pixel_count:</strong> total number of pixels within the segment</p></li>
 <li><p><strong>centroid_x:</strong> mean x-coordinate of all pixels</p></li>
 <li><p><strong>centroid_y:</strong> mean y-coordinate of all pixels</p></li>
-<li><p><strong>chN</strong> - mean intensity of the Nth channel across all pixels</p></li>
-<li><p><strong>chN_std</strong> - standard deviation of the Nth channel across all pixels</p></li>
-<li><p><strong>chN_normalized</strong> - mean intensity of the Nth channel divided by the mean intensity of the background channel</p></li>
+<li><p><strong>chN:</strong> mean intensity of the Nth channel across all pixels</p></li>
+<li><p><strong>chN_std:</strong> standard deviation of the Nth channel across all pixels</p></li>
+<li><p><strong>chN_normalized:</strong> normalized mean intensity of the Nth channel</p></li>
 </ul>
 </div></blockquote>
 <p>To aggregate processed measurement data across all layers in an image stack:</p>
@@ -216,8 +216,8 @@
 <blockquote>
 <div><ul class="simple">
 <li><p><strong>chN_predicted:</strong> estimated bleedthrough contribution into the Nth channel</p></li>
-<li><p><strong>chNc:</strong> bleedthrough-corrected mean intensity of the Nth channel</p></li>
-<li><p><strong>chNc_normalized:</strong> normalized bleedthrough-corrected mean intensity of the Nth channel</p></li>
+<li><p><strong>chNc:</strong> bleedthrough-corrected intensity of the Nth channel</p></li>
+<li><p><strong>chNc_normalized:</strong> normalized bleedthrough-corrected intensity of the Nth channel</p></li>
 <li><p><strong>selected:</strong> boolean flag indicating whether the segment falls within the ROI</p></li>
 <li><p><strong>boundary:</strong>  boolean flag indicating whether the segment lies within a boundary region</p></li>
 <li><p><strong>manual_label:</strong> segment label manually assigned using  <a class="reference external" href="https://www.silhouette.amaral.northwestern.edu/">FlyEye Silhouette</a></p></li>
