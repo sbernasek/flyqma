@@ -10,7 +10,7 @@
 Getting Started
 ===============
 
-The fastest way to familiarize yourself with **Fly-QMA** is to start with a working example. We recommend starting with the Fly-QMA `Tutorial <https://github.com/sebastianbernasek/flyqma/blob/master/tutorial.ipynb>`_.
+The fastest way to familiarize yourself with Fly-QMA is to start with a working example. We recommend starting with the Fly-QMA `Tutorial <https://github.com/sebastianbernasek/flyqma/blob/master/tutorial.ipynb>`_.
 
 We also recommend reading the sections below before working with your own microscopy data.
 
@@ -18,7 +18,7 @@ We also recommend reading the sections below before working with your own micros
 Preparing Images
 ----------------
 
-**Fly-QMA** uses a hierarchical :ref:`file structure <filestructure>` that is organized into three levels:
+Fly-QMA uses a hierarchical :ref:`file structure <filestructure>` that is organized into three levels:
 
  1. **EXPERIMENT**: One or more tissue samples imaged under the same conditions.
 
@@ -58,7 +58,7 @@ Each **STACK** directory should contain one or more 2-D images of a unique tissu
 Loading Images
 --------------
 
- Once everything is in place, instantiate an ``Experiment`` using the **EXPERIMENT** directory path:
+Next, instantiate an ``Experiment`` using the **EXPERIMENT** directory path:
 
 .. code-block:: python
 
@@ -159,13 +159,13 @@ Measurement Data
 
 Raw and processed measurement data are accessed via the ``Layer.measurements`` and ``Layer.data`` attributes, respectively. Both are stored in `Pandas DataFrames <https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html>`_ in which each sample (row) reflects an individual segment. Columns depict a mixture of continuous and categorical features, including:
 
- - **segment_id:** The unique integer identifier assigned to the segment.
- - **pixel_count:** The total number of pixels within the segment.
- - **centroid_x:** The mean x-coordinate of all pixels within the segment.
- - **centroid_y:** The mean y-coordinate of all pixels within the segment.
- - **chN** - The mean intensity of the Nth channel across all pixels within the segment.
- - **chN_std** - The standard deviation of the Nth channel across all pixels within the segment.
- - **chN_normalized** - The mean intensity of the Nth channel divided by the mean intensity of the background channel.
+ - **segment_id:** unique integer identifier assigned to the segment
+ - **pixel_count:** total number of pixels within the segment
+ - **centroid_x:** mean x-coordinate of all pixels
+ - **centroid_y:** mean y-coordinate of all pixels
+ - **chN** - mean intensity of the Nth channel across all pixels
+ - **chN_std** - standard deviation of the Nth channel across all pixels
+ - **chN_normalized** - mean intensity of the Nth channel divided by the mean intensity of the background channel
 
 To aggregate processed measurement data across all layers in an image stack:
 
@@ -222,11 +222,11 @@ The objects that perform these operations all behave in a similar manner. They a
 
 The added subdirectories include all the files and metadata necessary to load and execute the data processing operations performed by the respective object. Saved operations are automatically applied to the raw measurement data each time a layer is loaded, appending a number of additional features to the ``layer.data`` DataFrame:
 
- - **chN_predicted:** The estimated contribution of bleedthrough into the measured level of the Nth channel.
- - **chNc:** The bleedthrough-corrected mean intensity of the Nth channel.
- - **chNc_normalized:** The bleedthrough-corrected normalized mean intensity of the Nth channel.
- - **selected:** Boolean flag indicating whether the segment falls within the user-specific ROI.
- - **boundary:**  Boolean flag indicating whether the segment lies within a boundary between differing cell types.
- - **manual_label:** Segment label that was manually assigned using  `FlyEye Silhouette <https://www.silhouette.amaral.northwestern.edu/>`_.
+ - **chN_predicted:** estimated bleedthrough contribution into the Nth channel
+ - **chNc:** bleedthrough-corrected mean intensity of the Nth channel
+ - **chNc_normalized:** normalized bleedthrough-corrected mean intensity of the Nth channel
+ - **selected:** boolean flag indicating whether the segment falls within the ROI
+ - **boundary:**  boolean flag indicating whether the segment lies within a boundary region
+ - **manual_label:** segment label manually assigned using  `FlyEye Silhouette <https://www.silhouette.amaral.northwestern.edu/>`_
 
 Furthermore, the annotation module may be used to assign one or more labels to each segment. Users are free to specify the names of these additional features as they please.

@@ -35,11 +35,11 @@
   <a class="reference external image-reference" href="https://amaral.northwestern.edu/"><img alt="nulogo" class="align-right" src="_images/Northwestern_purple_RGB.png" style="width: 30%;" /></a>
 <div class="section" id="getting-started">
 <span id="start"></span><h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
-<p>The fastest way to familiarize yourself with <strong>Fly-QMA</strong> is to start with a working example. We recommend starting with the Fly-QMA <a class="reference external" href="https://github.com/sebastianbernasek/flyqma/blob/master/tutorial.ipynb">Tutorial</a>.</p>
+<p>The fastest way to familiarize yourself with Fly-QMA is to start with a working example. We recommend starting with the Fly-QMA <a class="reference external" href="https://github.com/sebastianbernasek/flyqma/blob/master/tutorial.ipynb">Tutorial</a>.</p>
 <p>We also recommend reading the sections below before working with your own microscopy data.</p>
 <div class="section" id="preparing-images">
 <h2>Preparing Images<a class="headerlink" href="#preparing-images" title="Permalink to this headline">¶</a></h2>
-<p><strong>Fly-QMA</strong> uses a hierarchical <a class="reference internal" href="filestructure.html#filestructure"><span class="std std-ref">file structure</span></a> that is organized into three levels:</p>
+<p>Fly-QMA uses a hierarchical <a class="reference internal" href="filestructure.html#filestructure"><span class="std std-ref">file structure</span></a> that is organized into three levels:</p>
 <blockquote>
 <div><ol class="arabic simple">
 <li><p><strong>EXPERIMENT</strong>: One or more tissue samples imaged under the same conditions.</p></li>
@@ -75,9 +75,7 @@
 </div>
 <div class="section" id="loading-images">
 <h2>Loading Images<a class="headerlink" href="#loading-images" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div><p>Once everything is in place, instantiate an <code class="docutils literal notranslate"><span class="pre">Experiment</span></code> using the <strong>EXPERIMENT</strong> directory path:</p>
-</div></blockquote>
+<p>Next, instantiate an <code class="docutils literal notranslate"><span class="pre">Experiment</span></code> using the <strong>EXPERIMENT</strong> directory path:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">flyqma.data</span> <span class="kn">import</span> <span class="n">Experiment</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">experiment</span> <span class="o">=</span> <span class="n">Experiment</span><span class="p">(</span><span class="s1">&#39;./EXPERIMENT&#39;</span><span class="p">)</span>
 </pre></div>
@@ -159,13 +157,13 @@
 <p>Raw and processed measurement data are accessed via the <code class="docutils literal notranslate"><span class="pre">Layer.measurements</span></code> and <code class="docutils literal notranslate"><span class="pre">Layer.data</span></code> attributes, respectively. Both are stored in <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html">Pandas DataFrames</a> in which each sample (row) reflects an individual segment. Columns depict a mixture of continuous and categorical features, including:</p>
 <blockquote>
 <div><ul class="simple">
-<li><p><strong>segment_id:</strong> The unique integer identifier assigned to the segment.</p></li>
-<li><p><strong>pixel_count:</strong> The total number of pixels within the segment.</p></li>
-<li><p><strong>centroid_x:</strong> The mean x-coordinate of all pixels within the segment.</p></li>
-<li><p><strong>centroid_y:</strong> The mean y-coordinate of all pixels within the segment.</p></li>
-<li><p><strong>chN</strong> - The mean intensity of the Nth channel across all pixels within the segment.</p></li>
-<li><p><strong>chN_std</strong> - The standard deviation of the Nth channel across all pixels within the segment.</p></li>
-<li><p><strong>chN_normalized</strong> - The mean intensity of the Nth channel divided by the mean intensity of the background channel.</p></li>
+<li><p><strong>segment_id:</strong> unique integer identifier assigned to the segment</p></li>
+<li><p><strong>pixel_count:</strong> total number of pixels within the segment</p></li>
+<li><p><strong>centroid_x:</strong> mean x-coordinate of all pixels</p></li>
+<li><p><strong>centroid_y:</strong> mean y-coordinate of all pixels</p></li>
+<li><p><strong>chN</strong> - mean intensity of the Nth channel across all pixels</p></li>
+<li><p><strong>chN_std</strong> - standard deviation of the Nth channel across all pixels</p></li>
+<li><p><strong>chN_normalized</strong> - mean intensity of the Nth channel divided by the mean intensity of the background channel</p></li>
 </ul>
 </div></blockquote>
 <p>To aggregate processed measurement data across all layers in an image stack:</p>
@@ -217,12 +215,12 @@
 <p>The added subdirectories include all the files and metadata necessary to load and execute the data processing operations performed by the respective object. Saved operations are automatically applied to the raw measurement data each time a layer is loaded, appending a number of additional features to the <code class="docutils literal notranslate"><span class="pre">layer.data</span></code> DataFrame:</p>
 <blockquote>
 <div><ul class="simple">
-<li><p><strong>chN_predicted:</strong> The estimated contribution of bleedthrough into the measured level of the Nth channel.</p></li>
-<li><p><strong>chNc:</strong> The bleedthrough-corrected mean intensity of the Nth channel.</p></li>
-<li><p><strong>chNc_normalized:</strong> The bleedthrough-corrected normalized mean intensity of the Nth channel.</p></li>
-<li><p><strong>selected:</strong> Boolean flag indicating whether the segment falls within the user-specific ROI.</p></li>
-<li><p><strong>boundary:</strong>  Boolean flag indicating whether the segment lies within a boundary between differing cell types.</p></li>
-<li><p><strong>manual_label:</strong> Segment label that was manually assigned using  <a class="reference external" href="https://www.silhouette.amaral.northwestern.edu/">FlyEye Silhouette</a>.</p></li>
+<li><p><strong>chN_predicted:</strong> estimated bleedthrough contribution into the Nth channel</p></li>
+<li><p><strong>chNc:</strong> bleedthrough-corrected mean intensity of the Nth channel</p></li>
+<li><p><strong>chNc_normalized:</strong> normalized bleedthrough-corrected mean intensity of the Nth channel</p></li>
+<li><p><strong>selected:</strong> boolean flag indicating whether the segment falls within the ROI</p></li>
+<li><p><strong>boundary:</strong>  boolean flag indicating whether the segment lies within a boundary region</p></li>
+<li><p><strong>manual_label:</strong> segment label manually assigned using  <a class="reference external" href="https://www.silhouette.amaral.northwestern.edu/">FlyEye Silhouette</a></p></li>
 </ul>
 </div></blockquote>
 <p>Furthermore, the annotation module may be used to assign one or more labels to each segment. Users are free to specify the names of these additional features as they please.</p>

@@ -10,7 +10,7 @@
 File Structure
 ==============
 
-**Fly-QMA** uses a standardized file structure, and will automatically adhere to this format by creating and updating  various subdirectories and files as needed. The file structure is hierarchically organized into three levels:
+Fly-QMA uses a standardized file structure, and will automatically adhere to this format by creating and updating  various subdirectories and files as needed. The file structure is hierarchically organized into three levels:
 
  1. **EXPERIMENT**: One or more tissue samples imaged under the same conditions.
 
