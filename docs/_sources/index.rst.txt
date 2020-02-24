@@ -13,22 +13,21 @@ Fly-QMA
 
 Expression patterns are typically identified by comparing the intensities of fluorescent reporters between groups of cells. Fly-QMA uses computer vision to quantify these differences in reporter expression by inferring them from microscope images. The measurements may then used to detect and analyze spatial patterns that might otherwise go unnoticed. Check out our `manuscript <https://doi.org/10.1101/775783>`_ for a detailed explanation of the algorithms underlying Fly-QMA.
 
-Given confocal microscopy data, Fly-QMA facilitates:
+Given microscopy data, Fly-QMA facilitates:
 
-  - **Segmentation.** Detect cell nuclei within an image
+  - Image **segmentation** to detect cell nuclei
 
-  - **Measurement.** Quantify reporter expression levels
+  - Quantitative **measurement** of reporter expression levels
 
-  - **Bleedthrough Control.** Correct for fluorescence bleedthrough
+  - Automated **bleedthrough control** for enhanced measurement accuracy
 
-  - **Annotation.** Automatically label differing groups of cells
+  - Automated **annotation** of clonal patch patterns
 
-  - **ROI Definition.** Focus on particular regions of interest
+  - Manual **ROI definition** using a built-in GUI
 
-  - **Comparison.** Compare expression levels between cells
+  - **Statistical analysis** of expression levels and tissue morphology
 
-
-To get started, simply ``pip install flyqma``
+To get started, simply ``pip install flyqma`` then skim through our :ref:`beginners guide <start>`.
 
 
 .. toctree::

@@ -1,0 +1,147 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>External Integrations &#8212; flyqma v0.3 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Defining a ROI" href="roi.html" />
+    <link rel="prev" title="File Structure" href="filestructure.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <a class="reference external image-reference" href="https://amaral.northwestern.edu/"><img alt="nulogo" class="align-right" src="_images/Northwestern_purple_RGB.png" style="width: 30%;" /></a>
+<div class="section" id="external-integrations">
+<span id="integration"></span><h1>External Integrations<a class="headerlink" href="#external-integrations" title="Permalink to this headline">¶</a></h1>
+<p>Fly-QMA supports integration with external analysis platforms. See the subsections below for detailed instructions.</p>
+<div class="section" id="segmentation-masks">
+<h2>Segmentation Masks<a class="headerlink" href="#segmentation-masks" title="Permalink to this headline">¶</a></h2>
+<p>Image segmentation can often be strongly context-dependent, limiting the utility of once-size-fits-all strategies. Fly-QMA was therefore designed to support integration with external segmentation tools by allowing users to seemlessly import externally generated segmentation masks. Segmentation masks are two-dimensional <code class="docutils literal notranslate"><span class="pre">.npy</span></code> arrays whose dimensions match those of the image to be segmented. Each array element is an integer value that denotes the label assigned to the corresponding pixel in the segmented image. Zero-valued pixels denote the background. This format is shared by several common segmentation platforms, including <a class="reference external" href="https://scikit-image.org/docs/dev/user_guide/tutorial_segmentation.html">scikit-image</a>.</p>
+<p>Segmentation masks are imported by calling the <code class="docutils literal notranslate"><span class="pre">Layer.import_segmentation_mask</span></code> method. Expression measurements will then automatically be generated using the provided mask. The <code class="docutils literal notranslate"><span class="pre">save=True</span></code> argument tells Fly-QMA to save a copy of the mask to the appropriate <strong>LAYER</strong> subdirectory in order to ensure that the mask remains available even after the Layer instance is destroyed.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">segmentation_mask_path</span> <span class="o">=</span> <span class="s1">&#39;./segmentation.npy&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">channel</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">layer</span><span class="o">.</span><span class="n">import_segmentation_mask</span><span class="p">(</span><span class="n">segmentation_mask_path</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="roi-masks">
+<span id="roi-integration"></span><h2>ROI Masks<a class="headerlink" href="#roi-masks" title="Permalink to this headline">¶</a></h2>
+<p>Fly-QMA also supports importing an externally generated ROI mask. Like segmentation masks, ROI masks are two-dimensional <code class="docutils literal notranslate"><span class="pre">.npy</span></code> arrays whose dimensions match those of the corresponding microscope image. Elements in the ROI mask are binary, taking on either integer values of 0/1 or boolean values of True/False. Values of 1 or True denote that the corresponding pixel is within the region of interest. Please note that the ROI must be a single contiguous region. Support for multiple disconnected regions of interest within a single image is currently under development.</p>
+<p>ROI masks are imported by calling the <code class="docutils literal notranslate"><span class="pre">Layer.import_roi_mask</span></code> method. A boolean <code class="docutils literal notranslate"><span class="pre">selected</span></code> attribute will then automatically be added to the corresponding measurement data, in which a value of True denotes that a given measurement falls within the defined region of interest. The <code class="docutils literal notranslate"><span class="pre">save=True</span></code> argument tells Fly-QMA to save a copy of the mask to the appropriate LAYER subdirectory in order to ensure that the ROI remains available even after the Layer instance is destroyed.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">roi_mask_path</span> <span class="o">=</span> <span class="s1">&#39;./roi_mask.npy&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">layer</span><span class="o">.</span><span class="n">import_roi_mask</span><span class="p">(</span><span class="n">roi_mask_path</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/graphics/logo.png" alt="Logo"/>
+    
+  </a>
+</p>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=sebastianbernasek&repo=flyqma&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">INSTALLATION</a></li>
+<li class="toctree-l1"><a class="reference internal" href="start.html">GETTING STARTED</a></li>
+<li class="toctree-l1"><a class="reference internal" href="filestructure.html">FILE STRUCTURE</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">INTEGRATIONS</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#segmentation-masks">Segmentation Masks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#roi-masks">ROI Masks</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="roi.html">ROI DEFINITION</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documentation.html">DOCUMENTATION</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">PROJECTS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contact.html">CONTACT</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="filestructure.html" title="previous chapter">File Structure</a></li>
+      <li>Next: <a href="roi.html" title="next chapter">Defining a ROI</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Amaral Lab.
+      
+      |
+      <a href="_sources/integration.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/sebastianbernasek/flyqma" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>
