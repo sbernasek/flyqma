@@ -1,19 +1,17 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>Annotation Module &#8212; flyqma v0.3 documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Bleedthrough Module" href="bleedthrough.html" />
@@ -41,18 +39,975 @@
 <div class="section" id="mixture-models">
 <h2>Mixture Models<a class="headerlink" href="#mixture-models" title="Permalink to this headline">¶</a></h2>
 <p>Tools for fitting univariate and bivariate gaussian mixture models.</p>
+<span class="target" id="module-flyqma.annotation.mixtures.univariate"></span><dl class="class">
+<dt id="flyqma.annotation.mixtures.univariate.MixtureProperties">
+<em class="property">class </em><code class="sig-prename descclassname">flyqma.annotation.mixtures.univariate.</code><code class="sig-name descname">MixtureProperties</code><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/univariate.html#MixtureProperties"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.MixtureProperties" title="Permalink to this definition">¶</a></dt>
+<dd><p>Properties for guassian mixture models.</p>
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.univariate.MixtureProperties.AIC">
+<em class="property">property </em><code class="sig-name descname">AIC</code><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.MixtureProperties.AIC" title="Permalink to this definition">¶</a></dt>
+<dd><p>AIC score.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.univariate.MixtureProperties.BIC">
+<em class="property">property </em><code class="sig-name descname">BIC</code><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.MixtureProperties.BIC" title="Permalink to this definition">¶</a></dt>
+<dd><p>BIC score.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.univariate.MixtureProperties.bounds">
+<em class="property">property </em><code class="sig-name descname">bounds</code><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.MixtureProperties.bounds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Low and upper bounds of support.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.univariate.MixtureProperties.component_pdfs">
+<em class="property">property </em><code class="sig-name descname">component_pdfs</code><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.MixtureProperties.component_pdfs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns stacked array of component PDFs.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.univariate.MixtureProperties.components">
+<em class="property">property </em><code class="sig-name descname">components</code><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.MixtureProperties.components" title="Permalink to this definition">¶</a></dt>
+<dd><p>Individual model components.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.univariate.MixtureProperties.lbound">
+<em class="property">property </em><code class="sig-name descname">lbound</code><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.MixtureProperties.lbound" title="Permalink to this definition">¶</a></dt>
+<dd><p>Lower bound of support.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.univariate.MixtureProperties.log_likelihood">
+<em class="property">property </em><code class="sig-name descname">log_likelihood</code><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.MixtureProperties.log_likelihood" title="Permalink to this definition">¶</a></dt>
+<dd><p>Maximized log likelihood.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.univariate.MixtureProperties.means">
+<em class="property">property </em><code class="sig-name descname">means</code><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.MixtureProperties.means" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mean value of each component.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.univariate.MixtureProperties.num_components">
+<em class="property">property </em><code class="sig-name descname">num_components</code><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.MixtureProperties.num_components" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of model components.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.univariate.MixtureProperties.num_samples">
+<em class="property">property </em><code class="sig-name descname">num_samples</code><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.MixtureProperties.num_samples" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of samples.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.univariate.MixtureProperties.pdf">
+<em class="property">property </em><code class="sig-name descname">pdf</code><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.MixtureProperties.pdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gaussian Mixture PDF.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.univariate.MixtureProperties.scale_factor">
+<em class="property">property </em><code class="sig-name descname">scale_factor</code><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.MixtureProperties.scale_factor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Scaling factor for log-transformed support.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.univariate.MixtureProperties.stds">
+<em class="property">property </em><code class="sig-name descname">stds</code><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.MixtureProperties.stds" title="Permalink to this definition">¶</a></dt>
+<dd><p>Standard deviation of each component.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.univariate.MixtureProperties.support">
+<em class="property">property </em><code class="sig-name descname">support</code><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.MixtureProperties.support" title="Permalink to this definition">¶</a></dt>
+<dd><p>Distribution support.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.univariate.MixtureProperties.support_size">
+<em class="property">property </em><code class="sig-name descname">support_size</code><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.MixtureProperties.support_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Size of support.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.univariate.MixtureProperties.ubound">
+<em class="property">property </em><code class="sig-name descname">ubound</code><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.MixtureProperties.ubound" title="Permalink to this definition">¶</a></dt>
+<dd><p>Upper bound of support.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="flyqma.annotation.mixtures.univariate.UnivariateMixture">
+<em class="property">class </em><code class="sig-prename descclassname">flyqma.annotation.mixtures.univariate.</code><code class="sig-name descname">UnivariateMixture</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">values=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/univariate.html#UnivariateMixture"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.UnivariateMixture" title="Permalink to this definition">¶</a></dt>
+<dd><p>Univariate Gaussian mixture model.</p>
+<p>Attributes:</p>
+<blockquote>
+<div><p>values (array like) - values to which model was fit</p>
+</div></blockquote>
+<p>Inherited attributes:</p>
+<blockquote>
+<div><p>See sklearn.mixture.GaussianMixture</p>
+</div></blockquote>
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.univariate.UnivariateMixture.estimate_required_samples">
+<code class="sig-name descname">estimate_required_samples</code><span class="sig-paren">(</span><em class="sig-param">SNR=5.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/univariate.html#UnivariateMixture.estimate_required_samples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.UnivariateMixture.estimate_required_samples" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns minimum number of averaged samples required to achieve the specified signal to noise (SNR) ratio.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.univariate.UnivariateMixture.from_logsample">
+<em class="property">classmethod </em><code class="sig-name descname">from_logsample</code><span class="sig-paren">(</span><em class="sig-param">sample</em>, <em class="sig-param">n=3</em>, <em class="sig-param">max_iter=10000</em>, <em class="sig-param">tol=1e-08</em>, <em class="sig-param">covariance_type='diag'</em>, <em class="sig-param">n_init=10</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/univariate.html#UnivariateMixture.from_logsample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.UnivariateMixture.from_logsample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instantiate from log-transformed sample.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.univariate.UnivariateMixture.from_parameters">
+<em class="property">classmethod </em><code class="sig-name descname">from_parameters</code><span class="sig-paren">(</span><em class="sig-param">mu</em>, <em class="sig-param">sigma</em>, <em class="sig-param">weights=None</em>, <em class="sig-param">values=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/univariate.html#UnivariateMixture.from_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.UnivariateMixture.from_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instantiate model from parameter vectors.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.univariate.UnivariateMixture.from_sample">
+<em class="property">classmethod </em><code class="sig-name descname">from_sample</code><span class="sig-paren">(</span><em class="sig-param">sample</em>, <em class="sig-param">n</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/univariate.html#UnivariateMixture.from_sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.UnivariateMixture.from_sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Instantiate from log-normally distributed sample.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.univariate.UnivariateMixture.get_component_pdf">
+<code class="sig-name descname">get_component_pdf</code><span class="sig-paren">(</span><em class="sig-param">idx</em>, <em class="sig-param">weighted=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/univariate.html#UnivariateMixture.get_component_pdf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.UnivariateMixture.get_component_pdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns PDF for indexed component.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.univariate.UnivariateMixture.logsample">
+<code class="sig-name descname">logsample</code><span class="sig-paren">(</span><em class="sig-param">N</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/univariate.html#UnivariateMixture.logsample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.UnivariateMixture.logsample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns &lt;N&gt; samples of log-transformed variable.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.univariate.UnivariateMixture.multi_logsample">
+<code class="sig-name descname">multi_logsample</code><span class="sig-paren">(</span><em class="sig-param">N</em>, <em class="sig-param">m=10</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/univariate.html#UnivariateMixture.multi_logsample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.UnivariateMixture.multi_logsample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns &lt;N&gt; log-transformed samples as well as &lt;N&gt; log-transformed samples averaged over &lt;m&gt; other samples from the same component.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.univariate.UnivariateMixture.multi_sample">
+<code class="sig-name descname">multi_sample</code><span class="sig-paren">(</span><em class="sig-param">N</em>, <em class="sig-param">m=10</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/univariate.html#UnivariateMixture.multi_sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.UnivariateMixture.multi_sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns &lt;N&gt; samples as well as &lt;N&gt; samples averaged over &lt;m&gt; other samples from the same component.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.univariate.UnivariateMixture.sample">
+<code class="sig-name descname">sample</code><span class="sig-paren">(</span><em class="sig-param">N</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/univariate.html#UnivariateMixture.sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.UnivariateMixture.sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns &lt;N&gt; samples of variable.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.univariate.UnivariateMixture.sample_component">
+<code class="sig-name descname">sample_component</code><span class="sig-paren">(</span><em class="sig-param">component_idx</em>, <em class="sig-param">N</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/univariate.html#UnivariateMixture.sample_component"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.univariate.UnivariateMixture.sample_component" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns &lt;N&gt; log-transformed samples from indexed component.</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-flyqma.annotation.mixtures.bivariate"></span><dl class="class">
+<dt id="flyqma.annotation.mixtures.bivariate.BivariateMixture">
+<em class="property">class </em><code class="sig-prename descclassname">flyqma.annotation.mixtures.bivariate.</code><code class="sig-name descname">BivariateMixture</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">values=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/bivariate.html#BivariateMixture"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.bivariate.BivariateMixture" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bivariate Gaussian mixture model.</p>
+<p>Inherited attributes:</p>
+<blockquote>
+<div><p>values (array like) - values to which model was fit</p>
+<p>See sklearn.mixture.GaussianMixture</p>
+</div></blockquote>
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.bivariate.BivariateMixture.get_marginal_mixture">
+<code class="sig-name descname">get_marginal_mixture</code><span class="sig-paren">(</span><em class="sig-param">margin</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/bivariate.html#BivariateMixture.get_marginal_mixture"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.bivariate.BivariateMixture.get_marginal_mixture" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns univariate mixture model for specified &lt;margin&gt;.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="flyqma.annotation.mixtures.bivariate.BivariateMixtureProperties">
+<em class="property">class </em><code class="sig-prename descclassname">flyqma.annotation.mixtures.bivariate.</code><code class="sig-name descname">BivariateMixtureProperties</code><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/bivariate.html#BivariateMixtureProperties"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.bivariate.BivariateMixtureProperties" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extension properties for bivariate mixtures.</p>
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.bivariate.BivariateMixtureProperties.extent">
+<em class="property">property </em><code class="sig-name descname">extent</code><a class="headerlink" href="#flyqma.annotation.mixtures.bivariate.BivariateMixtureProperties.extent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extent for x and y axes.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.bivariate.BivariateMixtureProperties.supportx">
+<em class="property">property </em><code class="sig-name descname">supportx</code><a class="headerlink" href="#flyqma.annotation.mixtures.bivariate.BivariateMixtureProperties.supportx" title="Permalink to this definition">¶</a></dt>
+<dd><p>Support for first dimension.</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-flyqma.annotation.mixtures.visualization"></span><dl class="class">
+<dt id="flyqma.annotation.mixtures.visualization.BivariateVisualization">
+<em class="property">class </em><code class="sig-prename descclassname">flyqma.annotation.mixtures.visualization.</code><code class="sig-name descname">BivariateVisualization</code><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/visualization.html#BivariateVisualization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.visualization.BivariateVisualization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Visualization methods for bivariate mixture models.</p>
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.visualization.BivariateVisualization.tick_positions">
+<em class="property">property </em><code class="sig-name descname">tick_positions</code><a class="headerlink" href="#flyqma.annotation.mixtures.visualization.BivariateVisualization.tick_positions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tick positions.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.visualization.BivariateVisualization.visualize">
+<code class="sig-name descname">visualize</code><span class="sig-paren">(</span><em class="sig-param">size_ratio=4</em>, <em class="sig-param">figsize=(2</em>, <em class="sig-param">2)</em>, <em class="sig-param">contours=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/visualization.html#BivariateVisualization.visualize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.visualization.BivariateVisualization.visualize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Visualize joint and marginal distributions.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="flyqma.annotation.mixtures.visualization.MixtureVisualization">
+<em class="property">class </em><code class="sig-prename descclassname">flyqma.annotation.mixtures.visualization.</code><code class="sig-name descname">MixtureVisualization</code><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/visualization.html#MixtureVisualization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.visualization.MixtureVisualization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Visualization methods for mixture models.</p>
+<dl class="method">
+<dt id="flyqma.annotation.mixtures.visualization.MixtureVisualization.summary">
+<em class="property">property </em><code class="sig-name descname">summary</code><a class="headerlink" href="#flyqma.annotation.mixtures.visualization.MixtureVisualization.summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns text-based summary of mixture model.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="flyqma.annotation.mixtures.visualization.figure">
+<code class="sig-prename descclassname">flyqma.annotation.mixtures.visualization.</code><code class="sig-name descname">figure</code><span class="sig-paren">(</span><em class="sig-param">func</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/visualization.html#figure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.visualization.figure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator for creating axis.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="flyqma.annotation.mixtures.visualization.surface_figure">
+<code class="sig-prename descclassname">flyqma.annotation.mixtures.visualization.</code><code class="sig-name descname">surface_figure</code><span class="sig-paren">(</span><em class="sig-param">func</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/mixtures/visualization.html#surface_figure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.mixtures.visualization.surface_figure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decorator for creating joint axis.</p>
+</dd></dl>
+
 </div>
 <div class="section" id="model-selection">
 <h2>Model Selection<a class="headerlink" href="#model-selection" title="Permalink to this headline">¶</a></h2>
 <p>Tools for statistical model selection.</p>
+<span class="target" id="module-flyqma.annotation.model_selection.univariate"></span><dl class="class">
+<dt id="flyqma.annotation.model_selection.univariate.SelectionIO">
+<em class="property">class </em><code class="sig-prename descclassname">flyqma.annotation.model_selection.univariate.</code><code class="sig-name descname">SelectionIO</code><a class="reference internal" href="../_modules/flyqma/annotation/model_selection/univariate.html#SelectionIO"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.model_selection.univariate.SelectionIO" title="Permalink to this definition">¶</a></dt>
+<dd><p>Methods for saving and loading a model selection instance.</p>
+<dl class="method">
+<dt id="flyqma.annotation.model_selection.univariate.SelectionIO.load">
+<em class="property">classmethod </em><code class="sig-name descname">load</code><span class="sig-paren">(</span><em class="sig-param">path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/model_selection/univariate.html#SelectionIO.load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.model_selection.univariate.SelectionIO.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load model selection instance from file.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>path (str) - model selection directory</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div><p>selector (UnivariateModelSelection derivative)</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.model_selection.univariate.SelectionIO.load_model">
+<em class="property">static </em><code class="sig-name descname">load_model</code><span class="sig-paren">(</span><em class="sig-param">path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/model_selection/univariate.html#SelectionIO.load_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.model_selection.univariate.SelectionIO.load_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load model from &lt;path&gt; directory.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.model_selection.univariate.SelectionIO.save">
+<code class="sig-name descname">save</code><span class="sig-paren">(</span><em class="sig-param">dirpath</em>, <em class="sig-param">image=False</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/model_selection/univariate.html#SelectionIO.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.model_selection.univariate.SelectionIO.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save classifier to specified path.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>dirpath (str) - directory in which classifier is to be saved</p>
+<p>image (bool) - if True, save model image</p>
+<p>kwargs: keyword arguments for image rendering</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div><p>path (str) - model selection directory</p>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="flyqma.annotation.model_selection.univariate.UnivariateModelSelection">
+<em class="property">class </em><code class="sig-prename descclassname">flyqma.annotation.model_selection.univariate.</code><code class="sig-name descname">UnivariateModelSelection</code><span class="sig-paren">(</span><em class="sig-param">values</em>, <em class="sig-param">attribute</em>, <em class="sig-param">min_num_components=3</em>, <em class="sig-param">max_num_components=8</em>, <em class="sig-param">num_labels=3</em>, <em class="sig-param">models=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/model_selection/univariate.html#UnivariateModelSelection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.model_selection.univariate.UnivariateModelSelection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class for performing univariate mixture model selection. The optimal model is chosen based on BIC score.</p>
+<dl class="method">
+<dt id="flyqma.annotation.model_selection.univariate.UnivariateModelSelection.AIC">
+<em class="property">property </em><code class="sig-name descname">AIC</code><a class="headerlink" href="#flyqma.annotation.model_selection.univariate.UnivariateModelSelection.AIC" title="Permalink to this definition">¶</a></dt>
+<dd><p>AIC scores for each model.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.model_selection.univariate.UnivariateModelSelection.AIC_optimal">
+<em class="property">property </em><code class="sig-name descname">AIC_optimal</code><a class="headerlink" href="#flyqma.annotation.model_selection.univariate.UnivariateModelSelection.AIC_optimal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Model with AIC optimal number of components.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.model_selection.univariate.UnivariateModelSelection.BIC">
+<em class="property">property </em><code class="sig-name descname">BIC</code><a class="headerlink" href="#flyqma.annotation.model_selection.univariate.UnivariateModelSelection.BIC" title="Permalink to this definition">¶</a></dt>
+<dd><p>BIC scores for each model.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.model_selection.univariate.UnivariateModelSelection.BIC_optimal">
+<em class="property">property </em><code class="sig-name descname">BIC_optimal</code><a class="headerlink" href="#flyqma.annotation.model_selection.univariate.UnivariateModelSelection.BIC_optimal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Model with BIC optimal number of components.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.model_selection.univariate.UnivariateModelSelection.fit_model">
+<em class="property">static </em><code class="sig-name descname">fit_model</code><span class="sig-paren">(</span><em class="sig-param">values</em>, <em class="sig-param">num_components</em>, <em class="sig-param">num_labels</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/model_selection/univariate.html#UnivariateModelSelection.fit_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.model_selection.univariate.UnivariateModelSelection.fit_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit model with specified number of components.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.model_selection.univariate.UnivariateModelSelection.fit_models">
+<code class="sig-name descname">fit_models</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/model_selection/univariate.html#UnivariateModelSelection.fit_models"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.model_selection.univariate.UnivariateModelSelection.fit_models" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit model with each number of components.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.model_selection.univariate.UnivariateModelSelection.models">
+<em class="property">property </em><code class="sig-name descname">models</code><a class="headerlink" href="#flyqma.annotation.model_selection.univariate.UnivariateModelSelection.models" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of models ordered by number of components.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.model_selection.univariate.UnivariateModelSelection.parameters">
+<em class="property">property </em><code class="sig-name descname">parameters</code><a class="headerlink" href="#flyqma.annotation.model_selection.univariate.UnivariateModelSelection.parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dictionary of instance parameters.</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-flyqma.annotation.model_selection.bivariate"></span><dl class="class">
+<dt id="flyqma.annotation.model_selection.bivariate.BivariateModelSelection">
+<em class="property">class </em><code class="sig-prename descclassname">flyqma.annotation.model_selection.bivariate.</code><code class="sig-name descname">BivariateModelSelection</code><span class="sig-paren">(</span><em class="sig-param">values</em>, <em class="sig-param">attribute</em>, <em class="sig-param">min_num_components=3</em>, <em class="sig-param">max_num_components=8</em>, <em class="sig-param">num_labels=3</em>, <em class="sig-param">models=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/model_selection/bivariate.html#BivariateModelSelection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.model_selection.bivariate.BivariateModelSelection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bivariate extension for model selection.</p>
+<dl class="method">
+<dt id="flyqma.annotation.model_selection.bivariate.BivariateModelSelection.fit_model">
+<em class="property">static </em><code class="sig-name descname">fit_model</code><span class="sig-paren">(</span><em class="sig-param">values</em>, <em class="sig-param">num_components</em>, <em class="sig-param">num_labels</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/model_selection/bivariate.html#BivariateModelSelection.fit_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.model_selection.bivariate.BivariateModelSelection.fit_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit model with specified number of components.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.model_selection.bivariate.BivariateModelSelection.load_model">
+<em class="property">static </em><code class="sig-name descname">load_model</code><span class="sig-paren">(</span><em class="sig-param">path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/model_selection/bivariate.html#BivariateModelSelection.load_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.model_selection.bivariate.BivariateModelSelection.load_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load model from &lt;path&gt; directory.</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-flyqma.annotation.model_selection.visualization"></span><dl class="class">
+<dt id="flyqma.annotation.model_selection.visualization.ModelSelectionVisualization">
+<em class="property">class </em><code class="sig-prename descclassname">flyqma.annotation.model_selection.visualization.</code><code class="sig-name descname">ModelSelectionVisualization</code><a class="reference internal" href="../_modules/flyqma/annotation/model_selection/visualization.html#ModelSelectionVisualization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.model_selection.visualization.ModelSelectionVisualization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Methods for visualizing model selection procedure.</p>
+<dl class="method">
+<dt id="flyqma.annotation.model_selection.visualization.ModelSelectionVisualization.plot_models">
+<code class="sig-name descname">plot_models</code><span class="sig-paren">(</span><em class="sig-param">panelsize=(3</em>, <em class="sig-param">2)</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/model_selection/visualization.html#ModelSelectionVisualization.plot_models"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.model_selection.visualization.ModelSelectionVisualization.plot_models" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot model for each number of components.</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="label-assignment">
 <h2>Label Assignment<a class="headerlink" href="#label-assignment" title="Permalink to this headline">¶</a></h2>
 <p>Tools for unsupervised classification of cell measurements.</p>
+<span class="target" id="module-flyqma.annotation.classification.classifiers"></span><dl class="class">
+<dt id="flyqma.annotation.classification.classifiers.Classifier">
+<em class="property">class </em><code class="sig-prename descclassname">flyqma.annotation.classification.classifiers.</code><code class="sig-name descname">Classifier</code><span class="sig-paren">(</span><em class="sig-param">values</em>, <em class="sig-param">attribute=None</em>, <em class="sig-param">num_labels=3</em>, <em class="sig-param">log=True</em>, <em class="sig-param">cmap=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/classification/classifiers.html#Classifier"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.classification.classifiers.Classifier" title="Permalink to this definition">¶</a></dt>
+<dd><p>Classifier base class. Children of this class must possess a means attribute, as well as a predict method.</p>
+<p>Attributes:</p>
+<blockquote>
+<div><p>values (array like) - basis for clustering</p>
+<p>attribute (str or list) - attribute(s) used to determine labels</p>
+<p>log (bool) - indicates whether clustering performed on log values</p>
+<p>num_labels (int) - number of output labels</p>
+<p>classifier (vectorized func) - maps value to label_id</p>
+<p>labels (np.ndarray[int]) - predicted labels</p>
+<p>cmap (matplotlib.colors.ColorMap) - colormap for label_id</p>
+<p>parameters (dict) - {param name: param value} pairs</p>
+<p>fig (matplotlib.figures.Figure) - histogram figure</p>
+</div></blockquote>
+<dl class="method">
+<dt id="flyqma.annotation.classification.classifiers.Classifier.build_classifier">
+<code class="sig-name descname">build_classifier</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/classification/classifiers.html#Classifier.build_classifier"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.classification.classifiers.Classifier.build_classifier" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build function that returns the most probable label for each of a series of values.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.classification.classifiers.Classifier.build_colormap">
+<code class="sig-name descname">build_colormap</code><span class="sig-paren">(</span><em class="sig-param">cmap</em>, <em class="sig-param">vmin=-1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/classification/classifiers.html#Classifier.build_colormap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.classification.classifiers.Classifier.build_colormap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build normalized colormap for class labels.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>cmap (matplotlib.colormap)</p>
+<p>vmin (float) - lower bound for colorscale</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div><p>colormap (func) - function mapping class labels to colors</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.classification.classifiers.Classifier.evaluate_classifier">
+<code class="sig-name descname">evaluate_classifier</code><span class="sig-paren">(</span><em class="sig-param">data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/classification/classifiers.html#Classifier.evaluate_classifier"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.classification.classifiers.Classifier.evaluate_classifier" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assign class labels to &lt;data&gt;.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>data (pd.DataFrame) - must contain necessary attributes</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div><p>labels (np.ndarray[int])</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.classification.classifiers.Classifier.from_grouped_measurements">
+<em class="property">classmethod </em><code class="sig-name descname">from_grouped_measurements</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">attribute</em>, <em class="sig-param">groupby=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/classification/classifiers.html#Classifier.from_grouped_measurements"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.classification.classifiers.Classifier.from_grouped_measurements" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit classifier to data grouped by a specified feature.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>data (pd.DataFrame) - measurement data</p>
+<p>groupby (str) - attribute used to group measurement data</p>
+<p>attribute (str or list) - attribute(s) on which to cluster</p>
+<p>kwargs: keyword arguments for classifier</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div><p>classifier (Classifier derivative)</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.classification.classifiers.Classifier.from_measurements">
+<em class="property">classmethod </em><code class="sig-name descname">from_measurements</code><span class="sig-paren">(</span><em class="sig-param">data</em>, <em class="sig-param">attribute</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/classification/classifiers.html#Classifier.from_measurements"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.classification.classifiers.Classifier.from_measurements" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit classifier to data.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>data (pd.DataFrame) - measurement data</p>
+<p>attribute (str or list) - attribute(s) on which to cluster</p>
+<p>kwargs: keyword arguments for classifier</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div><p>classifier (Classifier derivative)</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.classification.classifiers.Classifier.set_cmap">
+<code class="sig-name descname">set_cmap</code><span class="sig-paren">(</span><em class="sig-param">cmap=None</em>, <em class="sig-param">vmin=0</em>, <em class="sig-param">vmax=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/classification/classifiers.html#Classifier.set_cmap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.classification.classifiers.Classifier.set_cmap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set colormap for class labels.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>cmap (matplotlib.colormap)</p>
+<p>vmin (int) - lower bound for color scale</p>
+<p>vmax (int) - upper bound for color scale</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.classification.classifiers.Classifier.show">
+<code class="sig-name descname">show</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/classification/classifiers.html#Classifier.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.classification.classifiers.Classifier.show" title="Permalink to this definition">¶</a></dt>
+<dd><p>Visualize classification.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="flyqma.annotation.classification.classifiers.ClassifierIO">
+<em class="property">class </em><code class="sig-prename descclassname">flyqma.annotation.classification.classifiers.</code><code class="sig-name descname">ClassifierIO</code><a class="reference internal" href="../_modules/flyqma/annotation/classification/classifiers.html#ClassifierIO"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.classification.classifiers.ClassifierIO" title="Permalink to this definition">¶</a></dt>
+<dd><p>Methods for saving and loading classifier objects.</p>
+<dl class="method">
+<dt id="flyqma.annotation.classification.classifiers.ClassifierIO.load">
+<em class="property">classmethod </em><code class="sig-name descname">load</code><span class="sig-paren">(</span><em class="sig-param">path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/classification/classifiers.html#ClassifierIO.load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.classification.classifiers.ClassifierIO.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load classifier from file.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>path (str) - path to classifier directory</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div><p>classifier (Classifier derivative)</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.classification.classifiers.ClassifierIO.save">
+<code class="sig-name descname">save</code><span class="sig-paren">(</span><em class="sig-param">dirpath</em>, <em class="sig-param">data=False</em>, <em class="sig-param">image=True</em>, <em class="sig-param">extension=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/classification/classifiers.html#ClassifierIO.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.classification.classifiers.ClassifierIO.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save classifier to specified path.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>dirpath (str) - directory in which classifier is to be saved</p>
+<p>data (bool) - if True, save training data</p>
+<p>image (bool) - if True, save labeled histogram image</p>
+<p>extension (str) - directory name extension</p>
+<p>kwargs: keyword arguments for image rendering</p>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="flyqma.annotation.classification.classifiers.ClassifierProperties">
+<em class="property">class </em><code class="sig-prename descclassname">flyqma.annotation.classification.classifiers.</code><code class="sig-name descname">ClassifierProperties</code><a class="reference internal" href="../_modules/flyqma/annotation/classification/classifiers.html#ClassifierProperties"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.classification.classifiers.ClassifierProperties" title="Permalink to this definition">¶</a></dt>
+<dd><p>Properties for classifier objects.</p>
+<dl class="method">
+<dt id="flyqma.annotation.classification.classifiers.ClassifierProperties.centroids">
+<em class="property">property </em><code class="sig-name descname">centroids</code><a class="headerlink" href="#flyqma.annotation.classification.classifiers.ClassifierProperties.centroids" title="Permalink to this definition">¶</a></dt>
+<dd><p>Means of each component (not log transformed).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.classification.classifiers.ClassifierProperties.component_groups">
+<em class="property">property </em><code class="sig-name descname">component_groups</code><a class="headerlink" href="#flyqma.annotation.classification.classifiers.ClassifierProperties.component_groups" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of lists of components for each label.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.classification.classifiers.ClassifierProperties.component_to_label">
+<em class="property">property </em><code class="sig-name descname">component_to_label</code><a class="headerlink" href="#flyqma.annotation.classification.classifiers.ClassifierProperties.component_to_label" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns dictionary mapping components to labels.  Mapping is achieved by k-means clustering the model centroids (linear scale).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.classification.classifiers.ClassifierProperties.num_samples">
+<em class="property">property </em><code class="sig-name descname">num_samples</code><a class="headerlink" href="#flyqma.annotation.classification.classifiers.ClassifierProperties.num_samples" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of samples.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.classification.classifiers.ClassifierProperties.order">
+<em class="property">property </em><code class="sig-name descname">order</code><a class="headerlink" href="#flyqma.annotation.classification.classifiers.ClassifierProperties.order" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ordered component indices (low to high).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.classification.classifiers.ClassifierProperties.values">
+<em class="property">property </em><code class="sig-name descname">values</code><a class="headerlink" href="#flyqma.annotation.classification.classifiers.ClassifierProperties.values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Values for classifier.</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-flyqma.annotation.classification.kmeans"></span><dl class="class">
+<dt id="flyqma.annotation.classification.kmeans.KMeansClassifier">
+<em class="property">class </em><code class="sig-prename descclassname">flyqma.annotation.classification.kmeans.</code><code class="sig-name descname">KMeansClassifier</code><span class="sig-paren">(</span><em class="sig-param">values</em>, <em class="sig-param">num_components=3</em>, <em class="sig-param">groups=None</em>, <em class="sig-param">log=True</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/classification/kmeans.html#KMeansClassifier"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.classification.kmeans.KMeansClassifier" title="Permalink to this definition">¶</a></dt>
+<dd><p>K-means classifier.</p>
+<p>Attributes:</p>
+<blockquote>
+<div><p>groups (dict) - {cluster_id: label_id} pairs for merging clusters</p>
+<p>component_to_label (vectorized func) - maps cluster_id to label_id</p>
+<p>km (sklearn.cluster.KMeans) - kmeans object</p>
+<p>classifier (vectorized func) - maps value to label_id</p>
+<p>labels (np.ndarray[int]) - predicted labels</p>
+</div></blockquote>
+<p>Inherited attributes:</p>
+<blockquote>
+<div><p>values (array like) - basis for clustering</p>
+<p>attribute (str or list) - attribute(s) on which to cluster</p>
+<p>log (bool) - indicates whether clustering performed on log values</p>
+<p>cmap (matplotlib.colors.ColorMap) - colormap for label_id</p>
+<p>parameters (dict) - {param name: param value} pairs</p>
+<p>fig (matplotlib.figures.Figure) - histogram figure</p>
+</div></blockquote>
+<dl class="method">
+<dt id="flyqma.annotation.classification.kmeans.KMeansClassifier.fit">
+<em class="property">static </em><code class="sig-name descname">fit</code><span class="sig-paren">(</span><em class="sig-param">values</em>, <em class="sig-param">n</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/classification/kmeans.html#KMeansClassifier.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.classification.kmeans.KMeansClassifier.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit n clusters to x</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.classification.kmeans.KMeansClassifier.means">
+<em class="property">property </em><code class="sig-name descname">means</code><a class="headerlink" href="#flyqma.annotation.classification.kmeans.KMeansClassifier.means" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mean of each cluster.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.classification.kmeans.KMeansClassifier.predict">
+<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param">values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/classification/kmeans.html#KMeansClassifier.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.classification.kmeans.KMeansClassifier.predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predict which component each of &lt;values&gt; belongs to.</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-flyqma.annotation.classification.mixtures"></span><dl class="class">
+<dt id="flyqma.annotation.classification.mixtures.BivariateMixtureClassifier">
+<em class="property">class </em><code class="sig-prename descclassname">flyqma.annotation.classification.mixtures.</code><code class="sig-name descname">BivariateMixtureClassifier</code><span class="sig-paren">(</span><em class="sig-param">values</em>, <em class="sig-param">num_components=3</em>, <em class="sig-param">num_labels=3</em>, <em class="sig-param">fit_kw={}</em>, <em class="sig-param">model=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/classification/mixtures.html#BivariateMixtureClassifier"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.classification.mixtures.BivariateMixtureClassifier" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bivariate mixed log-normal model classifier.</p>
+<p>Attributes:</p>
+<blockquote>
+<div><p>model (mixtures.BivariateMixture) - frozen bivariate mixture model</p>
+</div></blockquote>
+<p>Inherited attributes:</p>
+<blockquote>
+<div><p>values (np.ndarray[float]) - basis for clustering</p>
+<p>attribute (list) - attributes on which to cluster</p>
+<p>num_labels (int) - number of labels</p>
+<p>num_components (int) - number of mixture components</p>
+<p>classifier (vectorized func) - maps values to labels</p>
+<p>labels (np.ndarray[int]) - predicted labels</p>
+<p>log (bool) - indicates whether clustering performed on log values</p>
+<p>cmap (matplotlib.colors.ColorMap) - colormap for labels</p>
+<p>parameters (dict) - {param name: param value} pairs</p>
+</div></blockquote>
+<dl class="method">
+<dt id="flyqma.annotation.classification.mixtures.BivariateMixtureClassifier.fit">
+<em class="property">static </em><code class="sig-name descname">fit</code><span class="sig-paren">(</span><em class="sig-param">values</em>, <em class="sig-param">num_components=3</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/classification/mixtures.html#BivariateMixtureClassifier.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.classification.mixtures.BivariateMixtureClassifier.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit univariate gaussian mixture model.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>values (np.ndarray[float]) - 1D array of log-transformed values</p>
+<p>num_components (int) - number of model components</p>
+<p>kwargs: keyword arguments for fitting</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div><p>model (mixtures.BivariateMixture)</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.classification.mixtures.BivariateMixtureClassifier.marginalize">
+<code class="sig-name descname">marginalize</code><span class="sig-paren">(</span><em class="sig-param">margin</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/classification/mixtures.html#BivariateMixtureClassifier.marginalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.classification.mixtures.BivariateMixtureClassifier.marginalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns UnivariateMixtureClassifier for specified margin.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="flyqma.annotation.classification.mixtures.MixtureModelIO">
+<em class="property">class </em><code class="sig-prename descclassname">flyqma.annotation.classification.mixtures.</code><code class="sig-name descname">MixtureModelIO</code><a class="reference internal" href="../_modules/flyqma/annotation/classification/mixtures.html#MixtureModelIO"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.classification.mixtures.MixtureModelIO" title="Permalink to this definition">¶</a></dt>
+<dd><p>Methods for saving and loading classifier objects.</p>
+<dl class="method">
+<dt id="flyqma.annotation.classification.mixtures.MixtureModelIO.load">
+<em class="property">classmethod </em><code class="sig-name descname">load</code><span class="sig-paren">(</span><em class="sig-param">path</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/classification/mixtures.html#MixtureModelIO.load"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.classification.mixtures.MixtureModelIO.load" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load classifier from file.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>path (str) - path to classifier directory</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div><p>classifier (Classifier derivative)</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.classification.mixtures.MixtureModelIO.save">
+<code class="sig-name descname">save</code><span class="sig-paren">(</span><em class="sig-param">dirpath</em>, <em class="sig-param">data=False</em>, <em class="sig-param">image=True</em>, <em class="sig-param">extension=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/classification/mixtures.html#MixtureModelIO.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.classification.mixtures.MixtureModelIO.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save classifier to specified path.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>dirpath (str) - directory in which classifier is to be saved</p>
+<p>data (bool) - if True, save training data</p>
+<p>image (bool) - if True, save labeled histogram image</p>
+<p>extension (str) - directory name extension</p>
+<p>kwargs: keyword arguments for image rendering</p>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="flyqma.annotation.classification.mixtures.UnivariateMixtureClassifier">
+<em class="property">class </em><code class="sig-prename descclassname">flyqma.annotation.classification.mixtures.</code><code class="sig-name descname">UnivariateMixtureClassifier</code><span class="sig-paren">(</span><em class="sig-param">values</em>, <em class="sig-param">num_components=3</em>, <em class="sig-param">num_labels=3</em>, <em class="sig-param">fit_kw={}</em>, <em class="sig-param">model=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/classification/mixtures.html#UnivariateMixtureClassifier"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.classification.mixtures.UnivariateMixtureClassifier" title="Permalink to this definition">¶</a></dt>
+<dd><p>Univariate mixed log-normal model classifier.</p>
+<p>Attributes:</p>
+<blockquote>
+<div><p>model (mixtures.UnivariateMixture) - frozen univariate mixture model</p>
+<p>num_components (int) - number of mixture components</p>
+<p>classifier (vectorized func) - maps values to labels</p>
+<p>labels (np.ndarray[int]) - predicted labels</p>
+</div></blockquote>
+<p>Inherited attributes:</p>
+<blockquote>
+<div><p>values (np.ndarray[float]) - basis for clustering</p>
+<p>num_labels (int) - number of output labels</p>
+<p>log (bool) - indicates whether clustering performed on log values</p>
+<p>cmap (matplotlib.colors.ColorMap) - colormap for labels</p>
+<p>parameters (dict) - {param name: param value} pairs</p>
+</div></blockquote>
+<dl class="method">
+<dt id="flyqma.annotation.classification.mixtures.UnivariateMixtureClassifier.build_classifier">
+<code class="sig-name descname">build_classifier</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/classification/mixtures.html#UnivariateMixtureClassifier.build_classifier"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.classification.mixtures.UnivariateMixtureClassifier.build_classifier" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build function that returns the most probable label for each of a series of values.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.classification.mixtures.UnivariateMixtureClassifier.build_posterior">
+<code class="sig-name descname">build_posterior</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/classification/mixtures.html#UnivariateMixtureClassifier.build_posterior"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.classification.mixtures.UnivariateMixtureClassifier.build_posterior" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build function that returns the posterior probability of each label given a series of values.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.classification.mixtures.UnivariateMixtureClassifier.evaluate_posterior">
+<code class="sig-name descname">evaluate_posterior</code><span class="sig-paren">(</span><em class="sig-param">data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/classification/mixtures.html#UnivariateMixtureClassifier.evaluate_posterior"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.classification.mixtures.UnivariateMixtureClassifier.evaluate_posterior" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns posterior across components for &lt;data&gt;.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.classification.mixtures.UnivariateMixtureClassifier.fit">
+<em class="property">static </em><code class="sig-name descname">fit</code><span class="sig-paren">(</span><em class="sig-param">values</em>, <em class="sig-param">num_components=3</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/classification/mixtures.html#UnivariateMixtureClassifier.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.classification.mixtures.UnivariateMixtureClassifier.fit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fit univariate gaussian mixture model.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>values (np.ndarray[float]) - 1D array of log-transformed values</p>
+<p>num_components (int) - number of model components</p>
+<p>kwargs: keyword arguments for fitting</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div><p>model (mixtures.UnivariateMixture)</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.classification.mixtures.UnivariateMixtureClassifier.means">
+<em class="property">property </em><code class="sig-name descname">means</code><a class="headerlink" href="#flyqma.annotation.classification.mixtures.UnivariateMixtureClassifier.means" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mean of each component.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.classification.mixtures.UnivariateMixtureClassifier.num_components">
+<em class="property">property </em><code class="sig-name descname">num_components</code><a class="headerlink" href="#flyqma.annotation.classification.mixtures.UnivariateMixtureClassifier.num_components" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of model components.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.classification.mixtures.UnivariateMixtureClassifier.predict">
+<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param">values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/classification/mixtures.html#UnivariateMixtureClassifier.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.classification.mixtures.UnivariateMixtureClassifier.predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predict which component each of &lt;values&gt; belongs to.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.classification.mixtures.UnivariateMixtureClassifier.predict_proba">
+<code class="sig-name descname">predict_proba</code><span class="sig-paren">(</span><em class="sig-param">values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/classification/mixtures.html#UnivariateMixtureClassifier.predict_proba"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.classification.mixtures.UnivariateMixtureClassifier.predict_proba" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predict the posterior probability with which each of &lt;values&gt; belongs to each component.</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-flyqma.annotation.classification.visualization"></span><dl class="class">
+<dt id="flyqma.annotation.classification.visualization.MixtureVisualization">
+<em class="property">class </em><code class="sig-prename descclassname">flyqma.annotation.classification.visualization.</code><code class="sig-name descname">MixtureVisualization</code><a class="reference internal" href="../_modules/flyqma/annotation/classification/visualization.html#MixtureVisualization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.classification.visualization.MixtureVisualization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Methods for visualizing a mixture-model based classifier.</p>
+<dl class="method">
+<dt id="flyqma.annotation.classification.visualization.MixtureVisualization.component_cdfs">
+<em class="property">property </em><code class="sig-name descname">component_cdfs</code><a class="headerlink" href="#flyqma.annotation.classification.visualization.MixtureVisualization.component_cdfs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns weighted CDF of each component over support.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.classification.visualization.MixtureVisualization.component_pdfs">
+<em class="property">property </em><code class="sig-name descname">component_pdfs</code><a class="headerlink" href="#flyqma.annotation.classification.visualization.MixtureVisualization.component_pdfs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Weighted component PDFs over support.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.classification.visualization.MixtureVisualization.ecdf">
+<em class="property">property </em><code class="sig-name descname">ecdf</code><a class="headerlink" href="#flyqma.annotation.classification.visualization.MixtureVisualization.ecdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Empirical CDF over support.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.classification.visualization.MixtureVisualization.epdf">
+<em class="property">property </em><code class="sig-name descname">epdf</code><a class="headerlink" href="#flyqma.annotation.classification.visualization.MixtureVisualization.epdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Empirical PDF over support.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.classification.visualization.MixtureVisualization.esupport">
+<em class="property">property </em><code class="sig-name descname">esupport</code><a class="headerlink" href="#flyqma.annotation.classification.visualization.MixtureVisualization.esupport" title="Permalink to this definition">¶</a></dt>
+<dd><p>Empirical support vector (sorted values).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.classification.visualization.MixtureVisualization.label_colors">
+<em class="property">property </em><code class="sig-name descname">label_colors</code><a class="headerlink" href="#flyqma.annotation.classification.visualization.MixtureVisualization.label_colors" title="Permalink to this definition">¶</a></dt>
+<dd><p>RGB color for each class label.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.classification.visualization.MixtureVisualization.pdf">
+<em class="property">property </em><code class="sig-name descname">pdf</code><a class="headerlink" href="#flyqma.annotation.classification.visualization.MixtureVisualization.pdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Model PDF over support.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.classification.visualization.MixtureVisualization.support">
+<em class="property">property </em><code class="sig-name descname">support</code><a class="headerlink" href="#flyqma.annotation.classification.visualization.MixtureVisualization.support" title="Permalink to this definition">¶</a></dt>
+<dd><p>Model support.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.classification.visualization.MixtureVisualization.support_labels">
+<em class="property">property </em><code class="sig-name descname">support_labels</code><a class="headerlink" href="#flyqma.annotation.classification.visualization.MixtureVisualization.support_labels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Labels for support vector.</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="spatial-analysis">
 <h2>Spatial Analysis<a class="headerlink" href="#spatial-analysis" title="Permalink to this headline">¶</a></h2>
 <p>Tools for analyzing the 2D spatial arrangement of cells.</p>
+<span class="target" id="module-flyqma.annotation.spatial.triangulation"></span><dl class="class">
+<dt id="flyqma.annotation.spatial.triangulation.LocalTriangulation">
+<em class="property">class </em><code class="sig-prename descclassname">flyqma.annotation.spatial.triangulation.</code><code class="sig-name descname">LocalTriangulation</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/spatial/triangulation.html#LocalTriangulation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.spatial.triangulation.LocalTriangulation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Triangulation with edge distance filter.</p>
+<p>Attributes:</p>
+<blockquote>
+<div><p>edge_list (np.ndarray[int]) - (from, to) node pairs</p>
+<p>edge_lengths (np.ndarray[float]) - euclidean length of each edge</p>
+</div></blockquote>
+<dl class="method">
+<dt id="flyqma.annotation.spatial.triangulation.LocalTriangulation.angle_threshold">
+<em class="property">property </em><code class="sig-name descname">angle_threshold</code><a class="headerlink" href="#flyqma.annotation.spatial.triangulation.LocalTriangulation.angle_threshold" title="Permalink to this definition">¶</a></dt>
+<dd><p>Predicted upper bound on edge angles.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.spatial.triangulation.LocalTriangulation.angles">
+<em class="property">property </em><code class="sig-name descname">angles</code><a class="headerlink" href="#flyqma.annotation.spatial.triangulation.LocalTriangulation.angles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Angle on [0, 2p] interval.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.spatial.triangulation.LocalTriangulation.compile_edge_list">
+<code class="sig-name descname">compile_edge_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/spatial/triangulation.html#LocalTriangulation.compile_edge_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.spatial.triangulation.LocalTriangulation.compile_edge_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns list of (node_from, node_to) tuples.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.spatial.triangulation.LocalTriangulation.edge_angles">
+<em class="property">property </em><code class="sig-name descname">edge_angles</code><a class="headerlink" href="#flyqma.annotation.spatial.triangulation.LocalTriangulation.edge_angles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Angular distance of each edge about origin.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.spatial.triangulation.LocalTriangulation.edge_radii">
+<em class="property">property </em><code class="sig-name descname">edge_radii</code><a class="headerlink" href="#flyqma.annotation.spatial.triangulation.LocalTriangulation.edge_radii" title="Permalink to this definition">¶</a></dt>
+<dd><p>Minimum node radius in each edge.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.spatial.triangulation.LocalTriangulation.edges">
+<em class="property">property </em><code class="sig-name descname">edges</code><a class="headerlink" href="#flyqma.annotation.spatial.triangulation.LocalTriangulation.edges" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filtered edges.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.spatial.triangulation.LocalTriangulation.evaluate_edge_lengths">
+<em class="property">static </em><code class="sig-name descname">evaluate_edge_lengths</code><span class="sig-paren">(</span><em class="sig-param">edge_list</em>, <em class="sig-param">x</em>, <em class="sig-param">y</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/spatial/triangulation.html#LocalTriangulation.evaluate_edge_lengths"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.spatial.triangulation.LocalTriangulation.evaluate_edge_lengths" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns 1D array of edge lengths.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.spatial.triangulation.LocalTriangulation.filter_edges">
+<em class="property">classmethod </em><code class="sig-name descname">filter_edges</code><span class="sig-paren">(</span><em class="sig-param">nodes</em>, <em class="sig-param">edges</em>, <em class="sig-param">lengths</em>, <em class="sig-param">max_length=0.1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/spatial/triangulation.html#LocalTriangulation.filter_edges"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.spatial.triangulation.LocalTriangulation.filter_edges" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns all edges less than &lt;max_length&gt;, with at least one edge containing each node.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.spatial.triangulation.LocalTriangulation.filter_hull">
+<code class="sig-name descname">filter_hull</code><span class="sig-paren">(</span><em class="sig-param">edges</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/spatial/triangulation.html#LocalTriangulation.filter_hull"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.spatial.triangulation.LocalTriangulation.filter_hull" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns all edges not on the convex hull.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.spatial.triangulation.LocalTriangulation.filter_longest_edge">
+<code class="sig-name descname">filter_longest_edge</code><span class="sig-paren">(</span><em class="sig-param">edges</em>, <em class="sig-param">edge_lengths</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/spatial/triangulation.html#LocalTriangulation.filter_longest_edge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.spatial.triangulation.LocalTriangulation.filter_longest_edge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns all edges except the longest edge in each triangle.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.spatial.triangulation.LocalTriangulation.filter_outliers">
+<em class="property">classmethod </em><code class="sig-name descname">filter_outliers</code><span class="sig-paren">(</span><em class="sig-param">nodes</em>, <em class="sig-param">edges</em>, <em class="sig-param">lengths</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/spatial/triangulation.html#LocalTriangulation.filter_outliers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.spatial.triangulation.LocalTriangulation.filter_outliers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns all edges whose lengths are not outliers, with at least one edge containing each node.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.spatial.triangulation.LocalTriangulation.find_disconnected_nodes">
+<em class="property">static </em><code class="sig-name descname">find_disconnected_nodes</code><span class="sig-paren">(</span><em class="sig-param">nodes</em>, <em class="sig-param">edges</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/spatial/triangulation.html#LocalTriangulation.find_disconnected_nodes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.spatial.triangulation.LocalTriangulation.find_disconnected_nodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns boolean array of nodes not included in edges.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.spatial.triangulation.LocalTriangulation.find_first_edge">
+<em class="property">static </em><code class="sig-name descname">find_first_edge</code><span class="sig-paren">(</span><em class="sig-param">edges</em>, <em class="sig-param">node</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/spatial/triangulation.html#LocalTriangulation.find_first_edge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.spatial.triangulation.LocalTriangulation.find_first_edge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns index of first edge containing &lt;node&gt;.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.spatial.triangulation.LocalTriangulation.hull">
+<em class="property">property </em><code class="sig-name descname">hull</code><a class="headerlink" href="#flyqma.annotation.spatial.triangulation.LocalTriangulation.hull" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convex hull.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.spatial.triangulation.LocalTriangulation.is_outlier">
+<em class="property">static </em><code class="sig-name descname">is_outlier</code><span class="sig-paren">(</span><em class="sig-param">points</em>, <em class="sig-param">threshold=3.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/annotation/spatial/triangulation.html#LocalTriangulation.is_outlier"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.annotation.spatial.triangulation.LocalTriangulation.is_outlier" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a boolean array with True if points are outliers and False
+otherwise.</p>
+<p>Args:</p>
+<blockquote>
+<div><p>points (np.ndarray[float]) - 1-D array of observations</p>
+<p>threshold (float) - Maximum modified z-score. Observations with a modified z-score (based on the median absolute deviation) greater are classified as outliers.</p>
+</div></blockquote>
+<p>Returns:</p>
+<blockquote>
+<div><p>mask (np.ndarray[bool])</p>
+</div></blockquote>
+<p>References:</p>
+<blockquote>
+<div><p>Boris Iglewicz and David Hoaglin (1993), “Volume 16: How to Detect and Handle Outliers”, The ASQC Basic References in Quality Control:
+Statistical Techniques, Edward F. Mykytka, Ph.D., Editor.</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.spatial.triangulation.LocalTriangulation.nodes">
+<em class="property">property </em><code class="sig-name descname">nodes</code><a class="headerlink" href="#flyqma.annotation.spatial.triangulation.LocalTriangulation.nodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>All nodes.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.spatial.triangulation.LocalTriangulation.num_triangles">
+<em class="property">property </em><code class="sig-name descname">num_triangles</code><a class="headerlink" href="#flyqma.annotation.spatial.triangulation.LocalTriangulation.num_triangles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of triangles.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.spatial.triangulation.LocalTriangulation.radii">
+<em class="property">property </em><code class="sig-name descname">radii</code><a class="headerlink" href="#flyqma.annotation.spatial.triangulation.LocalTriangulation.radii" title="Permalink to this definition">¶</a></dt>
+<dd><p>Radius.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="flyqma.annotation.spatial.triangulation.LocalTriangulation.size">
+<em class="property">property </em><code class="sig-name descname">size</code><a class="headerlink" href="#flyqma.annotation.spatial.triangulation.LocalTriangulation.size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of points.</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 </div>
 
@@ -116,17 +1071,23 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
         </div>
       </div>
       <div class="clearer"></div>

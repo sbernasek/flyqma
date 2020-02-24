@@ -1,19 +1,17 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>Getting Started &#8212; flyqma v0.3 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="File Structure" href="filestructure.html" />
@@ -44,9 +42,9 @@
 <p>Fly-QMA uses a hierarchical <a class="reference internal" href="filestructure.html#filestructure"><span class="std std-ref">file structure</span></a> that is organized into three levels:</p>
 <blockquote>
 <div><ol class="arabic simple">
-<li><strong>EXPERIMENT</strong>: One or more tissue samples imaged under the same conditions.</li>
-<li><strong>STACK</strong>: All images of a particular tissue sample, such as an individual z-stack.</li>
-<li><strong>LAYER</strong>: All analysis relevant to a single 2-D image, such as an individual layer.</li>
+<li><p><strong>EXPERIMENT</strong>: One or more tissue samples imaged under the same conditions.</p></li>
+<li><p><strong>STACK</strong>: All images of a particular tissue sample, such as an individual z-stack.</p></li>
+<li><p><strong>LAYER</strong>: All analysis relevant to a single 2-D image, such as an individual layer.</p></li>
 </ol>
 </div></blockquote>
 <p>Before using Fly-QMA, microscopy data should be manually arranged into a collection of <strong>STACK</strong> directories that reside within a particular <strong>EXPERIMENT</strong> directory. Note that the actual names of these directories don’t matter, but their hierarchical positions do:</p>
@@ -71,8 +69,8 @@
 </pre></div>
 </div>
 <div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last">Image segmentation is performed on a layer-by-layer basis. Because cells often span several adjacent layers in a confocal z-stack, individual layers must be spaced far enough apart to avoid measuring the same cells twice. Overlapping layers may also be manually excluded using the provided <a class="reference internal" href="modules/selection.html#selection-docs"><span class="std std-ref">ROI Selector</span></a>.</p>
+<p class="admonition-title">Warning</p>
+<p>Image segmentation is performed on a layer-by-layer basis. Because cells often span several adjacent layers in a confocal z-stack, individual layers must be spaced far enough apart to avoid measuring the same cells twice. Overlapping layers may also be manually excluded using the provided <a class="reference internal" href="modules/selection.html#selection-docs"><span class="std std-ref">ROI Selector</span></a>.</p>
 </div>
 </div>
 <div class="section" id="loading-images">
@@ -129,7 +127,7 @@
 </div>
 <p>Alternatively, to segment all layers within an image stack:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">channel</span> <span class="o">=</span> <span class="mi">2</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">stack</span><span class="o">.</span><span class="n">segment</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stack</span><span class="o">.</span><span class="n">segment</span><span class="p">(</span><span class="n">channel</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>In both cases, measurement data are generated on a layer-by-layer basis. To ensure that the segmentation results and corresponding measurement data will remain available after the session is terminated, specify <code class="docutils literal notranslate"><span class="pre">save=True</span></code> or call <code class="docutils literal notranslate"><span class="pre">layer.save()</span></code>. This will save the segmentation parameters within a layer metadata file and create a <code class="docutils literal notranslate"><span class="pre">segmentation</span></code> subdirectory containing a segment labels mask. It will also create a <code class="docutils literal notranslate"><span class="pre">measurements</span></code> subdirectory containing the corresponding raw expression measurement data (measurements.hdf), as well as a duplicate version that is subject to all subsequent processing operations (processed.hdf). The raw measurements will remain the same until a new segmentation is executed and saved, while the processed measurements are updated each time a new operation is applied and saved. Following segmentation, each <strong>LAYER</strong> directory will resemble:</p>
@@ -159,13 +157,13 @@
 <p>Raw and processed measurement data are accessed via the <code class="docutils literal notranslate"><span class="pre">Layer.measurements</span></code> and <code class="docutils literal notranslate"><span class="pre">Layer.data</span></code> attributes, respectively. Both are stored in <a class="reference external" href="https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html">Pandas DataFrames</a> in which each sample (row) reflects an individual segment. Columns depict a mixture of continuous and categorical features, including:</p>
 <blockquote>
 <div><ul class="simple">
-<li><strong>segment_id:</strong> unique integer identifier assigned to the segment</li>
-<li><strong>pixel_count:</strong> total number of pixels within the segment</li>
-<li><strong>centroid_x:</strong> mean x-coordinate of all pixels</li>
-<li><strong>centroid_y:</strong> mean y-coordinate of all pixels</li>
-<li><strong>chN:</strong> mean intensity of the Nth channel across all pixels</li>
-<li><strong>chN_std:</strong> standard deviation of the Nth channel across all pixels</li>
-<li><strong>chN_normalized:</strong> normalized mean intensity of the Nth channel</li>
+<li><p><strong>segment_id:</strong> unique integer identifier assigned to the segment</p></li>
+<li><p><strong>pixel_count:</strong> total number of pixels within the segment</p></li>
+<li><p><strong>centroid_x:</strong> mean x-coordinate of all pixels</p></li>
+<li><p><strong>centroid_y:</strong> mean y-coordinate of all pixels</p></li>
+<li><p><strong>chN:</strong> mean intensity of the Nth channel across all pixels</p></li>
+<li><p><strong>chN_std:</strong> standard deviation of the Nth channel across all pixels</p></li>
+<li><p><strong>chN_normalized:</strong> normalized mean intensity of the Nth channel</p></li>
 </ul>
 </div></blockquote>
 <p>To aggregate processed measurement data across all layers in an image stack:</p>
@@ -183,10 +181,10 @@
 <p>The measurement data stored in the <code class="docutils literal notranslate"><span class="pre">layer.measurements</span></code> attribute and <code class="docutils literal notranslate"><span class="pre">measurements.hdf</span></code> file reflect raw measurements of mean pixel intensity for each segment. These measurements may then be subject to one or more processing operations such as:</p>
 <blockquote>
 <div><ul class="simple">
-<li>ROI definition</li>
-<li>Bleedthrough correction</li>
-<li>Automated annotation</li>
-<li>Manual annotation</li>
+<li><p>ROI definition</p></li>
+<li><p>Bleedthrough correction</p></li>
+<li><p>Automated annotation</p></li>
+<li><p>Manual annotation</p></li>
 </ul>
 </div></blockquote>
 <p>The objects that perform these operations all behave in a similar manner. They are manually defined for each disc (see the <a class="reference external" href="https://github.com/sebastianbernasek/flyqma/blob/master/tutorial.ipynb">Tutorial</a> for examples), but may then be saved for repeated use. When saved, each object creates its own subdirectory within the corresponding <strong>LAYER</strong> directory:</p>
@@ -217,12 +215,12 @@
 <p>The added subdirectories include all the files and metadata necessary to load and execute the data processing operations performed by the respective object. Saved operations are automatically applied to the raw measurement data each time a layer is loaded, appending a number of additional features to the <code class="docutils literal notranslate"><span class="pre">layer.data</span></code> DataFrame:</p>
 <blockquote>
 <div><ul class="simple">
-<li><strong>chN_predicted:</strong> estimated bleedthrough contribution into the Nth channel</li>
-<li><strong>chNc:</strong> bleedthrough-corrected intensity of the Nth channel</li>
-<li><strong>chNc_normalized:</strong> normalized bleedthrough-corrected intensity of the Nth channel</li>
-<li><strong>selected:</strong> boolean flag indicating whether the segment falls within the ROI</li>
-<li><strong>boundary:</strong>  boolean flag indicating whether the segment lies within a boundary region</li>
-<li><strong>manual_label:</strong> segment label manually assigned using  <a class="reference external" href="https://www.silhouette.amaral.northwestern.edu/">FlyEye Silhouette</a></li>
+<li><p><strong>chN_predicted:</strong> estimated bleedthrough contribution into the Nth channel</p></li>
+<li><p><strong>chNc:</strong> bleedthrough-corrected intensity of the Nth channel</p></li>
+<li><p><strong>chNc_normalized:</strong> normalized bleedthrough-corrected intensity of the Nth channel</p></li>
+<li><p><strong>selected:</strong> boolean flag indicating whether the segment falls within the ROI</p></li>
+<li><p><strong>boundary:</strong>  boolean flag indicating whether the segment lies within a boundary region</p></li>
+<li><p><strong>manual_label:</strong> segment label manually assigned using  <a class="reference external" href="https://www.silhouette.amaral.northwestern.edu/">FlyEye Silhouette</a></p></li>
 </ul>
 </div></blockquote>
 <p>Furthermore, the annotation module may be used to assign one or more labels to each segment. Users are free to specify the names of these additional features as they please.</p>
@@ -286,17 +284,23 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
         </div>
       </div>
       <div class="clearer"></div>

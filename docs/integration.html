@@ -1,19 +1,17 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>External Integrations &#8212; flyqma v0.3 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Defining a ROI" href="roi.html" />
@@ -44,7 +42,7 @@
 <p>Segmentation masks are imported by calling the <code class="docutils literal notranslate"><span class="pre">Layer.import_segmentation_mask</span></code> method. Expression measurements will then automatically be generated using the provided mask. The <code class="docutils literal notranslate"><span class="pre">save=True</span></code> argument tells Fly-QMA to save a copy of the mask to the appropriate <strong>LAYER</strong> subdirectory in order to ensure that the mask remains available even after the Layer instance is destroyed.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">segmentation_mask_path</span> <span class="o">=</span> <span class="s1">&#39;./segmentation.npy&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">channel</span> <span class="o">=</span> <span class="mi">2</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">layer</span><span class="o">.</span><span class="n">import_segmentation_mask</span><span class="p">(</span><span class="n">segmentation_mask_path</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">layer</span><span class="o">.</span><span class="n">import_segmentation_mask</span><span class="p">(</span><span class="n">segmentation_mask_path</span><span class="p">,</span> <span class="n">channel</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -53,7 +51,7 @@
 <p>Fly-QMA also supports importing an externally generated ROI mask. Like segmentation masks, ROI masks are two-dimensional <code class="docutils literal notranslate"><span class="pre">.npy</span></code> arrays whose dimensions match those of the corresponding microscope image. Elements in the ROI mask are binary, taking on either integer values of 0/1 or boolean values of True/False. Values of 1 or True denote that the corresponding pixel is within the region of interest. Please note that the ROI must be a single contiguous region. Support for multiple disconnected regions of interest within a single image is currently under development.</p>
 <p>ROI masks are imported by calling the <code class="docutils literal notranslate"><span class="pre">Layer.import_roi_mask</span></code> method. A boolean <code class="docutils literal notranslate"><span class="pre">selected</span></code> attribute will then automatically be added to the corresponding measurement data, in which a value of True denotes that a given measurement falls within the defined region of interest. The <code class="docutils literal notranslate"><span class="pre">save=True</span></code> argument tells Fly-QMA to save a copy of the mask to the appropriate LAYER subdirectory in order to ensure that the ROI remains available even after the Layer instance is destroyed.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">roi_mask_path</span> <span class="o">=</span> <span class="s1">&#39;./roi_mask.npy&#39;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">layer</span><span class="o">.</span><span class="n">import_roi_mask</span><span class="p">(</span><span class="n">roi_mask_path</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">layer</span><span class="o">.</span><span class="n">import_roi_mask</span><span class="p">(</span><span class="n">roi_mask_path</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -113,17 +111,23 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
         </div>
       </div>
       <div class="clearer"></div>

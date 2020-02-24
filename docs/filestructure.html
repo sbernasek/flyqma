@@ -1,19 +1,17 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>File Structure &#8212; flyqma v0.3 documentation</title>
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="External Integrations" href="integration.html" />
@@ -40,9 +38,9 @@
 <p>Fly-QMA uses a standardized file structure, and will automatically adhere to this format by creating and updating  various subdirectories and files as needed. The file structure is hierarchically organized into three levels:</p>
 <blockquote>
 <div><ol class="arabic simple">
-<li><strong>EXPERIMENT</strong>: One or more tissue samples imaged under the same conditions.</li>
-<li><strong>STACK</strong>: All images of a particular tissue sample, such as an individual z-stack.</li>
-<li><strong>LAYER</strong>: All analysis relevant to a single 2-D image, such as an individual layer.</li>
+<li><p><strong>EXPERIMENT</strong>: One or more tissue samples imaged under the same conditions.</p></li>
+<li><p><strong>STACK</strong>: All images of a particular tissue sample, such as an individual z-stack.</p></li>
+<li><p><strong>LAYER</strong>: All analysis relevant to a single 2-D image, such as an individual layer.</p></li>
 </ol>
 </div></blockquote>
 <div class="section" id="experiments">
@@ -61,10 +59,10 @@
 <p>Each <strong>STACK</strong> directory contains various components pertinent to all images within the image z-stack. These may include:</p>
 <blockquote>
 <div><ul class="simple">
-<li>The original <code class="docutils literal notranslate"><span class="pre">.tif</span></code> image file depicting a z-stack of an imaginal disc. Images may be regularly-spaced 3D z-stacks or irregularly-spaced 3D collections of one or more layers. If a 2D image is provided, Fly-QMA will assume the z-stack only contains a single layer.</li>
-<li>A <code class="docutils literal notranslate"><span class="pre">metadata.json</span></code> file containing all imaging metadata, e.g. number of layers, number of fluorescence channels, image bit depth, etc.</li>
-<li>An <code class="docutils literal notranslate"><span class="pre">annotation</span></code> subdirectory containing all of the model components used to annotate a particular image stack.</li>
-<li>A <code class="docutils literal notranslate"><span class="pre">layers</span></code> subdirectory containing all of the lower level <strong>LAYER</strong> directories. Layers are sequentially numbered, beginning with zero.</li>
+<li><p>The original <code class="docutils literal notranslate"><span class="pre">.tif</span></code> image file depicting a z-stack of an imaginal disc. Images may be regularly-spaced 3D z-stacks or irregularly-spaced 3D collections of one or more layers. If a 2D image is provided, Fly-QMA will assume the z-stack only contains a single layer.</p></li>
+<li><p>A <code class="docutils literal notranslate"><span class="pre">metadata.json</span></code> file containing all imaging metadata, e.g. number of layers, number of fluorescence channels, image bit depth, etc.</p></li>
+<li><p>An <code class="docutils literal notranslate"><span class="pre">annotation</span></code> subdirectory containing all of the model components used to annotate a particular image stack.</p></li>
+<li><p>A <code class="docutils literal notranslate"><span class="pre">layers</span></code> subdirectory containing all of the lower level <strong>LAYER</strong> directories. Layers are sequentially numbered, beginning with zero.</p></li>
 </ul>
 </div></blockquote>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>EXPERIMENT
@@ -88,11 +86,11 @@
 <p>Each <strong>LAYER</strong> directory contains all components pertinent to an individual 2D layer within the z-stack. These may include:</p>
 <blockquote>
 <div><ul class="simple">
-<li>A <code class="docutils literal notranslate"><span class="pre">metadata.json</span></code> file containing all layer metadata, such as particular parameter values used.</li>
-<li>A <code class="docutils literal notranslate"><span class="pre">selection</span></code> subdirectory containing a <code class="docutils literal notranslate"><span class="pre">selection.npy</span></code> ROI mask. This mask is a binary 2D numpy array in which each element denotes whether a given pixel is within the ROI. The <code class="docutils literal notranslate"><span class="pre">selection</span></code> directory also includes a <code class="docutils literal notranslate"><span class="pre">md.json</span></code> file used whose contents are used to indicate whether or not the layer is included within subsequent analyses.</li>
-<li>A <code class="docutils literal notranslate"><span class="pre">correction</span></code> subdirectory containing a parameterized model for performing bleedthrough correction. The <code class="docutils literal notranslate"><span class="pre">data.json</span></code> file contains the model parameterization, while <code class="docutils literal notranslate"><span class="pre">fit.png</span></code> depicts the model fit and <code class="docutils literal notranslate"><span class="pre">correction.png</span></code> shows the resultant correction.</li>
-<li>A <code class="docutils literal notranslate"><span class="pre">segmentation</span></code> subdirectory containing a <code class="docutils literal notranslate"><span class="pre">labels.npy</span></code> segmentation mask. This mask is a 2D numpy array of integers in which each element represents a single pixel within the image. The integer value denotes the segment assigned to each pixel, where zero-valued pixels comprise the background. The <code class="docutils literal notranslate"><span class="pre">segmentation</span></code> directory may also include an image of the resultant segmentation, stored as <code class="docutils literal notranslate"><span class="pre">segmentation.ong</span></code>, but this file is not required.</li>
-<li>A <code class="docutils literal notranslate"><span class="pre">measurements</span></code> subdirectory containing two serialized Pandas dataframes. The file <code class="docutils literal notranslate"><span class="pre">measurements.hdf</span></code> contains the raw measured pixel intensities for all detected cells or nuclei, while <code class="docutils literal notranslate"><span class="pre">processed.hdf</span></code> contains a cached version of the measured data after all analyses (e.g. bleedthrough correction, annotation, etc.) have been applied. The former is used to preserve the original measurements, while the latter is used to cache the results of previous analysis so they may be rapidly retrieved at any time.</li>
+<li><p>A <code class="docutils literal notranslate"><span class="pre">metadata.json</span></code> file containing all layer metadata, such as particular parameter values used.</p></li>
+<li><p>A <code class="docutils literal notranslate"><span class="pre">selection</span></code> subdirectory containing a <code class="docutils literal notranslate"><span class="pre">selection.npy</span></code> ROI mask. This mask is a binary 2D numpy array in which each element denotes whether a given pixel is within the ROI. The <code class="docutils literal notranslate"><span class="pre">selection</span></code> directory also includes a <code class="docutils literal notranslate"><span class="pre">md.json</span></code> file used whose contents are used to indicate whether or not the layer is included within subsequent analyses.</p></li>
+<li><p>A <code class="docutils literal notranslate"><span class="pre">correction</span></code> subdirectory containing a parameterized model for performing bleedthrough correction. The <code class="docutils literal notranslate"><span class="pre">data.json</span></code> file contains the model parameterization, while <code class="docutils literal notranslate"><span class="pre">fit.png</span></code> depicts the model fit and <code class="docutils literal notranslate"><span class="pre">correction.png</span></code> shows the resultant correction.</p></li>
+<li><p>A <code class="docutils literal notranslate"><span class="pre">segmentation</span></code> subdirectory containing a <code class="docutils literal notranslate"><span class="pre">labels.npy</span></code> segmentation mask. This mask is a 2D numpy array of integers in which each element represents a single pixel within the image. The integer value denotes the segment assigned to each pixel, where zero-valued pixels comprise the background. The <code class="docutils literal notranslate"><span class="pre">segmentation</span></code> directory may also include an image of the resultant segmentation, stored as <code class="docutils literal notranslate"><span class="pre">segmentation.ong</span></code>, but this file is not required.</p></li>
+<li><p>A <code class="docutils literal notranslate"><span class="pre">measurements</span></code> subdirectory containing two serialized Pandas dataframes. The file <code class="docutils literal notranslate"><span class="pre">measurements.hdf</span></code> contains the raw measured pixel intensities for all detected cells or nuclei, while <code class="docutils literal notranslate"><span class="pre">processed.hdf</span></code> contains a cached version of the measured data after all analyses (e.g. bleedthrough correction, annotation, etc.) have been applied. The former is used to preserve the original measurements, while the latter is used to cache the results of previous analysis so they may be rapidly retrieved at any time.</p></li>
 </ul>
 </div></blockquote>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>EXPERIMENT
@@ -129,8 +127,8 @@
 </pre></div>
 </div>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">It is possible to integrate external analyses into the Fly-QMA workflow by manually adding them in accordance with the standardized file structure. For instance, users may import their own ROI or segmentation masks by adding them to the appropriate subdirectories. However, Fly-QMA also provides a handful of import methods designed explicitly for this purpose. See the <a class="reference internal" href="integration.html#integration"><span class="std std-ref">integration</span></a> section for additional details.</p>
+<p class="admonition-title">Note</p>
+<p>It is possible to integrate external analyses into the Fly-QMA workflow by manually adding them in accordance with the standardized file structure. For instance, users may import their own ROI or segmentation masks by adding them to the appropriate subdirectories. However, Fly-QMA also provides a handful of import methods designed explicitly for this purpose. See the <a class="reference internal" href="integration.html#integration"><span class="std std-ref">integration</span></a> section for additional details.</p>
 </div>
 </div>
 <div class="section" id="annotation">
@@ -220,17 +218,23 @@
 </ul>
 </div>
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
         </div>
       </div>
       <div class="clearer"></div>
