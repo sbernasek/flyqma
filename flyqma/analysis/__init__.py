@@ -1,1 +1,1 @@
-from .statistics import CloneComparison
+from .statistics import CelltypeComparison, PairwiseCelltypeComparison

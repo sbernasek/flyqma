@@ -10,7 +10,7 @@ class ConcurrencyLabeler(AttributeLabeler):
 
     Attributes:
 
-        attribute (str) - measurement attribute used to denote cell type
+        attribute (str) - attribute used to denote cell type
 
         label_values (array like) - by default use all available
 
@@ -29,7 +29,7 @@ class ConcurrencyLabeler(AttributeLabeler):
 
         Args:
 
-            attribute (str) - measurement attribute used to denote labels
+            attribute (str) - attribute used to denote labels
 
             label_values (array like) - by default use all available
 

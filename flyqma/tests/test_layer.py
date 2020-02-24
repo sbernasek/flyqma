@@ -15,6 +15,7 @@ class Test03_Layer(TestPaths):
     Tests for Layer instance.
     """
 
+    annotated_channel = 'ch0'
     label_name = 'TEST'
 
     @classmethod
@@ -43,12 +44,12 @@ class Test03_Layer(TestPaths):
 
     def test02_build_graph(self):
         """ Build cell adjacency graph. """
-        self.layer.build_graph('ch0')
+        self.layer.build_graph(self.annotated_channel)
         self.assertTrue(self.layer.graph is not None)
 
     def test03_train_annotator(self):
         """ Train clone annotation model on individual layer. """
-        self.layer.train_annotator('ch0')
+        self.layer.train_annotator(self.annotated_channel)
         self.assertTrue(self.layer.annotator is not None)
 
     def test04_apply_annotator(self):
@@ -73,12 +74,23 @@ class Test03_Layer(TestPaths):
         mask = self.layer.build_attribute_mask(self.label_name)
         self.assertTrue(type(mask) == np.ma.core.MaskedArray)
 
-    def test08_select_channel(self):
+    def test08_show_annotation(self):
+        """ Show layer annotation. """
+        if self.layer.include:
+            channel, label = self.annotated_channel, self.label_name
+            try:
+                fig = self.layer.show_annotation(channel, label)
+                success = True
+            except:
+                success = False
+            self.assertTrue(success)
+
+    def test09_select_channel(self):
         """ Select individual fluorescence channel. """
         channel = self.layer.get_channel(1)
         self.assertTrue(type(channel) == ImageScalar)
 
-    def test09_bleedthrough_correction(self):
+    def test10_bleedthrough_correction(self):
         """ Correct measurements for fluorescence bleedthrough. """
         correction = LayerCorrection(self.layer, xvar=0, yvar=1)
         correction.save()

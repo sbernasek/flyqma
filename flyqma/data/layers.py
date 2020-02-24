@@ -50,7 +50,7 @@ class LayerVisualization:
 
         Args:
 
-            channel (str) - color channel to visualize
+            channel (str) - fluorescence channel to visualize
 
             figsize (tuple) - figure size
 
@@ -128,6 +128,8 @@ class LayerVisualization:
 
         # exclude borders
         if interior_only:
+            msg = 'Boundary attribute not found. Annotate and try again.'
+            assert 'boundary' in self.data.keys(), msg
             boundary = self.data[self.data.boundary]
             boundary_to_black = {x: null_value for x in boundary.segment_id}
             segment_to_value.update(boundary_to_black)
@@ -385,6 +387,7 @@ class LayerIO(WriteSilhouetteLayer):
            correction (LayerCorrection)
 
         """
+        assert self.has_image, 'Image unavailable. Load image and try again.'
         return LayerCorrection.load(self)
 
     def load(self, use_cache=True, graph=True):
@@ -458,6 +461,8 @@ class LayerProperties:
 
         bg_key (str) - key for channel used to generate segmentation
 
+        has_image (bool) - if True, image is loaded into memory
+
         is_segmented (bool) - if True, layer has been segmented
 
         has_trained_annotator (bool) - if True, layer has a trained annotator
@@ -478,6 +483,11 @@ class LayerProperties:
     def bg_key(self):
         """ DataFrame key for background channel. """
         return self._to_key(self.metadata['bg'])
+
+    @property
+    def has_image(self):
+        """ True if image is available. """
+        return self.im is not None
 
     @property
     def is_segmented(self):
@@ -915,7 +925,7 @@ class LayerAnnotation:
                           max_distance=10,
                           **kwargs):
         """
-        Add boolean 'concurrent_<basis>' field to cell measurement data for each unique value of <basis> attribute.
+        Add boolean 'concurrent_<basis>' field to measurement data for each unique value of <basis> attribute.
 
         Args:
 
@@ -1014,6 +1024,58 @@ class LayerAnnotation:
 
         """
         self._mark_boundaries(self.data, basis=basis, max_edges=max_edges)
+
+    def show_annotation(self, channel, label,
+                        interior_only=False,
+                        selection_only=False,
+                        cmap=None,
+                        figsize=(8, 4),
+                        **kwargs):
+        """
+
+        Visualize annotation by overlaying <label> attribute on the image of the specified fluoreascence <channel>.
+
+        Args:
+
+            channel (str) - fluorescence channel to visualize
+
+            label (str) - attribute containing cell type labels
+
+            interior_only (bool) - if True, exclude border regions
+
+            selection_only (bool) - if True, only add contours within ROI
+
+            cmap (matplotlib.ListedColorMap) - color scheme for celltype labels
+
+            figsize (tuple) - figure dimensions
+
+            kwargs: keyword arguments for plt.scatter
+
+        Returns:
+
+            fig (matplotlib.Figure)
+
+        """
+
+        assert label in self.data.keys(), 'No {:s} attribute found. Please check to make sure that annotation is complete.'.format(label)
+
+        # create figure and plot images
+        fig, (ax0, ax1) = plt.subplots(ncols=2, figsize=figsize)
+        _ = self.get_channel(channel).show(segments=False, ax=ax0)
+        _ = self.get_channel(channel).show(segments=False, ax=ax1)
+
+        # build and overlay attribute mask
+        mask = self.build_attribute_mask(label,
+                                         interior_only=interior_only,
+                                         selection_only=selection_only)
+        ax1.imshow(mask, cmap=cmap)
+
+        # rectify dimensions
+        ax1.set_xlim(*ax0.get_xlim())
+        ax1.set_ylim(*ax0.get_ylim())
+        plt.tight_layout()
+
+        return fig
 
 
 class Layer(LayerIO,

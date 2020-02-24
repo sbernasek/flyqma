@@ -1,3 +1,5 @@
+from itertools import combinations
+from collections import OrderedDict
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -38,7 +40,12 @@ class PairwiseComparison:
         self.y = y
         self.basis = basis
 
-    def compare(self, test='MW'):
+    @property
+    def is_greater_than(self):
+        """ True if first population mean is greater than the second."""
+        return self.x[self.basis].mean() > self.y[self.basis].mean()
+
+    def compare(self, test='MW', **kwargs):
         """
         Run statistical test.
 
@@ -50,6 +57,10 @@ class PairwiseComparison:
 
             p (float) - p-value
 
+            is_greater_than (bool) - True if first population mean is greater
+
+            kwargs: keyword arguments for statistical test
+
         """
 
         # extract compared values for each population
@@ -57,24 +68,24 @@ class PairwiseComparison:
 
         # perform statistical test
         if test.lower() == 'ks':
-            k, p = ks_2samp(x, y)
+            k, p = ks_2samp(x, y, **kwargs)
         elif test.lower() == 't':
-            k, p = ttest_ind(x, y)
+            k, p = ttest_ind(x, y, **kwargs)
         elif test.lower() == 'mw':
-            k, p = mannwhitneyu(x, y, alternative='two-sided')
+            k, p = mannwhitneyu(x, y, **kwargs)
         else:
             raise ValueError('Test {:s} not recognized.'.format(test))
 
-        return p
+        return p, self.is_greater_than
 
 
-class CloneComparison(PairwiseComparison):
+class PairwiseCelltypeComparison(PairwiseComparison):
     """
     Pairwise statistical comparison between two concurrent cell types.
 
     Attributes:
 
-        label (str) - attribute used to define population labels
+        label (str) - attribute used to stratify populations
 
         type1 (str) - first label
 
@@ -92,13 +103,13 @@ class CloneComparison(PairwiseComparison):
 
     def __init__(self, measurements, type1, type2, basis,
                  label='celltype',
-                 concurrent_only=False):
+                 concurrent_only=True):
         """
         Instantiate comparison between two concurrent cell types.
 
         Args:
 
-            measurements (pd.DataFrame) - cell measurement data
+            measurements (pd.DataFrame) - measurement data
 
             type1 (str or int) - first label
 
@@ -108,7 +119,7 @@ class CloneComparison(PairwiseComparison):
 
             label (str) - attribute used to define population labels
 
-            concurrent_only (bool) - if True, only
+            concurrent_only (bool) - if True, only compare concurrent cells
 
         """
 
@@ -118,9 +129,10 @@ class CloneComparison(PairwiseComparison):
         self.type2 = type2
 
         # select concurrent cells of each type
-        ind = np.logical_and(measurements['concurrent_'+str(self.type1)],
-                             measurements['concurrent_'+str(self.type2)])
-        measurements = measurements[ind]
+        if concurrent_only:
+            k1 = 'concurrent_'+str(self.type1)
+            k2 = 'concurrent_'+str(self.type2)
+            measurements = measurements[measurements[k1] & measurements[k2]]
 
         # split into two populations
         x = measurements[measurements[label] == self.type1]
@@ -252,85 +264,95 @@ class CloneComparison(PairwiseComparison):
             ax.set_ylabel(ylabel)
 
 
-class SummaryStatistics:
+class CelltypeComparison:
     """
-    Summary of comparisons between mutant, heterozygote, and wildtype clones.
+    Summary of comparisons between all labeled celltypes.
 
     Attributes:
 
-        measurements (pd.DataFrame) - cell measurement data
+        measurements (pd.DataFrame) - measurement data
 
-        basis (str) - attribute on which clones are compared
+        basis (str) - attribute on which populations are compared
 
         label (str) - attribute used to define population labels
 
-        test (str) - name of test used, one of ('KS', 't', 'MW')
+        test (str) - statistical test used, one of ('KS', 't', 'MW')
 
     """
 
-    def __init__(self, control, perturbation, basis,
-                 label='celltype', test='MW'):
+    def __init__(self, measurements, basis,
+                 label='celltype', test='MW', **kwargs):
         """
-        Instantiate summary of comaprisons between mutant, heterozygote, and wildtype clones.
+        Instantiate summary of comparisons between all labeled cell types.
 
         Args:
 
-            control (pd.DataFrame) - measurements for control condition
+            measurements (pd.DataFrame) - measurement data
 
-            perturbation (pd.DataFrame) - measurements for perturbation condition
-
-            basis (str) - attribute on which clones are compared
+            basis (str) - attribute on which populations are compared
 
             label (str) - attribute used to define population labels
 
             test (str) - name of test used, one of ('KS', 't', 'MW')
 
+            kwargs: keyword arguments for statistical test
+
         """
-        self.measurements = dict(control=control, perturbation=perturbation)
+        self.measurements = measurements
         self.basis = basis
         self.label = label
         self.test = test
 
         # compute and report pvalues
-        pvals = self.run()
+        pvals = self.run(**kwargs)
         self.report(pvals)
 
-    def compare_celltype(self, condition, type1, type2, label='celltype'):
+    @property
+    def pairs(self):
+        """ Unique pairs of labels. """
+        label_values = self.measurements[self.label].unique()
+        return list(sorted([sorted(x) for x in combinations(label_values, 2)]))
+
+    def compare_celltype(self, type1, type2, **kwargs):
         """
         Args:
-
-            condition (str) - experimental condition, 'control' or 'perturbation'
 
             type1 (str) - first cell type
 
             type2 (str) - second cell type
 
-            label (str) - attribute used to define population labels
+            kwargs: keyword arguments for statistical test
 
         Returns:
 
             p (float) - p value for comparison statistic
 
-        """
-        data = self.measurements[condition]
-        comparison = CloneComparison(data, type1, type2, self.basis,
-                                     label=label)
-        return comparison.compare(self.test)
+            is_greater_than (bool) - True if first population mean is greater
 
-    def run(self):
         """
-        Compare mutant vs heterozygous and heterozygous vs wildtype for both the control and perturbation conditions.
+        comparison = PairwiseCelltypeComparison(self.measurements, type1, type2, self.basis, label=self.label)
+        return comparison.compare(self.test, **kwargs)
+
+    def run(self, **kwargs):
+        """
+        Compare all pairwise combinations of cell types.
+
+        kwargs: keyword arguments for statistical test
 
         Returns:
 
             pvals (dict) - {comparison: pvalue} pairs
 
         """
-        pvals = dict(
-            c_mh = self.compare_celltype('control', 'm', 'h', self.label),
-            c_hw = self.compare_celltype('control', 'h', 'w', self.label),
-            p_mh = self.compare_celltype('perturbation', 'm', 'h', self.label),
-            p_hw = self.compare_celltype('perturbation', 'h', 'w', self.label))
+
+        signs = {True: ' > ', False: ' < '}
+
+        pvals = OrderedDict()
+        for pair in self.pairs:
+            pval, greater_than = self.compare_celltype(*pair, **kwargs)
+            comparison_name = signs[greater_than].join([str(x) for x in pair])
+            pvals[comparison_name] = pval
+
         return pvals
 
     def report(self, pvals):
@@ -343,11 +365,8 @@ class SummaryStatistics:
 
         """
         print('Statistical test: {}'.format(self.test))
-        print('Control: 0x vs 1x: {:0.4f}'.format(pvals['c_mh']))
-        print('Control: 1x vs 2x: {:0.4f}'.format(pvals['c_hw']))
-        print('Perturbation: 0x vs 1x: {:0.4f}'.format(pvals['p_mh']))
-        print('Perturbation: 1x vs 2x: {:0.4f}'.format(pvals['p_hw']))
-
+        for test, pval in pvals.items():
+            print(test + ': p = {:0.4f}'.format(pval))
 
 
 # # define labels and corresponding fill colors

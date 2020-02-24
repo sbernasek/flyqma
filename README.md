@@ -5,21 +5,21 @@ Fly-QMA
 
 Expression patterns are typically identified by comparing the intensities of fluorescent reporters between groups of cells. Fly-QMA uses computer vision to quantify these differences in reporter expression by inferring them from microscope images. The measurements may then used to detect and analyze spatial patterns that might otherwise go unnoticed.
 
-Given confocal microscopy data, Fly-QMA facilitates:
+Given microscopy data, Fly-QMA facilitates:
 
-  - **Segmentation.** Detect cell nuclei within an image
+  - Image **segmentation** to detect cell nuclei
 
-  - **Measurement.** Quantify reporter expression levels
+  - Quantitative **measurement** of reporter expression levels
 
-  - **Bleedthrough Control.** Correct for fluorescence bleedthrough
+  - Automated **bleedthrough control** for enhanced measurement accuracy
 
-  - **Annotation.** Automatically label differing groups of cells
+  - Automated **annotation** of clonal patch patterns
 
-  - **ROI Definition.** Focus on particular regions of interest
+  - Manual **ROI definition** using a built-in GUI
 
-  - **Comparison.** Compare expression levels between cells
+  - **Statistical analysis** of expression levels and tissue morphology
 
-Please visit the [Fly-QMA homepage](https://sebastianbernasek.github.io/flyqma) for tips on getting started.
+Please visit the [Fly-QMA homepage](https://sebastianbernasek.github.io/flyqma/start.html) for tips on getting started with your own data.
 
 
 Installation
@@ -36,10 +36,16 @@ Getting Started
 See the [Fly-QMA tutorial](https://github.com/sebastianbernasek/flyqma/blob/master/tutorial.ipynb).
 
 
-Examples
-========
+Additioanl Examples
+===================
 
 For examples of complete projects utilizing Fly-QMA and the entire **NU FlyEye** platform, check out:
 
  - [Our Fly-QMA manuscript](https://doi.org/10.1101/775783)
  - [Our study](https://doi.org/10.1101/430744) of Pnt and Yan expression during retinal patterning in *Drosophila*.
+
+
+Authors
+=======
+
+[Amaral Lab](https://amaral.northwestern.edu/)

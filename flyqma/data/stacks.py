@@ -407,7 +407,8 @@ class Stack(StackIO):
                 preprocessing_kws={},
                 seed_kws={},
                 seg_kws={},
-                min_area=250):
+                min_area=250,
+                save=True):
         """
         Segment all layers using watershed strategy.
 
@@ -423,6 +424,8 @@ class Stack(StackIO):
 
             min_area (int) - threshold for minimum segment size, px
 
+            save (bool) - if True, save measurement data for each layer
+
         """
 
         # make sure image is loaded
@@ -436,7 +439,8 @@ class Stack(StackIO):
                 min_area=min_area)
 
             # save layer measurements and segmentation
-            layer.save()
+            if save:
+                layer.save()
 
     def train_annotator(self, attribute,
                         save=False,
