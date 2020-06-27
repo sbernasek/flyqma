@@ -3,6 +3,11 @@ Fly-QMA
 
 ![Fly-QMA Overview](docs/source/graphics/pipeline.png)
 
+<p class="aligncenter">
+  <img src="docs/source/graphics/pipeline.png" width="450px">
+</p>
+
+
 **Fly-QMA** is part of the **NU FlyEye** platform for quantitative analysis of *Drosophila* imaginal discs. The package enables Quantitative Mosaic Analysis (QMA) - that is, it helps users quantify and analyze expression patterns in mosaic tissues.
 
 Expression patterns are typically identified by comparing the intensities of fluorescent reporters between groups of cells. Fly-QMA uses computer vision to quantify these differences in reporter expression by inferring them from microscope images. The measurements may then used to detect and analyze spatial patterns that might otherwise go unnoticed.
