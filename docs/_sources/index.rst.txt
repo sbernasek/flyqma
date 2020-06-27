@@ -31,7 +31,6 @@ To get started, simply ``pip install flyqma`` then skim through our :ref:`beginn
 
 
 .. figure:: graphics/pipeline.png
-   :scale: 100 %
    :align: center
    :alt: flyqma-pipeline
 
