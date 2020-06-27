@@ -15,6 +15,14 @@ The fastest way to familiarize yourself with Fly-QMA is to start with a working 
 We also recommend reading the sections below before working with your own microscopy data.
 
 
+Pipeline Overview
+-----------------
+
+.. figure:: graphics/pipeline.png
+   :align: center
+   :alt: flyqma-pipeline
+
+
 Preparing Images
 ----------------
 

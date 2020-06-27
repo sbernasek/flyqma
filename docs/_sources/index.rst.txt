@@ -29,14 +29,6 @@ Given microscopy data, Fly-QMA facilitates:
 
 To get started, simply ``pip install flyqma`` then skim through our :ref:`beginners guide <start>`.
 
-
-.. figure:: graphics/pipeline.png
-   :align: center
-   :alt: flyqma-pipeline
-
-   The FlyQMA Pipeline
-
-
 .. toctree::
    :hidden:
    :maxdepth: 2
