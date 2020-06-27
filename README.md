@@ -1,19 +1,11 @@
-<style>
-  .img-container {
-    text-align: center;
-  }
-</style>
-
 Fly-QMA
 =======
 
-![Fly-QMA Overview](docs/source/graphics/pipeline.png)
+![Fly-QMA Overview](docs/source/graphics/pipeline.jpg)
 
-<div class="img-container">
-  <p class="img-container">
-    <img src="docs/source/graphics/pipeline.png" width="450px">
-  </p>
-</div>
+<p style="text-align:center;">
+  <img src="docs/source/graphics/pipeline.png" width="450px">
+</p>
 
 **Fly-QMA** is part of the **NU FlyEye** platform for quantitative analysis of *Drosophila* imaginal discs. The package enables Quantitative Mosaic Analysis (QMA) - that is, it helps users quantify and analyze expression patterns in mosaic tissues.
 
