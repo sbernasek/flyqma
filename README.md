@@ -5,19 +5,20 @@ Fly-QMA
 
 Expression patterns are typically identified by comparing the intensities of fluorescent reporters between groups of cells. Fly-QMA uses computer vision to quantify these differences in reporter expression by inferring them from microscope images. The measurements may then used to detect and analyze spatial patterns that might otherwise go unnoticed.
 
+Pipeline Overview
+-----------------
+
 Given microscopy data, Fly-QMA facilitates:
-
-  - Image **segmentation** to detect cell nuclei
-
-  - Quantitative **measurement** of reporter expression levels
-
+  - Automated **detection** of cell nuclei
+  - Automated **measurement** of reporter expression levels
   - Automated **bleedthrough control** for enhanced measurement accuracy
-
   - Automated **annotation** of clonal patch patterns
-
-  - Manual **ROI definition** using a built-in GUI
-
   - **Statistical analysis** of expression levels and tissue morphology
+
+.. figure:: docs/source/graphics/pipeline.png
+   :align: center
+   :alt: flyqma-pipeline
+
 
 Please visit the [Fly-QMA homepage](https://sebastianbernasek.github.io/flyqma/start.html) for tips on getting started with your own data.
 
