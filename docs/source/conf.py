@@ -30,7 +30,7 @@ author = 'Sebastian Bernasek'
 # The short X.Y version
 version = ''
 # The full version, including alpha/beta/rc tags
-release = 'v0.3'
+release = 'v0.4'
 
 
 # -- General configuration ---------------------------------------------------
@@ -98,7 +98,7 @@ html_theme_options = {
     #'logo_text_align': 'center',
 
     #github
-    'github_user': 'sebastianbernasek',
+    'github_user': 'sbernasek',
     'github_repo': 'flyqma',
     'github_banner': True,
 

@@ -14,7 +14,7 @@ Given microscopy data, Fly-QMA facilitates:
   - Automated **annotation** of clonal patch patterns
   - **Statistical analysis** of expression levels and tissue morphology
 
-Please visit the [Fly-QMA homepage](https://sebastianbernasek.github.io/flyqma/start.html) for tips on getting started with your own data.
+Please visit the [Fly-QMA homepage](https://sbernasek.github.io/flyqma/start.html) for tips on getting started with your own data.
 
 
 Installation
@@ -28,7 +28,7 @@ Installing Fly-QMA is easy. Set up a working environment running Python 3.6+, th
 Getting Started
 ===============
 
-See the [Fly-QMA tutorial](https://github.com/sebastianbernasek/flyqma/blob/master/tutorial.ipynb).
+See the [Fly-QMA tutorial](https://github.com/sbernasek/flyqma/blob/master/tutorial.ipynb).
 
 
 Additioanl Examples

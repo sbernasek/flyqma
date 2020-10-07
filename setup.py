@@ -13,12 +13,12 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='flyqma',
-    version='0.3',
+    version='0.4',
     author='Sebastian Bernasek',
     author_email='sebastian@u.northwestern.edu',
     packages=find_packages(exclude=('tests', 'scripts', 'validation')),
     scripts=[],
-    url='https://sebastianbernasek.github.io/flyqma/',
+    url='https://sbernasek.github.io/flyqma/',
     license='MIT',
     description='Quantitative mosaic analysis of Drosophila imaginal discs.',
     long_description=long_description,
