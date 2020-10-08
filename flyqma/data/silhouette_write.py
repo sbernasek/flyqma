@@ -55,7 +55,7 @@ class WriteSilhouette:
     @property
     def _feed(self):
         return {
-            "layer_ids": list(range(self.stack_depth)),
+            "layer_ids": list(range(len(self.included))),
             "orientation": {
                 "flip_about_xy": False,
                 "flip_about_yz": False},
@@ -74,9 +74,30 @@ class WriteSilhouette:
                 "subsegment_max_deep": 3,
                 "subsegment_opening_size": 0,
                 "total_percentage": 0}}
+    
+    def build_feud(self, label=None):
+        """ Compile feud file with <label> field serving as annotations. """
+    
+        # initialize feud file
+        feud = {"filter":{"r":0,"g":0,"b":0}, "layers": []}
+        
+        # compile labels from each layer
+        for layer_id, layer in enumerate(self):
+            
+            # compile layer's contour labels
+            if label is None or label not in layer.data.columns:            
+                contours = []
+            else:        
+                contours = [{"id": int(x), "label": str(y)} for x,y in layer.data[['segment_id', label]].values]        
+            
+            # add to feud
+            feud["layers"].append({"id": layer_id, "contours": contours})
+            
+        return feud
 
     def write_silhouette(self,
                          dst=None,
+                         label=None,
                          include_image=True,
                          channel_dict=None):
         """
@@ -85,6 +106,8 @@ class WriteSilhouette:
         Args:
 
             dst (str) - destination directory
+
+            label (str) - field containing cell type annotations
 
             include_image (bool) - save RGB image of each layer
 
@@ -105,13 +128,22 @@ class WriteSilhouette:
                 return
         mkdir(dst)
 
+        # make sure image is loaded
+        if self.stack is None:
+            self.load_image()
+
         # write feed file
         io = IO()
         io.write_json(join(dst, 'feed.json'), self._feed)
 
+        # write feud file
+        feud = self.build_feud(label=label)
+        io.write_json(join(dst, 'feud.json'), feud)
+
         # write layer files
-        for layer in self:
+        for layer_id, layer in enumerate(self):
             layer.write_silhouette(dst,
+                layer_id=layer_id,
                 include_image=include_image,
                 channel_dict=channel_dict)
 
@@ -195,33 +227,13 @@ class WriteSilhouetteLayer:
 
         return contours
 
-    def _to_silhouette(self, channel_dict):
-        """
-        Returns Silhouette compatible JSON format.
-
-        Args:
-
-            channel_dict (dict) - RGB channel names, keyed by channel index
-
-        Returns:
-
-            layer_dict (dict) - Silhouette compatible dictionary
-
-        """
-
-        # return contour dictionary
-        return {
-            'id': self._id,
-            'imageFilename': '{:d}.png'.format(self._id),
-            'contours': self.build_contours(channel_dict)}
-
     def _write_png(self, dst, channel_dict):
         """
         Write layer image to Silhouette-compatible RGB image in PNG format.
 
         Args:
 
-            dst (str) - destination directory
+            dst (str) - png filepath
 
             channel_dict (dict) - RGB channel names, keyed by channel index
 
@@ -230,11 +242,13 @@ class WriteSilhouetteLayer:
         image_8bit = np.round(self.im * 2**8).astype(np.uint8)
         image_RGB = image_8bit[..., [rev_channel_dict[c] for c in 'rgb']]
         image = PIL.Image.fromarray(image_RGB)
-        image.save(join(dst, '{:d}.png'.format(self._id)), format='png')
+        image.save(dst, format='png')
 
     def write_silhouette(self, dst,
+                         layer_id=None,
                          include_image=True,
-                         channel_dict=None):
+                         channel_dict=None,
+                         ):
         """
         Write silhouette compatible JSON to target directory.
 
@@ -242,20 +256,34 @@ class WriteSilhouetteLayer:
 
             dst (str) - destination directory
 
+            layer_id (int) - ID optionally used to override true layer ID
+
             include_image (bool) - save layer image as png
 
             channel_dict (dict) - RGB channel names, keyed by channel index. If none provided, defaults to the first three channels in RGB order.
 
         """
 
+        # define layer ID (overrides true stack layer)
+        if layer_id is None:
+            layer_id = self._id
+
         # define rgb map
         if channel_dict is None:
             channel_dict = dict(enumerate('rgb'))
 
-        filename = join(dst, '{:d}.json'.format(self._id))
-
+        # define paths
+        filepath = join(dst, '{:d}.json'.format(layer_id))
+        
+        # write contour data
         io = IO()
-        io.write_json(filename, self._to_silhouette(channel_dict=channel_dict))
+        contours = {
+            'id': layer_id,
+            'imageFilename': '{:d}.png'.format(layer_id),
+            'contours': self.build_contours(channel_dict)}
+        io.write_json(filepath, contours)
 
+        # write image
         if include_image:
-            self._write_png(dst, channel_dict=channel_dict)
+            img_path = join(dst, '{:d}.png'.format(layer_id))
+            self._write_png(img_path, channel_dict=channel_dict)
