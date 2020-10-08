@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Data Module &#8212; flyqma v0.3 documentation</title>
+    <title>Data Module &#8212; flyqma v0.4 documentation</title>
     <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -1181,6 +1181,12 @@
 </pre></div>
 </div>
 <dl class="method">
+<dt id="flyqma.data.silhouette_write.WriteSilhouette.build_feud">
+<code class="sig-name descname">build_feud</code><span class="sig-paren">(</span><em class="sig-param">label=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/silhouette_write.html#WriteSilhouette.build_feud"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.silhouette_write.WriteSilhouette.build_feud" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compile feud file with &lt;label&gt; field serving as annotations.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="flyqma.data.silhouette_write.WriteSilhouette.load_silhouette_labels">
 <code class="sig-name descname">load_silhouette_labels</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/silhouette_write.html#WriteSilhouette.load_silhouette_labels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.silhouette_write.WriteSilhouette.load_silhouette_labels" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load manually assigned labels from file.</p>
@@ -1198,11 +1204,12 @@
 
 <dl class="method">
 <dt id="flyqma.data.silhouette_write.WriteSilhouette.write_silhouette">
-<code class="sig-name descname">write_silhouette</code><span class="sig-paren">(</span><em class="sig-param">dst=None</em>, <em class="sig-param">include_image=True</em>, <em class="sig-param">channel_dict=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/silhouette_write.html#WriteSilhouette.write_silhouette"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.silhouette_write.WriteSilhouette.write_silhouette" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">write_silhouette</code><span class="sig-paren">(</span><em class="sig-param">dst=None</em>, <em class="sig-param">label=None</em>, <em class="sig-param">include_image=True</em>, <em class="sig-param">channel_dict=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/silhouette_write.html#WriteSilhouette.write_silhouette"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.silhouette_write.WriteSilhouette.write_silhouette" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write silhouette file.</p>
 <p>Args:</p>
 <blockquote>
 <div><p>dst (str) - destination directory</p>
+<p>label (str) - field containing cell type annotations</p>
 <p>include_image (bool) - save RGB image of each layer</p>
 <p>channel_dict (dict) - RGB channel names, keyed by channel index. If none provided, defaults to the first three channels in RGB order.</p>
 </div></blockquote>
@@ -1245,11 +1252,12 @@
 
 <dl class="method">
 <dt id="flyqma.data.silhouette_write.WriteSilhouetteLayer.write_silhouette">
-<code class="sig-name descname">write_silhouette</code><span class="sig-paren">(</span><em class="sig-param">dst</em>, <em class="sig-param">include_image=True</em>, <em class="sig-param">channel_dict=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/silhouette_write.html#WriteSilhouetteLayer.write_silhouette"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.silhouette_write.WriteSilhouetteLayer.write_silhouette" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">write_silhouette</code><span class="sig-paren">(</span><em class="sig-param">dst</em>, <em class="sig-param">layer_id=None</em>, <em class="sig-param">include_image=True</em>, <em class="sig-param">channel_dict=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/flyqma/data/silhouette_write.html#WriteSilhouetteLayer.write_silhouette"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#flyqma.data.silhouette_write.WriteSilhouetteLayer.write_silhouette" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write silhouette compatible JSON to target directory.</p>
 <p>Args:</p>
 <blockquote>
 <div><p>dst (str) - destination directory</p>
+<p>layer_id (int) - ID optionally used to override true layer ID</p>
 <p>include_image (bool) - save layer image as png</p>
 <p>channel_dict (dict) - RGB channel names, keyed by channel index. If none provided, defaults to the first three channels in RGB order.</p>
 </div></blockquote>
@@ -1280,7 +1288,7 @@
 
 
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=sebastianbernasek&repo=flyqma&type=watch&count=true&size=large&v=2"
+<iframe src="https://ghbtns.com/github-btn.html?user=sbernasek&repo=flyqma&type=watch&count=true&size=large&v=2"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
 
@@ -1340,7 +1348,7 @@
     </div>
 
     
-    <a href="https://github.com/sebastianbernasek/flyqma" class="github">
+    <a href="https://github.com/sbernasek/flyqma" class="github">
         <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
     </a>
     

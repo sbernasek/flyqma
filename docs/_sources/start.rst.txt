@@ -10,7 +10,7 @@
 Getting Started
 ===============
 
-The fastest way to familiarize yourself with Fly-QMA is to start with a working example. We recommend starting with the Fly-QMA `Tutorial <https://github.com/sebastianbernasek/flyqma/blob/master/tutorial.ipynb>`_.
+The fastest way to familiarize yourself with Fly-QMA is to start with a working example. We recommend starting with the Fly-QMA `Tutorial <https://github.com/sbernasek/flyqma/blob/master/tutorial.ipynb>`_.
 
 We also recommend reading the sections below before working with your own microscopy data.
 
@@ -201,7 +201,7 @@ The measurement data stored in the ``layer.measurements`` attribute and ``measur
   - Automated annotation
   - Manual annotation
 
-The objects that perform these operations all behave in a similar manner. They are manually defined for each disc (see the `Tutorial <https://github.com/sebastianbernasek/flyqma/blob/master/tutorial.ipynb>`_ for examples), but may then be saved for repeated use. When saved, each object creates its own subdirectory within the corresponding **LAYER** directory:
+The objects that perform these operations all behave in a similar manner. They are manually defined for each disc (see the `Tutorial <https://github.com/sbernasek/flyqma/blob/master/tutorial.ipynb>`_ for examples), but may then be saved for repeated use. When saved, each object creates its own subdirectory within the corresponding **LAYER** directory:
 
 .. code-block:: bash
 
