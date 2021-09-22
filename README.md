@@ -1,3 +1,7 @@
+
+[![DOI](https://zenodo.org/badge/150454759.svg)](https://zenodo.org/badge/latestdoi/150454759)
+
+
 Fly-QMA
 =======
 
