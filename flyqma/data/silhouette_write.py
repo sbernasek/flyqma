@@ -194,12 +194,18 @@ class WriteSilhouetteLayer:
 
         """
 
+        def is_collinear(points):
+            x0,y0  = points[0]
+            points = [ (x,y) for x,y in points if x != x0 or y != y0 ]      
+            slopes = [ (y-y0)/(x-x0) if x!=x0 else None for x,y in points ] 
+            return all( s == slopes[0] for s in slopes)
+
         # compile contour data
         assert self.labels is not None, 'Labels are not defined.'
         properties = regionprops(self.labels.T)
         ctr_data = pd.Series({p.label: self._construct_hull(p) \
-                             for p in properties}, name='points')
-        data = self.data.join(ctr_data, on='segment_id')
+                             for p in properties if not is_collinear(p.coords)}, name='points')
+        data = self.data.join(ctr_data, on='segment_id', how='inner')
 
         # coerce into Silhouette contour-list format
         data['id'] = data.segment_id
@@ -220,6 +226,12 @@ class WriteSilhouetteLayer:
         std_data.columns = keys
         data['color_std'] = std_data.to_dict(orient='records')
 
+        # if any channels are missing, add them as zeros
+        included_channels = set(channel_dict.values())
+        for missing_channel in set(list('rgb')).difference(included_channels):
+            data['color_avg'][missing_channel] = 0.0
+            data['color_std'][missing_channel] = 0.0
+
         # compile contour list
         keys = ['id', 'centroid', 'pixel_count', 'points',
                 'color_avg', 'color_std']
@@ -239,6 +251,13 @@ class WriteSilhouetteLayer:
 
         """
         rev_channel_dict = {v: k for k, v in channel_dict.items()}
+
+        # add any missing channels
+        rev_channel_dict.update(
+            {
+            ch:list(channel_dict.keys())[0] for ch in set('rgb').difference(set(channel_dict.values()))
+            }
+        )
         image_8bit = np.round(self.im * 2**8).astype(np.uint8)
         image_RGB = image_8bit[..., [rev_channel_dict[c] for c in 'rgb']]
         image = PIL.Image.fromarray(image_RGB)

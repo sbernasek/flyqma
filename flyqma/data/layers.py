@@ -603,9 +603,7 @@ class LayerMeasurement:
             fg_key = self._to_key(fg)
             data['{:s}_normalized'.format(fg_key)] = data[fg_key]/data[self.bg_key]
 
-    def import_segmentation_mask(self, path, channel,
-                                save=True,
-                                save_image=True):
+    def import_segmentation_mask(self, mask, channel, save=True, save_image=True):
             """
             Import external segmentation mask and use it to generate measurements.
 
@@ -613,7 +611,7 @@ class LayerMeasurement:
 
             Args:
 
-                path (str) - path to segmentation mask
+                mask (path or np.ndarray) - segmentation mask
 
                 channel (int) - fluorescence channel used for segmentation
 
@@ -623,12 +621,15 @@ class LayerMeasurement:
 
             """
 
-            assert exists(path), 'File does not exist.'
-
-            io = IO()
-            mask = io.read_npy(path)
+            # if a path was provided, load the file
+            if type(mask) == str:
+                assert exists(mask), 'File does not exist.'
+                assert '.npy' in mask, 'File is not a np.ndarray.'
+                io = IO()
+                mask = io.read_npy(mask)
 
             int_types = (int, np.int32, np.int64)
+            assert isinstance(mask, np.ndarray), 'Mask is not a numpy array.'
             assert mask.dtype in int_types, 'Mask does not contain integers.'
             assert mask.shape == self.shape, 'Mask dimensions are incorrect.'
             assert mask.min() >= 0, 'Mask contains values less than zero.'

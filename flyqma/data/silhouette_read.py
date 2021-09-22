@@ -80,7 +80,7 @@ class ReadSilhouetteData(ReadSilhouette):
 
     """
 
-    def __init__(self, path, recompile=False):
+    def __init__(self, path, recompile=False, include_unlabeled=False):
         """
         Instantiate interface to silhouette file data.
 
@@ -90,19 +90,27 @@ class ReadSilhouetteData(ReadSilhouette):
 
             recompile (bool) - if True, recompile measurements from all layers
 
+            include_unlabeled (bool) - if True, include unlabeled segments
+
         """
         super().__init__(path)
-        self.load(recompile=recompile)
+        self.load(recompile=recompile, include_unlabeled=include_unlabeled)
 
     @property
     def labels(self):
         """ pd.Series of labels keyed by (layer_id, segment_id). """
         return self.df.set_index(['layer', 'segment_id'])['label']
 
-    def compile_measurements(self):
-        """ Compile measurements from all layers (slow access). """
+    def compile_measurements(self, include_unlabeled=False):
+        """ 
+        Compile measurements from all layers (slow access). 
+
+        Args:
+            include_unlabeled (bool) - if True, include unlabeled segments
+
+        """
         labels = self.read_labels()
-        self.df = self.read_contours(labels)
+        self.df = self.read_contours(labels, include_unlabeled=include_unlabeled)
 
     def save_measurements(self):
         """ Save serialized measurements for fast access. """
@@ -112,13 +120,15 @@ class ReadSilhouetteData(ReadSilhouette):
         """ Load serialized measurements (fast access). """
         self.df = pd.read_json(join(self.path, 'measurements.json'))
 
-    def load(self, recompile=False):
+    def load(self, recompile=False, include_unlabeled=False):
         """
         Read all contour and orientation data from silhouette file.
 
         Args:
 
             recompile (bool) - if True, recompile measurements from all layers
+
+            include_unlabeled (bool) - if True, include unlabeled segments
 
         """
 
@@ -131,7 +141,7 @@ class ReadSilhouetteData(ReadSilhouette):
 
         # otherwise, recompile and save measurements
         else:
-            self.compile_measurements()
+            self.compile_measurements(include_unlabeled=include_unlabeled)
             self.save_measurements()
 
     def read_labels(self):
@@ -215,7 +225,7 @@ class ReadSilhouetteData(ReadSilhouette):
         """
 
         # read contours from all layers
-        contours = []
+        contours, keys = [], []
         for layer_id in self.feed['layer_ids']:
 
             # load labels for current layer
