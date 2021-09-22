@@ -610,3 +610,43 @@ class Stack(StackIO):
         layer.load(use_cache=use_cache, graph=graph)
 
         return layer
+    
+    def import_segmentation_mask(self, mask, channel, save_image=True):
+        """
+        Import external segmentation mask and use it to generate measurements.
+
+        Provided mask must contain a 3-D array of positive integers in which a value of zero denotes the image background.
+
+        Args:
+
+            mask (path or np.ndarray) - 3D segmentation mask
+
+            channel (int) - fluorescence channel used for segmentation
+
+            save (bool) - if True, copy segmentation to stack directory
+
+            save_image (bool) - if True, save segmentation image
+
+        """
+
+        # if a path was provided, load the file
+        if type(mask) == str:
+            assert exists(path), 'File does not exist.'
+            assert '.npy' in path, 'File is not a np.ndarray.'
+            io = IO()
+            mask = io.read_npy(path)
+
+        int_types = (int, np.int32, np.int64)
+        assert isinstance(mask, np.ndarray), 'Mask is not a numpy array.'
+        assert mask.dtype in int_types, 'Mask does not contain integers.'
+
+        # load the image so we can check that its shape matches the mask
+        if self.stack is None:
+            self.load_image()
+
+        assert mask.shape == self.stack.shape[:-1], 'Mask dimensions are incorrect.'
+        assert mask.min() >= 0, 'Mask contains values less than zero.'
+                    
+        # import the mask for each layer
+        for layer in self:
+            layer.import_segmentation_mask(mask[layer._id], channel, save=True, save_image=save_image)

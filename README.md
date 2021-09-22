@@ -36,7 +36,7 @@ Additioanl Examples
 
 For examples of complete projects utilizing Fly-QMA and the entire **NU FlyEye** platform, check out:
 
- - [Our Fly-QMA manuscript](https://doi.org/10.1101/775783)
+ - [Our Fly-QMA manuscript](https://doi.org/10.1371/journal.pcbi.1007406)
  - [Our study](https://doi.org/10.1101/430744) of Pnt and Yan expression during retinal patterning in *Drosophila*.
 
 
